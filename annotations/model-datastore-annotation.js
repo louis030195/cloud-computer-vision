@@ -1,22 +1,9 @@
-// Copyright 2017, Google, Inc.
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 'use strict';
 
 const {Datastore} = require('@google-cloud/datastore');
 
 const ds = new Datastore();
-const kind = 'Book';
+const kind = 'Annotation';
 
 // Translates from Datastore's entity format to
 // the format expected by the application.
@@ -78,10 +65,10 @@ function toDatastore(obj, nonIndexed) {
   return results;
 }
 
-// Lists all books in the Datastore sorted alphabetically by title.
+// Lists all annotations in the Datastore sorted alphabetically by title.
 // The ``limit`` argument determines the maximum amount of results to
 // return per page. The ``token`` argument allows requesting additional
-// pages. The callback is invoked with ``(err, books, nextPageToken)``.
+// pages. The callback is invoked with ``(err, annotations, nextPageToken)``.
 function list(limit, token, cb) {
   const q = ds
     .createQuery([kind])
@@ -102,7 +89,7 @@ function list(limit, token, cb) {
   });
 }
 
-// Similar to ``list``, but only lists the books created by the specified
+// Similar to ``list``, but only lists the annotations created by the specified
 // user.
 // [START listby]
 function listBy(userId, limit, token, cb) {
@@ -126,8 +113,8 @@ function listBy(userId, limit, token, cb) {
 }
 // [END listby]
 
-// Creates a new book or updates an existing book with new data. The provided
-// data is automatically translated into Datastore format. The book will be
+// Creates a new annotation or updates an existing annotation with new data. The provided
+// data is automatically translated into Datastore format. The annotation will be
 // queued for background processing.
 function update(id, data, cb) {
   let key;
