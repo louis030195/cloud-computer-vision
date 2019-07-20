@@ -26,12 +26,6 @@ const app = express();
 app.disable('etag');
 app.set('trust proxy', true);
 
-var pathRoot = `${__dirname}/front/build`
-
-app.use('/ui', express.static(pathRoot))
-app.get('/ui/*', function (req, res) {
-  res.sendFile(pathRoot + '/index.html')
-})
 
 // [START session]
 // Configure the session and session storage.
@@ -58,10 +52,12 @@ app.use(require('./lib/oauth2').router);
 // app.use('/books', require('./books/crud'));
 app.use('/api/books', require('./books/api'));
 
-// Redirect root to /books
-app.get('/', (req, res) => {
-  res.redirect('/ui');
-});
+var pathRoot = `${__dirname}/front/build`
+
+app.use('/', express.static(pathRoot))
+app.get('/*', function (req, res) {
+  res.sendFile(pathRoot + '/index.html')
+})
 
 // Basic 404 handler
 app.use((req, res) => {

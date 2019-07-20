@@ -6,10 +6,10 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
-const OUTPUT_PATH = resolve('./build')
-const INDEX_TEMPLATE = resolve('./index.html')
+const OUTPUT_PATH = resolve(__dirname + '/build')
+const INDEX_TEMPLATE = resolve(__dirname + '/index.html')
 
-const webcomponentsjs = '../node_modules/@webcomponents/webcomponentsjs'
+const webcomponentsjs = __dirname + '/../node_modules/@webcomponents/webcomponentsjs'
 
 const assets = [
 ]
@@ -33,7 +33,7 @@ const polyfills = [
 
 const commonConfig = merge([
   {
-    entry: './vision-client.js',
+    entry: __dirname + '/vision-client.js',
     output: {
       path: OUTPUT_PATH,
       filename: '[name].[chunkhash:8].js'
