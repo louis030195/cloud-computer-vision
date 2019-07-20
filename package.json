@@ -23,6 +23,7 @@
   },
   "scripts": {
     "start": "npm run build && node app.js",
+    "start-back": "node app.js",
     "test": "repo-tools test app && ava -t 30s --tap test/*.test.js",
     "e2e": "repo-tools test deploy && E2E_TESTS=True ava -t 30s --tap test/*.test.js",
     "build": "webpack --config front/webpack.config.js --env production",

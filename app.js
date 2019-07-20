@@ -7,12 +7,17 @@ const passport = require('passport');
 const config = require('./config');
 const {Datastore} = require('@google-cloud/datastore');
 const DatastoreStore = require('@google-cloud/connect-datastore')(session);
+const oauth2 = require('./lib/oauth2');
 
 const app = express();
 
 app.disable('etag');
 app.set('trust proxy', true);
 
+
+// Use the oauth middleware to automatically get the user's profile
+// information and expose login/logout URLs to templates.
+app.use(oauth2.template);
 
 // [START session]
 // Configure the session and session storage.
@@ -35,8 +40,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(require('./lib/oauth2').router);
 
-// Books
-app.use('/api/books', require('./frame/api'));
+// Frames
+app.use('/api/frames', require('./frames/api-frame'));
+
+// Videos
+app.use('/api/videos', require('./videos/api-video'));
+
+// Annotations
+app.use('/api/annotations', require('./annotations/api-annotation'));
 
 var pathRoot = `${__dirname}/front/build`
 
