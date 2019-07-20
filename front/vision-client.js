@@ -3,14 +3,15 @@
 import { LitElement, html } from 'lit-element'
 import page from 'page'
 import './vision-client-videos'
+import './vision-client-frame-upload'
 import VisionClientService from './services/vision-client-service'
 
 class VisionClient extends LitElement {
   constructor () {
     super()
-    this.page = 'videos'
+    this.page = 'frame-upload'
 
-    this.backendHost = 'http://' + window.location.hostname
+    this.backendHost = 'https://' + window.location.hostname
 
     this.visionClientService = new VisionClientService(this.backendHost)
   }
@@ -30,6 +31,9 @@ class VisionClient extends LitElement {
     page('/images', () => {
       this.page = 'videos'
     })
+    page('/frame-upload', () => {
+      this.page = 'frame-upload'
+    })
     page()
   }
 
@@ -39,6 +43,10 @@ class VisionClient extends LitElement {
         return html`<vision-client-videos
                         .visionClientService=${this.visionClientService}
                         ></vision-client-videos>`
+      case 'frame-upload':
+        return html`<vision-client-frame-upload
+                        .visionClientService=${this.visionClientService}
+                        ></vision-client-frame-upload>`
     }
   }
 }
