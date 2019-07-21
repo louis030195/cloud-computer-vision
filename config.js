@@ -30,6 +30,7 @@ nconf
     'OAUTH2_CALLBACK',
     'PORT',
     'SECRET',
+    'GOOGLE_APPLICATION_CREDENTIALS'
   ])
   // 3. Config file
   .file({file: path.join(__dirname, 'config.json')})

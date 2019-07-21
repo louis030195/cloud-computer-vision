@@ -37,7 +37,7 @@ class VisionClient extends LitElement {
     page()
   }
 
-  render () {
+ renderPage() {
     switch (this.page) {
       case 'videos':
         return html`<vision-client-videos
@@ -48,6 +48,14 @@ class VisionClient extends LitElement {
                         .visionClientService=${this.visionClientService}
                         ></vision-client-upload>`
     }
+ }
+
+  render () {
+
+      return html`
+    <a href="/upload">upload</a>
+    <a href="/api/frames">frames</a>
+      ${this.renderPage()}`
   }
 }
 

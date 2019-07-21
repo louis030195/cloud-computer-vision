@@ -14,21 +14,21 @@ class VisionClientUpload extends LitElement {
   constructor () {
     super()
     this.videos = []
+    this.incorrectFiles = []
   }
 
   firstUpdated () {
-    
+
   }
 
   updated () {
-    
+
   }
 
   render () {
     return html`
       Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) =>
       {
-        console.log('change')
         // object for allowed media types
         let accept = {
           video : ["video/mp4"],
@@ -36,7 +36,7 @@ class VisionClientUpload extends LitElement {
         // text   : ["text/plain", "text/css", "application/xml", "text/html"]
         };
 
-        let incorrectFiles = []
+        const incorrectFiles = []
         Array.from(e.target.files).forEach((file) => {
 
           // if file type could be detected
@@ -49,11 +49,10 @@ class VisionClientUpload extends LitElement {
                 incorrectFiles.push(file.name)
               }
           }
-          // let date = file.lastModifiedDate
-          // this.visionClientService.createFrame(`${date.getFullYear()}-${date.getMonth() < 10 ? '0' + date.getMonth() : date.getMonth()}-${date.getDate()}`)
         })
         this.incorrectFiles = incorrectFiles
       }}>
+      ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
     `
   }
 

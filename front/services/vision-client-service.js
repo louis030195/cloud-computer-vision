@@ -7,26 +7,24 @@ export default class VisionClientService {
         return window.fetch(`${this.backendHost}/api/videos`).then(r => r.json())
     }
 
-    createVideo(title) {
+    createVideo(file) {
+      const formData = new FormData()
+      formData.append('file', file)
       return fetch(`${this.backendHost}/api/videos`, {
         method: 'POST',
         cache: 'no-cache',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({title}), 
+        body: formData,
         })
         .then(response => response.json())
     }
 
-    createFrame(title) {
+    createFrame(file) {
+      const formData = new FormData()
+      formData.append('file', file)
       return fetch(`${this.backendHost}/api/frames`, {
         method: 'POST',
         cache: 'no-cache',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({title}), 
+        body: formData
         })
         .then(response => response.json())
     }

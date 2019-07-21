@@ -3,6 +3,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const model = require('./model-datastore-frame');
+const { getPublicUrl, sendUploadToGCS, multer } = require('../lib/images')
 
 const router = express.Router();
 
@@ -34,14 +35,20 @@ router.get('/', (req, res, next) => {
  *
  * Create a new frame.
  */
-router.post('/', (req, res, next) => {
-  model.create(req.body, (err, entity) => {
-    if (err) {
-      next(err);
-      return;
-    }
-    res.json(entity);
-  });
+router.post(
+  '/',
+  multer.single('file'),
+  sendUploadToGCS,
+  (req, res, next) => {
+    const data = {url: req.file.cloudStoragePublicUrl}
+    console.log(data)
+    model.create(data, (err, entity) => {
+      if (err) {
+        next(err);
+        return;
+      }
+      res.json(entity);
+    });
 });
 
 /**
