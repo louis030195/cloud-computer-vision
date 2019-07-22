@@ -4,7 +4,7 @@ export default class VisionClientService {
     }
 
     getVideos() {
-        return window.fetch(`${this.backendHost}/api/videos`).then(r => r.json())
+        return fetch(`${this.backendHost}/api/videos`).then(r => r.json())
     }
 
     createVideo(file) {
