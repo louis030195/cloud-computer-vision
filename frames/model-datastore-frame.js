@@ -116,7 +116,6 @@ function listBy(userId, limit, token, cb) {
 // data is automatically translated into Datastore format. The frame will be
 // queued for background processing.
 function update(id, data, cb) {
-    console.log(id, data, cb)
   let key;
   if (id) {
     key = ds.key([kind, parseInt(id, 10)]);

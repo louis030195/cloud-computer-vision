@@ -55,6 +55,7 @@ class VisionClient extends LitElement {
       return html`
     <a href="/upload">upload</a>
     <a href="/api/frames">frames</a>
+    <a href="/api/videos">videos</a>
       ${this.renderPage()}`
   }
 }
