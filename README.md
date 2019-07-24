@@ -13,7 +13,7 @@ npm install
 
 - [Get my OAuth2 IDs](https://developers.google.com/identity/protocols/OAuth2)
 - [Get a json key file and put it in key_account directory](https://cloud.google.com/docs/authentication/getting-started)
-
+- [Create a bucket](https://cloud.google.com/storage/docs/creating-buckets)
 
 ```
 echo "{
