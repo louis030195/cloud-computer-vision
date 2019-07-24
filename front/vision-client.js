@@ -2,7 +2,7 @@
 
 import { LitElement, html } from 'lit-element'
 import page from 'page'
-import './vision-client-videos'
+import './vision-client-display'
 import './vision-client-upload'
 import VisionClientService from './services/vision-client-service'
 
@@ -26,10 +26,7 @@ class VisionClient extends LitElement {
 
   firstUpdated () {
     page('/', () => {
-      this.page = 'videos'
-    })
-    page('/images', () => {
-      this.page = 'frames'
+      this.page = 'display'
     })
     page('/upload', () => {
       this.page = 'upload'
@@ -39,10 +36,10 @@ class VisionClient extends LitElement {
 
  renderPage() {
     switch (this.page) {
-      case 'videos':
-        return html`<vision-client-videos
+      case 'display':
+        return html`<vision-client-display
                         .visionClientService=${this.visionClientService}
-                        ></vision-client-videos>`
+                        ></vision-client-display>`
       case 'upload':
         return html`<vision-client-upload
                         .visionClientService=${this.visionClientService}
@@ -53,6 +50,7 @@ class VisionClient extends LitElement {
   render () {
 
       return html`
+    <a href="/">display</a>
     <a href="/upload">upload</a>
     <a href="/api/frames">frames</a>
     <a href="/api/videos">videos</a>

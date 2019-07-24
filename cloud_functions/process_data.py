@@ -30,7 +30,7 @@ def predict_json(project, model, instances, version=None):
     ).execute()
     if 'error' in response:
         raise RuntimeError(response['error'])
-    return response['predictions']
+    return response
 
 def hello_gcs(event, context):
     """Triggered by a change to a Cloud Storage bucket.
@@ -51,19 +51,40 @@ def hello_gcs(event, context):
     #print(list(query.fetch()))
     #https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/resnet_client.py
     files_to_process = list(query.fetch())
-    image_url = files_to_process[0]['imageUrl']
-    print('Will process', files_to_process[0])
 
-    # Download the image
-    dl_request = requests.get(image_url, stream=True)
-    dl_request.raise_for_status()
+    # Iterate through the media to process
+    for file in files_to_process: # TODO: will break if trying to process a video
+        image_url = file['imageUrl']
+        print('Will process', image_url)
 
-    # Compose a JSON Predict request (send JPEG image in base64).
-    img = base64.b64encode(dl_request.content).decode('utf-8')
-    #img = base64.b64encode(open('id_pic.jpg', "rb").read()).decode()
-    image_byte_dict = {"image_bytes": {"b64": img}}
+        # Download the image
+        dl_request = requests.get(image_url, stream=True)
+        dl_request.raise_for_status()
+        print("Downloaded image:", dl_request)
 
-    instances = [image_byte_dict]
+        # Compose a JSON Predict request (send JPEG image in base64).
+        img = base64.b64encode(dl_request.content).decode('utf-8')
+        #img = base64.b64encode(open('id_pic.jpg', "rb").read()).decode()
 
-    result = predict_json('wildlife-247309', 'resnet', instances, 'v1')
-    print('result', result)
+        # Create an object containing the data
+        image_byte_dict = {"image_bytes": {"b64": img}}
+        instances = [image_byte_dict]
+
+        # Query AI Platform with the media
+        result = predict_json('wildlife-247309', 'resnet', instances, 'v1')
+
+        # Put the detected object in Datastore
+        key_object = client.key('Object')
+        entity = datastore.Entity(key=key_object)
+        entity.update(result)
+        client.put(entity)
+
+        # Get the frame key in Datastore
+        key_frame = client.key('Frame', file.id)
+        entity = datastore.Entity(key=key_frame)
+
+        # Update the objects properties of the Frame row
+        obj = dict(file)
+        obj['objects'] = entity.id
+        entity.update(obj)
+        client.put(entity)

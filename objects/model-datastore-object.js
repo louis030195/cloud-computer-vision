@@ -3,7 +3,7 @@
 const {Datastore} = require('@google-cloud/datastore');
 
 const ds = new Datastore();
-const kind = 'Annotation';
+const kind = 'Object';
 
 // Translates from Datastore's entity format to
 // the format expected by the application.
@@ -62,13 +62,23 @@ function toDatastore(obj, nonIndexed) {
       excludeFromIndexes: nonIndexed.indexOf(k) !== -1,
     });
   });
+
+
+
+
+
+
+
+
+
+ttt
   return results;
 }
 
-// Lists all annotations in the Datastore sorted alphabetically by title.
+// Lists all objects in the Datastore sorted alphabetically by title.
 // The ``limit`` argument determines the maximum amount of results to
 // return per page. The ``token`` argument allows requesting additional
-// pages. The callback is invoked with ``(err, annotations, nextPageToken)``.
+// pages. The callback is invoked with ``(err, objects, nextPageToken)``.
 function list(limit, token, cb) {
   const q = ds
     .createQuery([kind])
@@ -89,7 +99,7 @@ function list(limit, token, cb) {
   });
 }
 
-// Similar to ``list``, but only lists the annotations created by the specified
+// Similar to ``list``, but only lists the objects created by the specified
 // user.
 // [START listby]
 function listBy(userId, limit, token, cb) {
@@ -113,8 +123,8 @@ function listBy(userId, limit, token, cb) {
 }
 // [END listby]
 
-// Creates a new annotation or updates an existing annotation with new data. The provided
-// data is automatically translated into Datastore format. The annotation will be
+// Creates a new object or updates an existing object with new data. The provided
+// data is automatically translated into Datastore format. The object will be
 // queued for background processing.
 function update(id, data, cb) {
   let key;

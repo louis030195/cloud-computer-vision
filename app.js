@@ -46,8 +46,8 @@ app.use('/api/frames', require('./frames/api-frame'));
 // Videos
 app.use('/api/videos', require('./videos/api-video'));
 
-// Annotations
-app.use('/api/annotations', require('./annotations/api-annotation'));
+// Objects
+app.use('/api/objects', require('./objects/api-object'));
 
 var pathRoot = `${__dirname}/front/build`
 

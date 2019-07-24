@@ -2,7 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const model = require('./model-datastore-annotation');
+const model = require('./model-datastore-object');
 
 const router = express.Router();
 
@@ -10,9 +10,9 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 /**
- * GET /api/annotations
+ * GET /api/objects
  *
- * Retrieve a page of annotations (up to ten at a time).
+ * Retrieve a page of objects (up to ten at a time).
  */
 router.get('/', (req, res, next) => {
   model.list(10, req.query.pageToken, (err, entities, cursor) => {
@@ -28,9 +28,9 @@ router.get('/', (req, res, next) => {
 });
 
 /**
- * POST /api/annotations
+ * POST /api/objects
  *
- * Create a new annotation.
+ * Create a new object.
  */
 router.post('/', (req, res, next) => {
   model.create(req.body, (err, entity) => {
@@ -43,12 +43,12 @@ router.post('/', (req, res, next) => {
 });
 
 /**
- * GET /api/annotations/:id
+ * GET /api/objects/:id
  *
- * Retrieve a annotation.
+ * Retrieve a object.
  */
-router.get('/:annotation', (req, res, next) => {
-  model.read(req.params.annotation, (err, entity) => {
+router.get('/:object', (req, res, next) => {
+  model.read(req.params.object, (err, entity) => {
     if (err) {
       next(err);
       return;
@@ -58,12 +58,12 @@ router.get('/:annotation', (req, res, next) => {
 });
 
 /**
- * PUT /api/annotations/:id
+ * PUT /api/objects/:id
  *
- * Update a annotation.
+ * Update a object.
  */
-router.put('/:annotation', (req, res, next) => {
-  model.update(req.params.annotation, req.body, (err, entity) => {
+router.put('/:object', (req, res, next) => {
+  model.update(req.params.object, req.body, (err, entity) => {
     if (err) {
       next(err);
       return;
@@ -73,12 +73,12 @@ router.put('/:annotation', (req, res, next) => {
 });
 
 /**
- * DELETE /api/annotations/:id
+ * DELETE /api/objects/:id
  *
- * Delete a annotation.
+ * Delete a object.
  */
-router.delete('/:annotation', (req, res, next) => {
-  model.delete(req.params.annotation, err => {
+router.delete('/:object', (req, res, next) => {
+  model.delete(req.params.object, err => {
     if (err) {
       next(err);
       return;
@@ -88,7 +88,7 @@ router.delete('/:annotation', (req, res, next) => {
 });
 
 /**
- * Errors on "/api/annotations/*" routes.
+ * Errors on "/api/objects/*" routes.
  */
 router.use((err, req, res, next) => {
   // Format error and forward to generic error handler for logging and

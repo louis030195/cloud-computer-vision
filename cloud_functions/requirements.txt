@@ -1,0 +1,2 @@
+google-cloud-datastore
+google-api-python-client
