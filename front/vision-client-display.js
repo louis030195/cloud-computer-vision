@@ -25,12 +25,15 @@ class VisionClientDisplay extends LitElement {
 
   render () {
     return html`
-      Main page i guess ${this.frames["items"] !== undefined ? this.frames["items"].map((f, i) => html`<img src=${f["imageUrl"]}>`) : ''}
+      Main page i guess <br />${this.frames["items"] !== undefined ? this.frames["items"].map((f, i) => html`<img src=${f["imageUrl"]}>`) : ''}
     `
   }
 
   static get styles () {
     return css`
+    img {
+        width:300px;
+    }
     `
   }
 }
