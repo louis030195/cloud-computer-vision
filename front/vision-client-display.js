@@ -18,14 +18,19 @@ class VisionClientDisplay extends LitElement {
   }
 
   firstUpdated () {
-    this.visionClientService.getVideos().then(videos => { this.videos = videos })
-    this.visionClientService.getFrames().then(frames => { this.frames = frames })
+      this.WaitData()
+  }
+
+  async WaitData() {
+    await this.visionClientService.getVideos().then(videos => { this.videos = videos["items"] })
+    await this.visionClientService.getFrames().then(frames => { this.frames = frames["items"] })
+    await this.visionClientService.getObject(this.frames[0]["objects"])
   }
 
 
   render () {
     return html`
-      Main page i guess <br />${this.frames["items"] !== undefined ? this.frames["items"].map((f, i) => html`<img src=${f["imageUrl"]}>`) : ''}
+      Main page i guess <br />${this.frames !== undefined ? this.frames.map((f, i) => html`<img src=${f["imageUrl"]}>`) : ''}
     `
   }
 

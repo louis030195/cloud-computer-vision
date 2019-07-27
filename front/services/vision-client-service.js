@@ -11,6 +11,15 @@ export default class VisionClientService {
         return fetch(`${this.backendHost}/api/frames`).then(r => r.json())
     }
 
+    getObjects() {
+        return fetch(`${this.backendHost}/api/objects`).then(r => r.json())
+    }
+
+    getObject(id) {
+        console.log('id:'+id)
+        return fetch(`${this.backendHost}/api/object/${id}`).then(object => { console.log(object) })//.then(r => r.text())
+    }
+
     createVideo(file) {
       const formData = new FormData()
       formData.append('file', file)

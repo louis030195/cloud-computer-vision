@@ -27,7 +27,10 @@ const sessionConfig = {
   secret: config.get('SECRET'),
   signed: true,
   store: new DatastoreStore({
-    dataset: new Datastore(),
+    dataset: new Datastore({
+        projectId: config.get('PROJECT_ID'),
+        keyFilename: config.get('GOOGLE_APPLICATION_CREDENTIALS')
+    }),
     kind: 'express-sessions',
   }),
 };

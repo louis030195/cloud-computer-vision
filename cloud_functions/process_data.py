@@ -64,7 +64,7 @@ def hello_gcs(event, context):
 
         # Compose a JSON Predict request (send JPEG image in base64).
         img = base64.b64encode(dl_request.content).decode('utf-8')
-        #img = base64.b64encode(open('id_pic.jpg', "rb").read()).decode()
+        # img = base64.b64encode(open('id_pic.jpg', "rb").read()).decode()
 
         # Create an object containing the data
         image_byte_dict = {"image_bytes": {"b64": img}}
