@@ -44,7 +44,7 @@ test.cb(`should start authorization`, t => {
   });
   const app = proxyquire(`../app`, {
     passport: passportMock,
-    './lib/oauth2': proxyquire(`../lib/oauth2`, {
+    './utils/oauth2': proxyquire(`../utils/oauth2`, {
       passport: passportMock,
     }),
   });
@@ -72,12 +72,12 @@ test.cb(`should start authorization`, t => {
 
 test.cb(`should finish authorization`, t => {
   const passportMock = getPassportMock();
-  const oauth2 = proxyquire(`../lib/oauth2`, {
+  const oauth2 = proxyquire(`../utils/oauth2`, {
     passport: passportMock,
   });
   const app = proxyquire(`../app`, {
     passport: passportMock,
-    './lib/oauth2': oauth2,
+    './utils/oauth2': oauth2,
   });
   request(app)
     .get(`/auth/google/callback?code=foo`)
@@ -129,7 +129,7 @@ test.cb(`should logout`, t => {
   const passportMock = getPassportMock();
   const app = proxyquire(`../app`, {
     passport: passportMock,
-    './lib/oauth2': proxyquire(`../lib/oauth2`, {
+    './utils/oauth2': proxyquire(`../utils/oauth2`, {
       passport: passportMock,
     }),
   });
@@ -157,7 +157,7 @@ test.cb(`should logout`, t => {
 
 test(`should require authentication`, t => {
   const passportMock = getPassportMock();
-  const oauth2 = proxyquire(`../lib/oauth2`, {
+  const oauth2 = proxyquire(`../utils/oauth2`, {
     passport: passportMock,
   });
   const req = {
@@ -182,7 +182,7 @@ test(`should require authentication`, t => {
 
 test(`should add template variables`, t => {
   const passportMock = getPassportMock();
-  const oauth2 = proxyquire(`../lib/oauth2`, {
+  const oauth2 = proxyquire(`../utils/oauth2`, {
     passport: passportMock,
   });
   const req = {

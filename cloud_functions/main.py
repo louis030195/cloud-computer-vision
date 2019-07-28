@@ -32,7 +32,7 @@ def predict_json(project, model, instances, version=None):
         raise RuntimeError(response['error'])
     return response
 
-def hello_gcs(event, context):
+def process_data(event, context):
     """Triggered by a change to a Cloud Storage bucket.
     Args:
          event (dict): Event payload.
@@ -75,16 +75,16 @@ def hello_gcs(event, context):
 
         # Put the detected object in Datastore
         key_object = client.key('Object')
-        entity = datastore.Entity(key=key_object)
-        entity.update(result)
-        client.put(entity)
+        entity_object = datastore.Entity(key=key_object)
+        entity_object.update(result)
+        client.put(entity_object)
 
         # Get the frame key in Datastore
         key_frame = client.key('Frame', file.id)
-        entity = datastore.Entity(key=key_frame)
+        entity_frame = datastore.Entity(key=key_frame)
 
         # Update the objects properties of the Frame row
         obj = dict(file)
-        obj['objects'] = entity.id
-        entity.update(obj)
-        client.put(entity)
+        obj['objects'] = entity_object.id
+        entity_frame.update(obj)
+        client.put(entity_frame)

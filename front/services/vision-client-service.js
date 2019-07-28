@@ -16,8 +16,7 @@ export default class VisionClientService {
     }
 
     getObject(id) {
-        console.log('id:'+id)
-        return fetch(`${this.backendHost}/api/object/${id}`).then(object => { console.log(object) })//.then(r => r.text())
+        return fetch(`${this.backendHost}/api/objects/${id}`).then(r => r.json())
     }
 
     createVideo(file) {

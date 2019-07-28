@@ -59,10 +59,11 @@ gcloud ai-platform versions create "[YOUR_VERSION_NAME]" \
     --machine-type "mls1-c4-m2"
 ```
 
-### Depploy Cloud Function
+### Deploy Cloud Function
 
+Replace in cloud_functions/main.py predict_json() call your GCP parameters
 ```
-gcloud functions deploy --source cloud_functions hello_gcs --runtime python37 --trigger-resource YOUR_TRIGGER_BUCKET_NAME --trigger-event google.storage.object.finalize
+gcloud functions deploy --source cloud_functions process_data --runtime python37 --trigger-resource YOUR_TRIGGER_BUCKET_NAME --trigger-event google.storage.object.finalize
 ```
 
 ### Deploy to Google Cloud App engine

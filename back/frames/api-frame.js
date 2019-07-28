@@ -3,14 +3,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const model = require('./model-datastore-frame');
-const { getPublicUrl, sendUploadToGCS, multer } = require('../lib/images')
+const { getPublicUrl, sendUploadToGCS, multer } = require('../../utils/images')
 
 const router = express.Router();
 
 // Automatically parse request body as JSON
 router.use(bodyParser.json());
 
-router.use(require('../lib/oauth2').router);
+router.use(require('../../utils/oauth2').router);
 
 /**
  * GET /api/frames
@@ -40,7 +40,6 @@ router.post(
   multer.single('file'),
   sendUploadToGCS,
   (req, res, next) => {
-    console.log(req, res)
     const data = {imageUrl: req.file.cloudStoragePublicUrl, objects: null} // Objects represents the object detected in the media
     model.create(data, (err, entity) => {
       if (err) {

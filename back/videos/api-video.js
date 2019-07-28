@@ -3,7 +3,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const model = require('./model-datastore-video');
-const { getPublicUrl, sendUploadToGCS, multer } = require('../lib/images')
+const { getPublicUrl, sendUploadToGCS, multer } = require('../../utils/images')
 
 const router = express.Router();
 

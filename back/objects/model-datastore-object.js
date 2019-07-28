@@ -62,16 +62,6 @@ function toDatastore(obj, nonIndexed) {
       excludeFromIndexes: nonIndexed.indexOf(k) !== -1,
     });
   });
-
-
-
-
-
-
-
-
-
-ttt
   return results;
 }
 
@@ -83,7 +73,6 @@ function list(limit, token, cb) {
   const q = ds
     .createQuery([kind])
     .limit(limit)
-    .order('title')
     .start(token);
 
   ds.runQuery(q, (err, entities, nextQuery) => {
@@ -105,7 +94,6 @@ function list(limit, token, cb) {
 function listBy(userId, limit, token, cb) {
   const q = ds
     .createQuery([kind])
-    .filter('createdById', '=', userId)
     .limit(limit)
     .start(token);
 
@@ -136,7 +124,7 @@ function update(id, data, cb) {
 
   const entity = {
     key: key,
-    data: toDatastore(data, ['description']),
+    data: toDatastore(data, []),
   };
 
   ds.save(entity, err => {

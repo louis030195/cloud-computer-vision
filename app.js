@@ -7,7 +7,7 @@ const passport = require('passport');
 const config = require('./config');
 const {Datastore} = require('@google-cloud/datastore');
 const DatastoreStore = require('@google-cloud/connect-datastore')(session);
-const oauth2 = require('./lib/oauth2');
+const oauth2 = require('./utils/oauth2');
 
 const app = express();
 
@@ -41,16 +41,16 @@ app.use(session(sessionConfig));
 // OAuth2
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(require('./lib/oauth2').router);
+app.use(require('./utils/oauth2').router);
 
 // Frames
-app.use('/api/frames', require('./frames/api-frame'));
+app.use('/api/frames', require('./back/frames/api-frame'));
 
 // Videos
-app.use('/api/videos', require('./videos/api-video'));
+app.use('/api/videos', require('./back/videos/api-video'));
 
 // Objects
-app.use('/api/objects', require('./objects/api-object'));
+app.use('/api/objects', require('./back/objects/api-object'));
 
 var pathRoot = `${__dirname}/front/build`
 
