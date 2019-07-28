@@ -43,20 +43,19 @@ echo -e '{
 
 ### Deploy an object detection model to AI Platform
 ```
-curl -o model.tar.gz http://download.tensorflow.org/models/official/20181001_resnet/savedmodels/resnet_v2_fp32_savedmodel_NHWC_jpg.tar.gz
+# Pick your fancy model
+# https://github.com/tensorflow/models/blob/master/research/object_detection
+curl -o model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
 tar xvf model.tar.gz
-gsutil -m cp model/* gs://[BUCKET_NAME]/
+gsutil -m cp -r ssd_mobilenet_v1_coco_2018_01_28/saved_model gs://[BUCKET_NAME]/
 
-gcloud ai-platform models create model_name \
-  --regions us-central1
+gcloud ai-platform models create model1
 
-
-gcloud ai-platform versions create "[YOUR_VERSION_NAME]" \
-    --model "[YOUR_MODEL_NAME]" \
-    --origin "[YOUR_GCS_PATH_TO_MODEL_DIRECTORY]" \
-    --runtime-version "1.13" \
-    --python-version "3.5" \
-    --machine-type "mls1-c4-m2"
+gcloud ai-platform versions create v1 \
+    --model model1 \
+    --origin gs://[BUCKET_NAME]/saved_model \
+    --runtime-version 1.14 \
+    --python-version 2.7
 ```
 
 ### Deploy Cloud Function
@@ -70,3 +69,11 @@ gcloud functions deploy --source cloud_functions process_data --runtime python37
 ```
 gcloud app deploy
 ```
+
+# TODO
+- Script that configure all the repo + gcp automatically
+- Boxes
+- Delete media
+- Videos
+- Stuff with dates, count, stats ...
+- ...

@@ -1,6 +1,7 @@
 /* globals customElements */
 
 import { LitElement, html, css } from 'lit-element'
+import './vision-client-frame'
 
 class VisionClientDisplay extends LitElement {
   static get properties () {
@@ -18,19 +19,19 @@ class VisionClientDisplay extends LitElement {
   }
 
   firstUpdated () {
-      this.WaitData()
+    this.visionClientService.getVideos().then(videos => { this.videos = videos["items"] })
+    this.visionClientService.getFrames().then(frames => { this.frames = frames["items"] })
   }
-
-  async WaitData() {
-    await this.visionClientService.getVideos().then(videos => { this.videos = videos["items"] })
-    await this.visionClientService.getFrames().then(frames => { this.frames = frames["items"] })
-    await this.visionClientService.getObject(this.frames[0]["objects"]).then(o => { console.log(o) })
-  }
-
 
   render () {
     return html`
-      Main page i guess <br />${this.frames !== undefined ? this.frames.map((f, i) => html`<img src=${f["imageUrl"]}>`) : ''}
+    <br />
+      ${this.frames !== undefined ? this.frames.map((f, i) =>
+      html`<vision-client-frame
+      .visionClientService=${this.visionClientService}
+      .objects=${f["objects"]}
+      .imageUrl=${f["imageUrl"]}
+      </vision-client-frame>`) : ''}
     `
   }
 

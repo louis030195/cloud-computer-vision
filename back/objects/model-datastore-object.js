@@ -1,8 +1,11 @@
 'use strict';
 
 const {Datastore} = require('@google-cloud/datastore');
-
-const ds = new Datastore();
+const config = require('../../config');
+const ds = new Datastore({
+    projectId: config.get('PROJECT_ID'),
+    keyFilename: __dirname + '/../../' + config.get('GOOGLE_APPLICATION_CREDENTIALS')
+});
 const kind = 'Object';
 
 // Translates from Datastore's entity format to
