@@ -12,7 +12,7 @@ class VisionClientFrame extends LitElement {
   }
 
   firstUpdated () {
-    this.visionClientService.getObject(this.objects).then(object => { this.object = object })
+
   }
 
   // Based on https://github.com/eisbilen/TFJS-ObjectDetection/blob/06324d6a4673d2933695bd6644fa2a7bc5e81326/src/app/app.component.ts
@@ -59,7 +59,8 @@ class VisionClientFrame extends LitElement {
   render() {
     // Predicted class ${this.object["predictions"][0]["classes"]}
     return html`
-    Object ${this.objects !== undefined ? this.objects : ''}<img src=${this.imageUrl}>
+    Object ${this.objects !== undefined ? this.visionClientService.getObject(this.objects).then(object => { return object }) : ''}
+    <img src=${this.imageUrl}>
     `
   }
 }

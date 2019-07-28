@@ -71,7 +71,7 @@ def process_data(event, context):
         instances = [image_byte_dict]
 
         # Query AI Platform with the media
-        result = predict_json('wildlife-247309', 'resnet', instances, 'v1')
+        result = predict_json('wildlife-247309', 'm1', instances, 'v1')
 
         # Put the detected object in Datastore
         key_object = client.key('Object')

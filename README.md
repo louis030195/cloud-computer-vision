@@ -25,7 +25,7 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 
 ### Create GCP storage bucket
 ```
-gsutil mb gs://[BUCKET_NAME]/
+gsutil mb gs://[BUCKET_NAME]/ --regions europe-west1
 gsutil defacl set public-read gs://[YOUR-BUCKET-NAME]
 ```
 
@@ -43,16 +43,15 @@ echo -e '{
 
 ### Deploy an object detection model to AI Platform
 ```
-# Pick your fancy model
-# https://github.com/tensorflow/models/blob/master/research/object_detection
 curl -o model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
 tar xvf model.tar.gz
 gsutil -m cp -r ssd_mobilenet_v1_coco_2018_01_28/saved_model gs://[BUCKET_NAME]/
 
-gcloud ai-platform models create model1
+gcloud ai-platform models create m1 \
+--regions europe-west1
 
 gcloud ai-platform versions create v1 \
-    --model model1 \
+    --model m1 \
     --origin gs://[BUCKET_NAME]/saved_model \
     --runtime-version 1.14 \
     --python-version 2.7
@@ -62,7 +61,12 @@ gcloud ai-platform versions create v1 \
 
 Replace in cloud_functions/main.py predict_json() call your GCP parameters
 ```
-gcloud functions deploy --source cloud_functions process_data --runtime python37 --trigger-resource YOUR_TRIGGER_BUCKET_NAME --trigger-event google.storage.object.finalize
+gcloud functions deploy process_data \
+--source cloud_functions \
+--runtime python37 \
+--project [PROJECT_ID] \
+--trigger-resource gs://[BUCKET_NAME] \
+--trigger-event google.storage.object.finalize
 ```
 
 ### Deploy to Google Cloud App engine
@@ -77,3 +81,16 @@ gcloud app deploy
 - Videos
 - Stuff with dates, count, stats ...
 - ...
+
+# Other informations about models
+## Object detection models
+- [github/tensorflow/models](https://github.com/tensorflow/models/blob/master/research/object_detection)
+- [tfhub](https://tfhub.dev/s?module-type=image-object-detection)
+## Check graph of a SavedModel
+```
+# https://github.com/tensorflow/tensorflow
+python tensorflow/tensorflow/python/tools/saved_model_cli.py show --dir ssd_mobilenet_v1_coco_2018_01_28/saved_model --all
+```
+
+## AI Platform is limited to 250 mb models
+[Optimizing models](https://medium.com/google-cloud/optimizing-tensorflow-models-for-serving-959080e9ddbf)
