@@ -24,7 +24,7 @@ class VisionClientDisplay extends LitElement {
   async WaitData() {
     await this.visionClientService.getVideos().then(videos => { this.videos = videos["items"] })
     await this.visionClientService.getFrames().then(frames => { this.frames = frames["items"] })
-    await this.visionClientService.getObject(this.frames[0]["objects"])
+    // await this.visionClientService.getObject(this.frames[0]["objects"])
   }
 
 

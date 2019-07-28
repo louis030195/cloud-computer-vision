@@ -36,7 +36,8 @@ echo -e '{
     "OAUTH2_CLIENT_ID": "[YOUR_OAUTH2_CLIENT_ID]",
     "OAUTH2_CLIENT_SECRET": "[YOUR_OAUTH2_CLIENT_SECRET]",
     "OAUTH2_CALLBACK": "https://[PROJECT_ID].appspot.com/auth/google/callback",
-    "GOOGLE_APPLICATION_CREDENTIALS": "./key_account/[JSON__KEY_NAME]"
+    "GOOGLE_APPLICATION_CREDENTIALS": "./key_account/[JSON__KEY_NAME]",
+    "PROJECT_ID": "[YOUR_PROJECT_ID]"
 }' > config.json
 ```
 
@@ -56,6 +57,12 @@ gcloud ai-platform versions create "[YOUR_VERSION_NAME]" \
     --runtime-version "1.13" \
     --python-version "3.5" \
     --machine-type "mls1-c4-m2"
+```
+
+### Depploy Cloud Function
+
+```
+gcloud functions deploy --source cloud_functions hello_gcs --runtime python37 --trigger-resource YOUR_TRIGGER_BUCKET_NAME --trigger-event google.storage.object.finalize
 ```
 
 ### Deploy to Google Cloud App engine
