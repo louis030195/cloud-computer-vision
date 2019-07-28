@@ -2,7 +2,7 @@
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
 # Installation
-
+It is recommended to just use GitPod, there is less setup to do but you can also do local dev
 ## Local development
 ### [Install NodeJS](https://www.google.com/search?ei=D3Q4XZGcM8OHjLsPs--n8AM&q=install+nodejs)
 ```
@@ -29,17 +29,15 @@ gsutil mb gs://[BUCKET_NAME]/
 gsutil defacl set public-read gs://[YOUR-BUCKET-NAME]
 ```
 
-[Or by GUI](https://cloud.google.com/storage/docs/creating-buckets)
-
 ### Config file
 ```
-echo "{
+echo -e '{
     "CLOUD_BUCKET": "[YOUR_BUCKET]",
     "OAUTH2_CLIENT_ID": "[YOUR_OAUTH2_CLIENT_ID]",
     "OAUTH2_CLIENT_SECRET": "[YOUR_OAUTH2_CLIENT_SECRET]",
     "OAUTH2_CALLBACK": "https://[PROJECT_ID].appspot.com/auth/google/callback",
     "GOOGLE_APPLICATION_CREDENTIALS": "./key_account/[JSON__KEY_NAME]"
-  }" > config.json
+}' > config.json
 ```
 
 ### Deploy an object detection model to AI Platform
