@@ -25,7 +25,8 @@ echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.clou
 
 ### Create GCP storage bucket
 ```
-gsutil mb gs://[BUCKET_NAME]/ --regions europe-west1
+gsutil mb gs://[BUCKET_NAME]/ \
+--regions [YOUR_REGION]
 gsutil defacl set public-read gs://[YOUR-BUCKET-NAME]
 ```
 
@@ -48,7 +49,7 @@ tar xvf model.tar.gz
 gsutil -m cp -r ssd_mobilenet_v1_coco_2018_01_28/saved_model gs://[BUCKET_NAME]/
 
 gcloud ai-platform models create m1 \
---regions europe-west1
+--regions [YOUR_REGION]
 
 gcloud ai-platform versions create v1 \
     --model m1 \
@@ -66,6 +67,7 @@ gcloud functions deploy process_data \
 --runtime python37 \
 --project [PROJECT_ID] \
 --trigger-resource gs://[BUCKET_NAME] \
+--region [YOUR_REGION]
 --trigger-event google.storage.object.finalize
 ```
 

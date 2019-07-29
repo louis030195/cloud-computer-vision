@@ -1,2 +1,4 @@
 google-cloud-datastore
 google-api-python-client
+opencv-python
+numpy

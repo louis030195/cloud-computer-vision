@@ -1,5 +1,7 @@
-import base64
+#import base64
 import requests
+import numpy as np
+import cv2
 import googleapiclient.discovery
 from google.cloud import datastore
 
@@ -38,8 +40,6 @@ def process_data(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    #path = 'https://storage.googleapis.com/' + event['id'].split(' ')[0] + '.' + event['id'].split('.')[1]
-    #print('path' + path)
     #if not event['contentType'].startswith('video'): # If its not a video
 
     # Create, populate and persist an entity with keyID=1234
@@ -47,27 +47,32 @@ def process_data(event, context):
     # Then get by key for this entity
     query = client.query(kind='Frame')
     query.add_filter('objects', '=', None)
-    #print('Stuff to process: ')
-    #print(list(query.fetch()))
-    #https://github.com/tensorflow/serving/blob/master/tensorflow_serving/example/resnet_client.py
     files_to_process = list(query.fetch())
 
     # Iterate through the media to process
-    for file in files_to_process: # TODO: will break if trying to process a video
+    # TODO: will break if trying to process a video
+    for file in files_to_process:
         image_url = file['imageUrl']
-        print('Will process', image_url)
 
         # Download the image
         dl_request = requests.get(image_url, stream=True)
         dl_request.raise_for_status()
-        print("Downloaded image:", dl_request)
 
+        # Model input is b64
         # Compose a JSON Predict request (send JPEG image in base64).
-        img = base64.b64encode(dl_request.content).decode('utf-8')
+        # img = base64.b64encode(dl_request.content).decode('utf-8')
         # img = base64.b64encode(open('id_pic.jpg', "rb").read()).decode()
 
+        # Model input is array
+        # Compose a JSON Predict request (send JPEG image as array).
+        arr = np.asarray(bytearray(dl_request.content), dtype=np.uint8)
+        img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (300, 300))
+
         # Create an object containing the data
-        image_byte_dict = {"image_bytes": {"b64": img}}
+        # b64
+        # image_byte_dict = {"image_bytes": {"b64": img}}
+        # array
+        image_byte_dict = {"inputs": img.tolist()}
         instances = [image_byte_dict]
 
         # Query AI Platform with the media
