@@ -27,31 +27,29 @@ class VisionClientUpload extends LitElement {
 
   render () {
     return html`
-      Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) =>
-      {
-        // object for allowed media types
-        let accept = {
-          video : ["video/mp4"],
-          image : ["image/jpeg", "image/png"]
-        // text   : ["text/plain", "text/css", "application/xml", "text/html"]
-        };
+      Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) => {
+    // object for allowed media types
+    const accept = {
+      video: ['video/mp4'],
+      image: ['image/jpeg', 'image/png']
+      // text   : ["text/plain", "text/css", "application/xml", "text/html"]
+    }
 
-        const incorrectFiles = []
-        Array.from(e.target.files).forEach((file) => {
-
-          // if file type could be detected
-          if (file !== null) {
-              if (accept.image.indexOf(file.type) > -1) {
-                this.visionClientService.createFrame(file)
-              } else if (accept.video.indexOf(file.type) > -1) {
-                this.visionClientService.createVideo(file)
-              } else {
-                incorrectFiles.push(file.name)
-              }
-          }
-        })
-        this.incorrectFiles = incorrectFiles
-      }}>
+    const incorrectFiles = []
+    Array.from(e.target.files).forEach((file) => {
+      // if file type could be detected
+      if (file !== null) {
+        if (accept.image.indexOf(file.type) > -1) {
+          this.visionClientService.createFrame(file)
+        } else if (accept.video.indexOf(file.type) > -1) {
+          this.visionClientService.createVideo(file)
+        } else {
+          incorrectFiles.push(file.name)
+        }
+      }
+    })
+    this.incorrectFiles = incorrectFiles
+  }}>
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
     `
   }

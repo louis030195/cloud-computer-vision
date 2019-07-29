@@ -1,7 +1,7 @@
 # vision-client
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
-<img src="docs/images/example.png" width="200" height="200">
+<img src="docs/images/example.png" width="600" height="300">
 
 # Installation
 It is recommended to just use GitPod, there is less setup to do but you can also do local dev
@@ -98,3 +98,6 @@ python tensorflow/tensorflow/python/tools/saved_model_cli.py show --dir ssd_mobi
 
 ## AI Platform is limited to 250 mb models
 [Optimizing models](https://medium.com/google-cloud/optimizing-tensorflow-models-for-serving-959080e9ddbf)
+
+# Some tools
+- [tools](tools/README.md)

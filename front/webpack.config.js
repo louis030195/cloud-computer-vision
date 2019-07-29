@@ -6,10 +6,10 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
-const OUTPUT_PATH = resolve(__dirname + '/build')
-const INDEX_TEMPLATE = resolve(__dirname + '/index.html')
+const OUTPUT_PATH = join(__dirname, 'build')
+const INDEX_TEMPLATE = join(__dirname, 'index.html')
 
-const webcomponentsjs = __dirname + '/../node_modules/@webcomponents/webcomponentsjs'
+const webcomponentsjs = join(__dirname, '/../node_modules/@webcomponents/webcomponentsjs')
 
 const assets = [
 ]

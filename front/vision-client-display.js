@@ -18,22 +18,28 @@ class VisionClientDisplay extends LitElement {
     this.frames = []
   }
 
+  static get styles () {
+    return css`
+    `
+  }
+
   firstUpdated () {
-    this.visionClientService.getVideos().then(videos => { this.videos = videos["items"] })
-    this.visionClientService.getFrames().then(frames => { this.frames = frames["items"] })
+    this.visionClientService.getVideos().then(videos => { this.videos = videos['items'] })
+    this.visionClientService.getFrames().then(frames => { this.frames = frames['items'] })
   }
 
   render () {
     return html`
     <br />
       ${this.frames !== undefined ? this.frames.map((f, i) =>
-      html`<vision-client-frame
-      .width=${300}
-      .height=${300}
-      .visionClientService=${this.visionClientService}
-      .predictionId=${f["predictions"]}
-      .imageUrl=${f["imageUrl"]}
-      </vision-client-frame>`) : ''}
+        f['predictions'] !== null ?
+        html`<vision-client-frame
+        .width=${300}
+        .height=${300}
+        .visionClientService=${this.visionClientService}
+        .predictionId=${f['predictions']}
+        .imageUrl=${f['imageUrl']}
+        </vision-client-frame>` : '') : ''}
     `
   }
 }

@@ -11,53 +11,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
+'use strict'
 
-const getRequest = require(`@google-cloud/nodejs-repo-tools`).getRequest;
-const test = require(`ava`);
+const getRequest = require(`@google-cloud/nodejs-repo-tools`).getRequest
+const test = require(`ava`)
 
 module.exports = () => {
-  let id, testConfig;
+  let id, testConfig
 
   test.before(() => {
-    testConfig = require(`./_test-config`);
-  });
+    testConfig = require(`./_test-config`)
+  })
 
   // setup a book
   test.serial.cb(`should create a book`, t => {
     getRequest(testConfig)
       .post(`/api/books`)
-      .send({title: `my book`})
+      .send({ title: `my book` })
       .expect(200)
       .expect(response => {
-        id = response.body.id;
-        t.truthy(response.body.id);
-        t.is(response.body.title, `my book`);
+        id = response.body.id
+        t.truthy(response.body.id)
+        t.is(response.body.title, `my book`)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   test.serial.cb(`should show a list of books`, t => {
     // Give Datastore time to become consistent
     setTimeout(() => {
-      const expected = /<div class="media-body">/;
+      const expected = /<div class="media-body">/
       getRequest(testConfig)
         .get(`/books`)
         .expect(200)
         .expect(response => {
-          t.regex(response.text, expected);
+          t.regex(response.text, expected)
         })
-        .end(t.end);
-    }, 2000);
-  });
+        .end(t.end)
+    }, 2000)
+  })
 
   test.serial.cb(`should handle error`, t => {
     getRequest(testConfig)
       .get(`/books`)
-      .query({pageToken: `badrequest`})
+      .query({ pageToken: `badrequest` })
       .expect(500)
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   // delete the book
   test.serial.cb(`should delete a book`, t => {
@@ -65,37 +65,37 @@ module.exports = () => {
       getRequest(testConfig)
         .delete(`/api/books/${id}`)
         .expect(200)
-        .end(t.end);
+        .end(t.end)
     } else {
-      t.end();
+      t.end()
     }
-  });
+  })
 
   test.serial.cb(`should post to add book form`, t => {
-    const expected = /Redirecting to \/books\//;
+    const expected = /Redirecting to \/books\//
     getRequest(testConfig)
       .post(`/books/add`)
       .field(`title`, `my book`)
       .expect(302)
       .expect(response => {
-        const location = response.headers.location;
-        const idPart = location.replace(`/books/`, ``);
-        id = idPart;
-        t.regex(response.text, expected);
+        const location = response.headers.location
+        const idPart = location.replace(`/books/`, ``)
+        id = idPart
+        t.regex(response.text, expected)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   test.serial.cb(`should show add book form`, t => {
-    const expected = /Add book/;
+    const expected = /Add book/
     getRequest(testConfig)
       .get(`/books/add`)
       .expect(200)
       .expect(response => {
-        t.regex(response.text, expected);
+        t.regex(response.text, expected)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   // delete the book
   test.serial.cb(t => {
@@ -103,71 +103,71 @@ module.exports = () => {
       getRequest(testConfig)
         .delete(`/api/books/${id}`)
         .expect(200)
-        .end(t.end);
+        .end(t.end)
     } else {
-      t.end();
+      t.end()
     }
-  });
+  })
 
   // setup a book
   test.serial.cb(t => {
     getRequest(testConfig)
       .post(`/api/books`)
-      .send({title: `my book`})
+      .send({ title: `my book` })
       .expect(200)
       .expect(response => {
-        id = response.body.id;
-        t.truthy(response.body.id);
-        t.is(response.body.title, `my book`);
+        id = response.body.id
+        t.truthy(response.body.id)
+        t.is(response.body.title, `my book`)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   test.serial.cb(`should update a book`, t => {
-    const expected = new RegExp(`Redirecting to /books/${id}`);
+    const expected = new RegExp(`Redirecting to /books/${id}`)
     getRequest(testConfig)
       .post(`/books/${id}/edit`)
       .field(`title`, `my other book`)
       .expect(302)
       .expect(response => {
-        t.regex(response.text, expected);
+        t.regex(response.text, expected)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   test.serial.cb(`should show edit book form`, t => {
-    const expected = /"title" value="my other book"/;
+    const expected = /"title" value="my other book"/
     getRequest(testConfig)
       .get(`/books/${id}/edit`)
       .expect(200)
       .expect(response => {
-        t.regex(response.text, expected);
+        t.regex(response.text, expected)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   test.serial.cb(`should show a book`, t => {
-    const expected = /<h4>my other book&nbsp;<small><\/small><\/h4>/;
+    const expected = /<h4>my other book&nbsp;<small><\/small><\/h4>/
     getRequest(testConfig)
       .get(`/books/${id}`)
       .expect(200)
       .expect(response => {
-        t.regex(response.text, expected);
+        t.regex(response.text, expected)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   test.serial.cb(`should delete a book`, t => {
-    const expected = /Redirecting to \/books/;
+    const expected = /Redirecting to \/books/
     getRequest(testConfig)
       .get(`/books/${id}/delete`)
       .expect(302)
       .expect(response => {
-        id = undefined;
-        t.regex(response.text, expected);
+        id = undefined
+        t.regex(response.text, expected)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   // clean up
   test.always.after.cb(t => {
@@ -175,9 +175,9 @@ module.exports = () => {
       getRequest(testConfig)
         .delete(`/api/books/${id}`)
         .expect(200)
-        .end(t.end);
+        .end(t.end)
     } else {
-      t.end();
+      t.end()
     }
-  });
-};
+  })
+}

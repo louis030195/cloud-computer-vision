@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const model = require('./model-datastore-frame');
-const { getPublicUrl, sendUploadToGCS, multer } = require('../../utils/images')
+const express = require('express')
+const bodyParser = require('body-parser')
+const model = require('./model-datastore-frame')
+const { sendUploadToGCS, multer } = require('../../utils/images')
 
-const router = express.Router();
+const router = express.Router()
 
 // Automatically parse request body as JSON
-router.use(bodyParser.json());
+router.use(bodyParser.json())
 
-router.use(require('../../utils/oauth2').router);
+router.use(require('../../utils/oauth2').router)
 
 /**
  * GET /api/frames
@@ -20,15 +20,15 @@ router.use(require('../../utils/oauth2').router);
 router.get('/', (req, res, next) => {
   model.list(10, req.query.pageToken, (err, entities, cursor) => {
     if (err) {
-      next(err);
-      return;
+      next(err)
+      return
     }
     res.json({
       items: entities,
-      nextPageToken: cursor,
-    });
-  });
-});
+      nextPageToken: cursor
+    })
+  })
+})
 
 /**
  * POST /api/frames
@@ -40,15 +40,15 @@ router.post(
   multer.single('file'),
   sendUploadToGCS,
   (req, res, next) => {
-    const data = {imageUrl: req.file.cloudStoragePublicUrl, predictions: null} // Predictions represents the object detected in the media
+    const data = { imageUrl: req.file.cloudStoragePublicUrl, predictions: null } // Predictions represents the object detected in the media
     model.create(data, (err, entity) => {
       if (err) {
-        next(err);
-        return;
+        next(err)
+        return
       }
-      res.json(entity);
-    });
-});
+      res.json(entity)
+    })
+  })
 
 /**
  * GET /api/frames/:id
@@ -58,12 +58,12 @@ router.post(
 router.get('/:frame', (req, res, next) => {
   model.read(req.params.frame, (err, entity) => {
     if (err) {
-      next(err);
-      return;
+      next(err)
+      return
     }
-    res.json(entity);
-  });
-});
+    res.json(entity)
+  })
+})
 
 /**
  * PUT /api/frames/:id
@@ -73,12 +73,12 @@ router.get('/:frame', (req, res, next) => {
 router.put('/:frame', (req, res, next) => {
   model.update(req.params.frame, req.body, (err, entity) => {
     if (err) {
-      next(err);
-      return;
+      next(err)
+      return
     }
-    res.json(entity);
-  });
-});
+    res.json(entity)
+  })
+})
 
 /**
  * DELETE /api/frames/:id
@@ -88,12 +88,12 @@ router.put('/:frame', (req, res, next) => {
 router.delete('/:frame', (req, res, next) => {
   model.delete(req.params.frame, err => {
     if (err) {
-      next(err);
-      return;
+      next(err)
+      return
     }
-    res.status(200).send('OK');
-  });
-});
+    res.status(200).send('OK')
+  })
+})
 
 /**
  * Errors on "/api/frames/*" routes.
@@ -103,9 +103,9 @@ router.use((err, req, res, next) => {
   // responding to the request
   err.response = {
     message: err.message,
-    internalCode: err.code,
-  };
-  next(err);
-});
+    internalCode: err.code
+  }
+  next(err)
+})
 
-module.exports = router;
+module.exports = router

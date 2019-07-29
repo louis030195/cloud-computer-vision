@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
+'use strict'
 
-require(`./_api-tests`)();
-require(`./_crud-tests`)();
+require(`./_api-tests`)()
+require(`./_crud-tests`)()

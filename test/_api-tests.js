@@ -11,30 +11,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
+'use strict'
 
-const getRequest = require(`@google-cloud/nodejs-repo-tools`).getRequest;
-const test = require(`ava`);
+const getRequest = require(`@google-cloud/nodejs-repo-tools`).getRequest
+const test = require(`ava`)
 
 module.exports = () => {
-  let id, testConfig;
+  let id, testConfig
 
   test.before(() => {
-    testConfig = require(`./_test-config`);
-  });
+    testConfig = require(`./_test-config`)
+  })
 
   test.serial.cb(`should create a book`, t => {
     getRequest(testConfig)
       .post(`/api/books`)
-      .send({title: `beep`})
+      .send({ title: `beep` })
       .expect(200)
       .expect(response => {
-        id = response.body.id;
-        t.truthy(response.body.id);
-        t.is(response.body.title, `beep`);
+        id = response.body.id
+        t.truthy(response.body.id)
+        t.is(response.body.title, `beep`)
       })
-      .end(t.end);
-  });
+      .end(t.end)
+  })
 
   test.serial.cb(`should list books`, t => {
     // Give Datastore time to become consistent
@@ -43,20 +43,20 @@ module.exports = () => {
         .get(`/api/books`)
         .expect(200)
         .expect(response => {
-          t.true(Array.isArray(response.body.items));
-          t.true(response.body.items.length >= 1);
+          t.true(Array.isArray(response.body.items))
+          t.true(response.body.items.length >= 1)
         })
-        .end(t.end);
-    }, 1000);
-  });
+        .end(t.end)
+    }, 1000)
+  })
 
   test.serial.cb(`should delete a book`, t => {
     getRequest(testConfig)
       .delete(`/api/books/${id}/`)
       // .expect(200)
       .expect(response => {
-        t.is(response.text, `OK`);
+        t.is(response.text, `OK`)
       })
-      .end(t.end);
-  });
-};
+      .end(t.end)
+  })
+}

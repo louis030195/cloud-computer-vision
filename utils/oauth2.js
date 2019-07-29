@@ -1,22 +1,22 @@
-'use strict';
+'use strict'
 
-const express = require('express');
-const config = require('../config');
+const express = require('express')
+const config = require('../config')
 
 // [START setup]
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const passport = require('passport')
+const GoogleStrategy = require('passport-google-oauth20').Strategy
 
-function extractProfile(profile) {
-  let imageUrl = '';
+function extractProfile (profile) {
+  let imageUrl = ''
   if (profile.photos && profile.photos.length) {
-    imageUrl = profile.photos[0].value;
+    imageUrl = profile.photos[0].value
   }
   return {
     id: profile.id,
     displayName: profile.displayName,
-    image: imageUrl,
-  };
+    image: imageUrl
+  }
 }
 
 // Configure the Google strategy for use by Passport.js.
@@ -33,49 +33,49 @@ passport.use(
       clientSecret: config.get('OAUTH2_CLIENT_SECRET'),
       callbackURL: config.get('OAUTH2_CALLBACK'),
       accessType: 'offline',
-      userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
+      userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
     },
     (accessToken, refreshToken, profile, cb) => {
       // Extract the minimal profile information we need from the profile object
       // provided by Google
-      cb(null, extractProfile(profile));
+      cb(null, extractProfile(profile))
     }
   )
-);
+)
 
 passport.serializeUser((user, cb) => {
-  cb(null, user);
-});
+  cb(null, user)
+})
 passport.deserializeUser((obj, cb) => {
-  cb(null, obj);
-});
+  cb(null, obj)
+})
 // [END setup]
 
-const router = express.Router();
+const router = express.Router()
 
 // [START middleware]
 // Middleware that requires the user to be logged in. If the user is not logged
 // in, it will redirect the user to authorize the application and then return
 // them to the original URL they requested.
-function authRequired(req, res, next) {
+function authRequired (req, res, next) {
   if (!req.user) {
-    req.session.oauth2return = req.originalUrl;
-    return res.redirect('/auth/login');
+    req.session.oauth2return = req.originalUrl
+    return res.redirect('/auth/login')
   }
-  next();
+  next()
 }
 
 // Middleware that exposes the user's profile as well as login/logout URLs to
 // any templates. These are available as `profile`, `login`, and `logout`.
-function addTemplateVariables(req, res, next) {
-  res.locals.profile = req.user;
+function addTemplateVariables (req, res, next) {
+  res.locals.profile = req.user
   res.locals.login = `/auth/login?return=${encodeURIComponent(
     req.originalUrl
-  )}`;
+  )}`
   res.locals.logout = `/auth/logout?return=${encodeURIComponent(
     req.originalUrl
-  )}`;
-  next();
+  )}`
+  next()
 }
 // [END middleware]
 
@@ -93,14 +93,14 @@ router.get(
   // it after authorization
   (req, res, next) => {
     if (req.query.return) {
-      req.session.oauth2return = req.query.return;
+      req.session.oauth2return = req.query.return
     }
-    next();
+    next()
   },
 
   // Start OAuth 2 flow using Passport.js
-  passport.authenticate('google', {scope: ['email', 'profile']})
-);
+  passport.authenticate('google', { scope: ['email', 'profile'] })
+)
 // [END authorize]
 
 // [START callback]
@@ -114,23 +114,23 @@ router.get(
 
   // Redirect back to the original page, if any
   (req, res) => {
-    const redirect = req.session.oauth2return || '/';
-    delete req.session.oauth2return;
-    res.redirect(redirect);
+    const redirect = req.session.oauth2return || '/'
+    delete req.session.oauth2return
+    res.redirect(redirect)
   }
-);
+)
 // [END callback]
 
 // Deletes the user's credentials and profile from the session.
 // This does not revoke any active tokens.
 router.get('/auth/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
-});
+  req.logout()
+  res.redirect('/')
+})
 
 module.exports = {
   extractProfile: extractProfile,
   router: router,
   required: authRequired,
-  template: addTemplateVariables,
-};
+  template: addTemplateVariables
+}

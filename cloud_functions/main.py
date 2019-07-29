@@ -50,6 +50,9 @@ def process_data(event, context):
     query.add_filter('predictions', '=', None)
     files_to_process = list(query.fetch())
 
+    query_classes = client.query(kind='Class')
+    classes = list(query_classes.fetch())
+
     # Iterate through the media to process
     # TODO: will break if trying to process a video
     for file in files_to_process:
@@ -89,7 +92,7 @@ def process_data(event, context):
         # Assuming there is only one prediction possible even though there is a 's' at predictions ?
         for i in range(int(result['predictions'][0]['num_detections'])):
             object_detected = dict()
-            object_detected['detection_classes'] = result['predictions'][0]['detection_classes'][i]
+            object_detected['detection_classes'] = classes[1 + int(result['predictions'][0]['detection_classes'][i])]['name']
             object_detected['detection_boxes'] = result['predictions'][0]['detection_boxes'][i]
             object_detected['detection_scores'] = result['predictions'][0]['detection_scores'][i]
 

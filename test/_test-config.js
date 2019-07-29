@@ -11,12 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
+'use strict'
 
-const path = require(`path`);
+const path = require(`path`)
 
-const TESTNAME = `4-auth`;
-const PORT = 8084;
+const TESTNAME = `4-auth`
+const PORT = 8084
 
 module.exports = {
   test: TESTNAME,
@@ -24,10 +24,10 @@ module.exports = {
   cmd: `app`,
   port: PORT,
   env: {
-    PORT: PORT,
+    PORT: PORT
   },
   url: `http://localhost:${PORT}`,
   version: process.env.GAE_VERSION || TESTNAME,
   msg: `Bookshelf`,
-  project: process.env.GCLOUD_PROJECT, // needed for e2e URL
-};
+  project: process.env.GCLOUD_PROJECT // needed for e2e URL
+}

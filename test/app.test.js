@@ -11,13 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
+'use strict'
 
-const testConfig = require(`./_test-config`);
-const proxyquire = require(`proxyquire`).noPreserveCache();
-const sinon = require(`sinon`);
-const test = require(`ava`);
-const utils = require(`@google-cloud/nodejs-repo-tools`);
+const testConfig = require(`./_test-config`)
+const proxyquire = require(`proxyquire`).noPreserveCache()
+const sinon = require(`sinon`)
+const test = require(`ava`)
+const utils = require(`@google-cloud/nodejs-repo-tools`)
 
 test.cb(`should redirect / to /books`, t => {
   utils
@@ -25,10 +25,10 @@ test.cb(`should redirect / to /books`, t => {
     .get(`/`)
     .expect(302)
     .expect(response => {
-      t.regex(response.text, /Redirecting to \/books/);
+      t.regex(response.text, /Redirecting to \/books/)
     })
-    .end(t.end);
-});
+    .end(t.end)
+})
 
 test(`should check config`, t => {
   const nconfMock = {
@@ -36,27 +36,27 @@ test(`should check config`, t => {
     env: sinon.stub().returnsThis(),
     file: sinon.stub().returnsThis(),
     defaults: sinon.stub().returnsThis(),
-    get: function(setting) {
-      return this[setting];
-    },
-  };
+    get: function (setting) {
+      return this[setting]
+    }
+  }
 
-  function getMsg(setting) {
-    return `You must set ${setting} as an environment variable or in config.json!`;
+  function getMsg (setting) {
+    return `You must set ${setting} as an environment variable or in config.json!`
   }
 
   const testFunc = () => {
-    proxyquire(`../config`, {nconf: nconfMock});
-  };
+    proxyquire(`../config`, { nconf: nconfMock })
+  }
 
-  t.throws(testFunc, Error, getMsg(`CLOUD_BUCKET`));
-  nconfMock.CLOUD_BUCKET = `bucket`;
+  t.throws(testFunc, Error, getMsg(`CLOUD_BUCKET`))
+  nconfMock.CLOUD_BUCKET = `bucket`
 
-  t.throws(testFunc, Error, getMsg(`OAUTH2_CLIENT_ID`));
-  nconfMock.OAUTH2_CLIENT_ID = `foo`;
+  t.throws(testFunc, Error, getMsg(`OAUTH2_CLIENT_ID`))
+  nconfMock.OAUTH2_CLIENT_ID = `foo`
 
-  t.throws(testFunc, Error, getMsg(`OAUTH2_CLIENT_SECRET`));
-  nconfMock.OAUTH2_CLIENT_SECRET = `bar`;
+  t.throws(testFunc, Error, getMsg(`OAUTH2_CLIENT_SECRET`))
+  nconfMock.OAUTH2_CLIENT_SECRET = `bar`
 
-  t.notThrows(testFunc);
-});
+  t.notThrows(testFunc)
+})
