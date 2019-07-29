@@ -1,6 +1,8 @@
 # vision-client
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
+<img src="docs/images/example.png" width="200" height="200">
+
 # Installation
 It is recommended to just use GitPod, there is less setup to do but you can also do local dev
 ## Local development

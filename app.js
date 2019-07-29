@@ -35,22 +35,25 @@ const sessionConfig = {
   }),
 };
 
-app.use(session(sessionConfig));
+app.use(session(sessionConfig))
 // [END session]
 
 // OAuth2
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(require('./utils/oauth2').router);
+app.use(passport.initialize())
+app.use(passport.session())
+app.use(require('./utils/oauth2').router)
 
 // Frames
-app.use('/api/frames', require('./back/frames/api-frame'));
+app.use('/api/frames', require('./back/frames/api-frame'))
 
 // Videos
-app.use('/api/videos', require('./back/videos/api-video'));
+app.use('/api/videos', require('./back/videos/api-video'))
+
+// Predictions
+app.use('/api/predictions', require('./back/predictions/api-prediction'))
 
 // Objects
-app.use('/api/objects', require('./back/objects/api-object'));
+app.use('/api/objects', require('./back/objects/api-object'))
 
 var pathRoot = `${__dirname}/front/build`
 

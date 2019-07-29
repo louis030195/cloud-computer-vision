@@ -11,8 +11,8 @@ export default class VisionClientService {
         return fetch(`${this.backendHost}/api/frames`).then(r => r.json())
     }
 
-    getObjects() {
-        return fetch(`${this.backendHost}/api/objects`).then(r => r.json())
+    getPrediction(id) {
+        return fetch(`${this.backendHost}/api/predictions/${id}`).then(r => r.json())
     }
 
     getObject(id) {

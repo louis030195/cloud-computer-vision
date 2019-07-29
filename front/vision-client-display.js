@@ -28,18 +28,12 @@ class VisionClientDisplay extends LitElement {
     <br />
       ${this.frames !== undefined ? this.frames.map((f, i) =>
       html`<vision-client-frame
+      .width=${300}
+      .height=${300}
       .visionClientService=${this.visionClientService}
-      .objects=${f["objects"]}
+      .predictionId=${f["predictions"]}
       .imageUrl=${f["imageUrl"]}
       </vision-client-frame>`) : ''}
-    `
-  }
-
-  static get styles () {
-    return css`
-    img {
-        width:300px;
-    }
     `
   }
 }
