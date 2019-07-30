@@ -29,6 +29,30 @@ class VisionClientFrame extends LitElement {
     `
   }
 
+  rainbow(n, maxLength) {
+      n = n * 240 / maxLength;
+      return 'hsl(' + n + ',100%,50%)';
+  }
+
+  perc2color(perc, min, max) {
+      let base = (max - min);
+
+      if (base == 0) { perc = 100; }
+      else {
+          perc = (perc - min) / base * 100;
+      }
+      let r, g, b = 0;
+      if (perc < 50) {
+          r = 255;
+          g = Math.round(5.1 * perc);
+      }
+      else {
+          g = 255;
+          r = Math.round(510 - 5.10 * perc);
+      }
+      let h = r * 0x10000 + g * 0x100 + b * 0x1;
+      return '#' + ('000000' + h.toString(16)).slice(-6);
+  }
 
   firstUpdated () {
     this.visionClientService.getPrediction(this.predictionId).then(prediction => {
@@ -55,19 +79,22 @@ class VisionClientFrame extends LitElement {
     ctx.textBaseline = 'top'
     ctx.drawImage(image, 0, 0, this.width, this.height)
 
-    this.objects.forEach(object => {
+    this.objects.forEach(async object => {
+      let boxText
+      await this.visionClientService.getClass(object['detection_classes'])
+      .then(name => boxText = `${name['name']} ${object['detection_scores'].toFixed(2)}`)
+
       const ymin = object['detection_boxes'][0] * this.height
       const xmin = object['detection_boxes'][1] * this.width
       const ymax = object['detection_boxes'][2] * this.height
       const xmax = object['detection_boxes'][3] * this.width
-      const boxColor = '#00FFFF'
+      const boxColor = this.rainbow(object['detection_classes'], 100) // this.perc2color(object['detection_classes'], 0, 100)
       // Draw the bounding box.
       ctx.strokeStyle = boxColor
       ctx.lineWidth = 2
       ctx.strokeRect(xmin, ymin, xmax, ymax)
       // Draw the label background.
       ctx.fillStyle = boxColor
-      const boxText = `${object['detection_classes']} - ${object['detection_scores'].toFixed(2)}`
       const textWidth = ctx.measureText(boxText).width
       const textHeight = parseInt(font, 10) // base 10
       ctx.fillRect(xmin, ymin, textWidth + 8, textHeight + 4)

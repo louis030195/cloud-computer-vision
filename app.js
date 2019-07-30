@@ -53,6 +53,9 @@ app.use('/api/predictions', require('./back/predictions/api-prediction'))
 // Objects
 app.use('/api/objects', require('./back/objects/api-object'))
 
+// Classes
+app.use('/api/classes', require('./back/classes/api-class'))
+
 var pathRoot = `${__dirname}/front/build`
 
 app.use('/', express.static(pathRoot))
