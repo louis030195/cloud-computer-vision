@@ -1,14 +1,31 @@
 from google.cloud import datastore
 import argparse
+import sys
 
-parser = argparse.ArgumentParser(description='Push id to class mapping into datastore')
-parser.add_argument('--file', required=True, help='file path containing the mapping')
+def process_args(args):
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
 
-args = parser.parse_args()
+    # Global arguments
+    parser_base = argparse.ArgumentParser(add_help=False)
+
+    # Map
+    parser_train = subparsers.add_parser('map', parents=[parser_base],
+                                         help='Map id to class')
+    parser_train.set_defaults(phase='map')
+    parser.add_argument('--file', required=True, help='file path containing the mapping')
+
+    # Clear
+    parser_export = subparsers.add_parser('clear', parents=[parser_base],
+                                          help='Clear datastore')
+    parser_export.set_defaults(phase='clear')
+
+    parameters = parser.parse_args(args)
+    return parameters
 
 # https://googleapis.github.io/google-cloud-python/latest/datastore/client.html
-def mapping():
-    f = open(args.file, "r")
+def map(file_path):
+    f = open(file_path, "r")
     content = f.read().split('\n')
     client = datastore.Client()
 
@@ -18,7 +35,7 @@ def mapping():
         entity.update({'name': v})
         client.put(entity)
 
-def clear_datastore():
+def clear():
     """
     Delete all data (except Class entity)
     """
@@ -35,6 +52,20 @@ def clear_datastore():
     # client.delete_multi(keys)
     print('Data rows:', len(keys))
 
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
+    parameters = process_args(args)
+
+    if parameters.phase == 'map':
+        map(parameters.file)
+    elif parameters.phase == 'clear':
+        clear()
+    else:
+        raise NotImplementedError
+
+
 if __name__ == "__main__":
     # execute only if run as a script
-    mapping()
+    main()

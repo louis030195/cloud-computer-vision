@@ -11,8 +11,7 @@ class VisionClientFrame extends LitElement {
       objects: { type: Array }, // A frame can have multiple objects detected
       imageUrl: { type: String },
       width: { type: Object },
-      height: { type: Object },
-      idToClass: { type: Object }
+      height: { type: Object }
     }
   }
 
@@ -57,26 +56,24 @@ class VisionClientFrame extends LitElement {
     ctx.drawImage(image, 0, 0, this.width, this.height)
 
     this.objects.forEach(object => {
-      const ymin = object['detection_boxes'][0]
-      const xmin = object['detection_boxes'][1]
-      const ymax = object['detection_boxes'][2]
-      const xmax = object['detection_boxes'][3]
+      const ymin = object['detection_boxes'][0] * this.height
+      const xmin = object['detection_boxes'][1] * this.width
+      const ymax = object['detection_boxes'][2] * this.height
+      const xmax = object['detection_boxes'][3] * this.width
+      const boxColor = '#00FFFF'
       // Draw the bounding box.
-      ctx.strokeStyle = '#00FFFF'
+      ctx.strokeStyle = boxColor
       ctx.lineWidth = 2
-      ctx.strokeRect(xmin * this.width, ymin * this.height, xmax * this.width, ymax * this.height)
+      ctx.strokeRect(xmin, ymin, xmax, ymax)
       // Draw the label background.
-      ctx.fillStyle = '#00FFFF'
-      const textWidth = ctx.measureText(object['detection_classes']).width
+      ctx.fillStyle = boxColor
+      const boxText = `${object['detection_classes']} - ${object['detection_scores'].toFixed(2)}`
+      const textWidth = ctx.measureText(boxText).width
       const textHeight = parseInt(font, 10) // base 10
-      ctx.fillRect(xmin * this.width, ymin * this.height, textWidth + 4, textHeight + 4)
-    })
-    this.objects.forEach(object => {
-      const ymin = object['detection_boxes'][0]
-      const xmin = object['detection_boxes'][1]
+      ctx.fillRect(xmin, ymin, textWidth + 8, textHeight + 4)
       // Draw the text last to ensure it's on top.
       ctx.fillStyle = '#000000'
-      ctx.fillText(object['detection_classes'], xmin * this.width, ymin * this.height)
+      ctx.fillText(boxText, xmin, ymin)
     })
   }
 

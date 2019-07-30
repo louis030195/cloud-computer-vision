@@ -70,7 +70,7 @@ gcloud functions deploy process_data \
 --project [PROJECT_ID] \
 --trigger-resource gs://[BUCKET_NAME] \
 --region [YOUR_REGION]
---trigger-event google.storage.object.finalize
+--trigger-event google.storage.object.finalize \
 ```
 
 ### Deploy to Google Cloud App engine

@@ -92,7 +92,7 @@ def process_data(event, context):
         # Assuming there is only one prediction possible even though there is a 's' at predictions ?
         for i in range(int(result['predictions'][0]['num_detections'])):
             object_detected = dict()
-            object_detected['detection_classes'] = classes[1 + int(result['predictions'][0]['detection_classes'][i])]['name']
+            object_detected['detection_classes'] = classes[int(result['predictions'][0]['detection_classes'][i]) - 1]['name']
             object_detected['detection_boxes'] = result['predictions'][0]['detection_boxes'][i]
             object_detected['detection_scores'] = result['predictions'][0]['detection_scores'][i]
 
