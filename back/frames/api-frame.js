@@ -85,7 +85,7 @@ router.put('/:frame', (req, res, next) => {
  *
  * Delete a frame.
  */
-router.delete('/:frame', (req, res, next) => {
+router.delete('/:frame', (req, res, next) => { // TODO: should delete predictions associated + objects
   model.delete(req.params.frame, err => {
     if (err) {
       next(err)

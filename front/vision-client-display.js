@@ -38,6 +38,7 @@ class VisionClientDisplay extends LitElement {
         .height=${300}
         .visionClientService=${this.visionClientService}
         .predictionId=${f['predictions']}
+        .id=${f['id']}
         .imageUrl=${f['imageUrl']}
         </vision-client-frame>` : '') : ''}
     `
