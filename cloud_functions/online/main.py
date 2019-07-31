@@ -1,11 +1,11 @@
-#import base64
 import requests
 import numpy as np
 import cv2
 import googleapiclient.discovery
 from google.cloud import datastore
 
-def predict_json(project, model, instances, version=None):
+
+def online_predict_json(project, model, instances, version=None):
     """Send json data to a deployed model for prediction.
     Args:
         project (str): project where the Cloud ML Engine Model is deployed.
@@ -34,6 +34,7 @@ def predict_json(project, model, instances, version=None):
         raise RuntimeError(response['error'])
     return response
 
+
 def predict_update_datastore(client, frame):
     # Model input is b64
     # Compose a JSON Predict request (send JPEG image in base64).
@@ -43,7 +44,8 @@ def predict_update_datastore(client, frame):
     # Model input is array
     # Compose a JSON Predict request (send JPEG image as array).
     arr = np.asarray(bytearray(frame), dtype=np.uint8)
-    img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (300, 300))
+    img = cv2.resize(cv2.cvtColor(cv2.imdecode(
+        arr, -1), cv2.COLOR_BGR2RGB), (300, 300))
 
     # Create an object containing the data
     # b64
@@ -53,7 +55,7 @@ def predict_update_datastore(client, frame):
     instances = [image_byte_dict]
 
     # Query AI Platform with the media
-    result = predict_json('wildlife-247309', 'm1', instances, 'v1')
+    result = online_predict_json('wildlife-247309', 'm1', instances, 'v1')
 
     # Put the prediction in Datastore
     key_prediction = client.key('Prediction')
@@ -65,7 +67,8 @@ def predict_update_datastore(client, frame):
     # Assuming there is only one prediction possible even though there is a 's' at predictions ?
     for i in range(int(result['predictions'][0]['num_detections'])):
         object_detected = dict()
-        object_detected['detection_classes'] = int(result['predictions'][0]['detection_classes'][i])
+        object_detected['detection_classes'] = int(
+            result['predictions'][0]['detection_classes'][i])
         object_detected['detection_boxes'] = result['predictions'][0]['detection_boxes'][i]
         object_detected['detection_scores'] = result['predictions'][0]['detection_scores'][i]
 
@@ -85,7 +88,9 @@ def predict_update_datastore(client, frame):
     return entity_prediction
 
 # TODO: optimize code ...
-def process_data(event, context):
+
+
+def online_processing(event, context):
     """Triggered by a change to a Cloud Storage bucket.
     Args:
          event (dict): Event payload.
@@ -137,7 +142,6 @@ def process_data(event, context):
             entity_frame.update(obj)
             client.put(entity_frame)
 
-
     # Iterate through the media to process
     for frame in frames_to_process:
         image_url = frame['imageUrl']
@@ -146,7 +150,8 @@ def process_data(event, context):
         dl_request = requests.get(image_url, stream=True)
         dl_request.raise_for_status()
 
-        entity_prediction = predict_update_datastore(client, dl_request.content)
+        entity_prediction = predict_update_datastore(
+            client, dl_request.content)
 
         # Get the frame key in Datastore
         key_frame = client.key('Frame', frame.id)

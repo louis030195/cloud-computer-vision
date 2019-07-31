@@ -62,17 +62,28 @@ gcloud ai-platform versions create v1 \
 
 ### Deploy Cloud Function
 
-Replace in cloud_functions/main.py predict_json() call your GCP parameters
+Replace in cloud_functions/*.py your GCP parameters
+## Online
 ```
-gcloud functions deploy process_data \
---source cloud_functions \
+gcloud functions deploy online_processing \
+--source cloud_functions/online \
 --runtime python37 \
 --project [PROJECT_ID] \
 --trigger-resource gs://[BUCKET_NAME] \
---region [YOUR_REGION]
+--region [YOUR_REGION] \
 --trigger-event google.storage.object.finalize \
 ```
-
+## Batches
+```
+gcloud functions deploy batch_processing \
+--source cloud_functions/batch \
+--runtime python37 \
+--project [PROJECT_ID] \
+--trigger-resource gs://[BUCKET_NAME] \
+--region [YOUR_REGION] \
+--trigger-event google.storage.object.finalize \
+--memory 1gb \
+```
 ### Deploy to Google Cloud App engine
 ```
 gcloud app deploy
