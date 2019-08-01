@@ -14,4 +14,4 @@ RUN npm install
 WORKDIR /
 
 # start
-CMD ["npm", "run", "start-full"]
+CMD ["npm", "start"]

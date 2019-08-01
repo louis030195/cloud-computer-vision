@@ -28,6 +28,7 @@ function sendUploadToGCS (req, res, next) {
   }
 
   const gcsname = Date.now() + req.file.originalname
+  //console.log(req.file, gcsname)
   const file = bucket.file(gcsname)
   const stream = file.createWriteStream({
     metadata: {

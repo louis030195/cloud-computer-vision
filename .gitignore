@@ -3,6 +3,3 @@ node_modules
 config.json
 package-lock.json
 front/build
-
-# Custom utils for my own GCP account
-tools/custom.sh

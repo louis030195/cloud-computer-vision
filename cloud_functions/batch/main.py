@@ -162,6 +162,10 @@ def batch_processing(event, _):
         # Load the video url
         vidcap = cv2.VideoCapture(video_url)
 
+        if not vidcap.isOpened():
+            print("Failed to read the video", video)
+            return
+
         # While the video isn't over
         while vidcap.isOpened():
             # Split into frame

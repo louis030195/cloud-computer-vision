@@ -82,7 +82,7 @@ gcloud functions deploy batch_processing \
 --trigger-resource gs://[BUCKET_NAME] \
 --region [YOUR_REGION] \
 --trigger-event google.storage.object.finalize \
---memory 1gb
+--memory 2gb
 ```
 ### Deploy to Google Cloud App engine
 ```
@@ -91,8 +91,7 @@ gcloud app deploy
 
 # TODO
 - Script that configure all the repo + gcp automatically
-- Boxes
-- Delete media
+- Batch prediction
 - Videos
 - Stuff with dates, count, stats ...
 - ...
