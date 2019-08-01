@@ -26,6 +26,7 @@ def frames_to_tfrecord(images, bucket, name):
          images (nparray): Images
          name (string): Name of the file written
     """
+    print('frames_to_tfrecord', images.shape)
     rows = images.shape[1]
     cols = images.shape[2]
     depth = images.shape[3]
@@ -156,20 +157,20 @@ def batch_processing(event, _):
 
     for video in videos_to_process:
         video_url = video['imageUrl']
-        frames = np.array([])
+        frames = []
         entity_frames_ids = []
         # Load the video url
         vidcap = cv2.VideoCapture(video_url)
+
+        # While the video isn't over
         while vidcap.isOpened():
             # Split into frame
             _, frame = vidcap.read()
 
-            # Check if the video is over
-            if frame is None:
-                break
+            print('frame n°', len(frames), frame.shape)
 
-            # Push into a nparray
-            np.append(frames, frame)
+            # Push into a list
+            frames.append(frame)
 
             # Create new frame in Datastore
             key_frame = client.key('Frame')
@@ -190,6 +191,9 @@ def batch_processing(event, _):
 
             # Save the frame id for use later
             entity_frames_ids.append(entity_frame.id)
+
+        # Release video
+        vidcap.release()
 
         # Get the video in Datastore
         key_video = client.key('Video', video.id)
@@ -219,16 +223,16 @@ def batch_processing(event, _):
         blobs = [int(blob.split('/')[-1].split('.')[0]) for blob in blobs]
 
         # Write a tfrecord with last id + 1 (autoincrement ...)
-        frames_to_tfrecord(frames, bucket_name,
-                           max(blobs if blobs != '' else [0]) + 1)
+        frames_to_tfrecord(np.array(frames), bucket_name,
+                           max(blobs if blobs else [0]) + 1)
 
     # Iterate through the media to process
     for frame in frames_to_process:
-        image_url = frame['imageUrl']
+        #image_url = frame['imageUrl']
 
         # Download the image
-        dl_request = requests.get(image_url, stream=True)
-        dl_request.raise_for_status()
+        #dl_request = requests.get(image_url, stream=True)
+        #dl_request.raise_for_status()
 
         # Get the frame in Datastore
         key_frame = client.key('Frame', frame.id)
@@ -244,12 +248,13 @@ def batch_processing(event, _):
         entity_frame.update(obj)
         client.put(entity_frame)
 
-        # TODO: here start building tfrecord + batch job
-        # Get the list of tfrecords
-        blobs = bucket.list_blobs(prefix='/batches')
+    # TODO: here start building tfrecord + batch job
+    # Get the list of tfrecords
+    blobs = bucket.list_blobs(prefix='/batches')
 
-        # Just extract the file names
-        blobs = [blob.split('/')[-1].split('.')[0] for blob in blobs]
+    # Just extract the file names
+    blobs = [int(blob.split('/')[-1].split('.')[0]) for blob in blobs]
 
-        # Write a tfrecord with last id + 1 (autoincrement ...)
-        frames_to_tfrecord(frames, bucket_name, int(max(blobs)) + 1)
+    # Write a tfrecord with last id + 1 (autoincrement ...)
+    frames_to_tfrecord(np.array(frames_to_process), bucket_name,
+                       max(blobs if blobs else [0]) + 1)

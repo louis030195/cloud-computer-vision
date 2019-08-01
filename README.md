@@ -71,7 +71,7 @@ gcloud functions deploy online_processing \
 --project [PROJECT_ID] \
 --trigger-resource gs://[BUCKET_NAME] \
 --region [YOUR_REGION] \
---trigger-event google.storage.object.finalize \
+--trigger-event google.storage.object.finalize
 ```
 ## Batches
 ```
@@ -82,7 +82,7 @@ gcloud functions deploy batch_processing \
 --trigger-resource gs://[BUCKET_NAME] \
 --region [YOUR_REGION] \
 --trigger-event google.storage.object.finalize \
---memory 1gb \
+--memory 1gb
 ```
 ### Deploy to Google Cloud App engine
 ```

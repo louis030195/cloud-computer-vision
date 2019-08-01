@@ -4,6 +4,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const model = require('./model-datastore-video')
 const { sendUploadToGCS, multer } = require('../../utils/images')
+//const config = require('../../config')
+//const extractFrames = require('ffmpeg-extract-frames')
 
 const router = express.Router()
 
@@ -37,7 +39,24 @@ router.post(
   '/',
   multer.single('file'),
   sendUploadToGCS,
-  (req, res, next) => {
+  async (req, res, next) => {
+    // Extract all frames
+    /*
+    await extractFrames({
+      input: req.file.cloudStoragePublicUrl,
+      output: `${config.get('CLOUD_BUCKET')}/frame-%d.jpg`
+    })
+    */
+    /*
+    const formData = new FormData()
+    formData.append('file', file)
+    return fetch(`${this.backendHost}/api/frames`, {
+      method: 'POST',
+      cache: 'no-cache',
+      body: formData
+    })
+    .then(response => response.json())
+    */
     const data = { imageUrl: req.file.cloudStoragePublicUrl, predictions: null } // Predictions represents the object detected in the media
     model.create(data, (err, entity) => {
       if (err) {
