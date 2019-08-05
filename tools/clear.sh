@@ -1,7 +1,7 @@
 # Clear gcp storages
-gsutil rm gs://bucket03y/*.png
-gsutil rm gs://bucket03y/*.jpg
-gsutil rm gs://bucket03y/*.mp4
+gsutil -m rm gs://bucket03y/*.png
+gsutil -m rm gs://bucket03y/*.jpg
+gsutil -m rm gs://bucket03y/*.mp4
 
 
 # https://cloud.google.com/dataflow/docs/guides/templates/provided-utilities

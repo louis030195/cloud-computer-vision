@@ -97,7 +97,8 @@ def online_processing(event, context):
          context (google.cloud.functions.Context): Metadata for the event.
     """
     # A file has been added to the bucket but it's either an image or a video
-    if not event['contentType'].startswith('image') and not event['contentType'].startswith('video'):
+    if not event['contentType'].startswith('image'):
+        print("Unhandled file type")
         return
 
     client = datastore.Client()
@@ -105,42 +106,6 @@ def online_processing(event, context):
     query_frame = client.query(kind='Frame')
     query_frame.add_filter('predictions', '=', None)
     frames_to_process = list(query_frame.fetch())
-
-    query_video = client.query(kind='Video')
-    query_video.add_filter('predictions', '=', None)
-    videos_to_process = list(query_video.fetch())
-
-    for video in videos_to_process:
-        video_url = video['imageUrl']
-
-        # Load the video url
-        vidcap = cv2.VideoCapture(video_url)
-        while vidcap.isOpened():
-            # Split into frame
-            _, image = vidcap.read()
-
-            if image is None:
-                break
-
-            # Query the model (TODO: should we do async await ?)
-            entity_prediction = predict_update_datastore(client, image)
-
-            # Create new frame in Datastore
-            key_frame = client.key('Frame')
-            entity_frame = datastore.Entity(key=key_frame)
-
-            # Create an object to put in datastore
-            obj = dict()
-
-            # The frame has the same url than the video since it belongs to the video
-            obj['imageUrl'] = video['imageUrl']
-
-            # Set the predictions properties of the Frame row
-            obj['predictions'] = entity_prediction.id
-
-            # Push into datastore
-            entity_frame.update(obj)
-            client.put(entity_frame)
 
     # Iterate through the media to process
     for frame in frames_to_process:
