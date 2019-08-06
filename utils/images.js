@@ -9,6 +9,9 @@ const path = require('path')
 const storage = Storage({
   keyFilename: path.join(__dirname, '..', GOOGLE_APPLICATION_CREDENTIALS)
 })
+const throttledQueue = require('throttled-queue');
+const throttle = throttledQueue(1, 5000) // at most make 1 request every 5 seconds.
+
 const bucket = storage.bucket(CLOUD_BUCKET)
 
 // Returns the public, anonymously accessable URL to a given Cloud Storage
@@ -23,34 +26,36 @@ function getPublicUrl (filename) {
 // * ``cloudStorageObject`` the object name in cloud storage.
 // * ``cloudStoragePublicUrl`` the public url to the object.
 function sendUploadToGCS (req, res, next) {
-  if (!req.file) {
-    return next()
-  }
+  throttle(() => {
+    if (!req.file) {
+      return next()
+    }
 
-  const gcsname = Date.now() + req.file.originalname
-  //console.log(req.file, gcsname)
-  const file = bucket.file(gcsname)
-  const stream = file.createWriteStream({
-    metadata: {
-      contentType: req.file.mimetype
-    },
-    resumable: false
-  })
-
-  stream.on('error', err => {
-    req.file.cloudStorageError = err
-    next(err)
-  })
-
-  stream.on('finish', () => {
-    req.file.cloudStorageObject = gcsname
-    file.makePublic().then(() => {
-      req.file.cloudStoragePublicUrl = getPublicUrl(gcsname)
-      next()
+    const gcsname = Date.now() + req.file.originalname
+    //console.log(req.file, gcsname)
+    const file = bucket.file(gcsname)
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype
+      },
+      resumable: false
     })
-  })
 
-  stream.end(req.file.buffer)
+    stream.on('error', err => {
+      req.file.cloudStorageError = err
+      next(err)
+    })
+
+    stream.on('finish', () => {
+      req.file.cloudStorageObject = gcsname
+      file.makePublic().then(() => {
+        req.file.cloudStoragePublicUrl = getPublicUrl(gcsname)
+        next()
+      })
+    })
+
+    stream.end(req.file.buffer)
+  })
 }
 
 // Multer handles parsing multipart/form-data requests.

@@ -4,8 +4,6 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const model = require('./model-datastore-frame')
 const { sendUploadToGCS, multer } = require('../../utils/images')
-const throttledQueue = require('throttled-queue');
-const throttle = throttledQueue(1, 5000) // at most make 1 request every 5 seconds.
 
 const router = express.Router()
 
@@ -32,10 +30,6 @@ router.get('/', (req, res, next) => {
   })
 })
 
-function throttledQueueMiddleware (req, res, next) {
-    throttle(() => { next() })
-}
-
 /**
  * POST /api/frames
  *
@@ -43,7 +37,6 @@ function throttledQueueMiddleware (req, res, next) {
  */
 router.post(
   '/',
-  throttledQueueMiddleware,
   multer.single('file'),
   sendUploadToGCS,
   (req, res, next) => {

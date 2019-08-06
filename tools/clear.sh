@@ -1,7 +1,7 @@
 # Clear gcp storages
-gsutil -m rm gs://bucket03y/*.png
-gsutil -m rm gs://bucket03y/*.jpg
-gsutil -m rm gs://bucket03y/*.mp4
+gsutil -m rm gs://[BUCKET_NAME]/*.png
+gsutil -m rm gs://[BUCKET_NAME]/*.jpg
+gsutil -m rm gs://[BUCKET_NAME]/*.mp4
 
 
 # https://cloud.google.com/dataflow/docs/guides/templates/provided-utilities
@@ -14,4 +14,4 @@ datastoreReadProjectId=DATASTORE_READ_AND_DELETE_PROJECT_ID,\
 datastoreDeleteProjectId=DATASTORE_READ_AND_DELETE_PROJECT_ID
 
 # Clear functions
-gcloud functions delete --region europe-west1 online_processing
+gcloud functions delete --region europe-west1 --project [PROJECT-ID] online_processing
