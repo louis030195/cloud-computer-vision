@@ -1,0 +1,5 @@
+node_modules
+*.log
+config.json
+package-lock.json
+tmp.sh

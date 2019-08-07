@@ -1,0 +1,27 @@
+doctype html
+html(lang='en')
+  head
+    title PubSub
+    meta(charset='utf-8')
+  body
+    p Bearer tokens received by this instance:
+    ul
+      each val in tokens
+        li= val
+    p Claims received by this instance:
+    ul
+      each val in claims
+        li
+          code!= JSON.stringify(val)
+    p Messages received by this instance:
+    ul
+      each val in messages
+        li= val
+    p
+      small.
+        Note: because your application is likely running multiple instances,
+        each instance will have a different list of messages.
+
+    form(method='post')
+      textarea(name='payload', placeholder='Enter message here.')
+      button(type='submit') Send

@@ -1,0 +1,52 @@
+{
+  "name": "appengine-pubsub",
+  "description": "Node.js Google Cloud PubSub sample for Google App Engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "Apache Version 2.0",
+  "author": "Google Inc.",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "test": "repo-tools test app && mocha */*.test.js --timeout=30000 --exit"
+  },
+  "dependencies": {
+    "@google-cloud/pubsub": "^0.28.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "ffmpeg-extract-frames": "^2.0.2",
+    "glob": "^7.1.4",
+    "google-auth-library": "^5.0.0",
+    "node-fetch": "^2.6.0",
+    "pug": "^2.0.1"
+  },
+  "devDependencies": {
+    "@google-cloud/nodejs-repo-tools": "^3.3.0",
+    "jsonwebtoken": "^8.5.1",
+    "mocha": "^6.0.0",
+    "sinon": "^7.3.1",
+    "uuid": "^3.3.2"
+  },
+  "cloud-repo-tools": {
+    "requiresProjectId": true,
+    "requiresKeyFile": true,
+    "test": {
+      "app": {
+        "requiredEnvVars": [
+          "PUBSUB_TOPIC",
+          "PUBSUB_VERIFICATION_TOKEN"
+        ],
+        "msg": "Messages received by this instance",
+        "substitutions": "YOUR_TOPIC_NAME=$PUBSUB_TOPIC,YOUR_VERIFICATION_TOKEN=$PUBSUB_VERIFICATION_TOKEN"
+      },
+      "build": {
+        "requiredEnvVars": [
+          "PUBSUB_TOPIC",
+          "PUBSUB_VERIFICATION_TOKEN"
+        ]
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-# Copyright 2017, Google, Inc.
+# Copyright 2015-2016, Google, Inc.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,18 +10,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-service: vision-client
-runtime: nodejs10
+service: frame-extractor
+runtime: custom
+env: flex
 
-instance_class: B8
-
-basic_scaling:
-  max_instances: 1
-  idle_timeout: 10m
-
-# For custom ...
-#instance_class: F2
-#service: worker # name of the service (necessary for non-default)
-#runtime: custom # (will use Dockerfile in same directory)
-#env: flex
+# [START gae_flex_pubsub_yaml]
+env_variables:
+  PUBSUB_TOPIC: topic_extractor
+  # This token is used to verify that requests originate from your
+  # application. It can be any sufficiently random string.
+  PUBSUB_VERIFICATION_TOKEN: ok123456
+# [END gae_flex_pubsub_yaml]
