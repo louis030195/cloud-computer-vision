@@ -1,10 +1,14 @@
 # vision-client
-## Lot of refactors atm may not work
+## Lot of refactors atm may not work properly
 [![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
 <img src="docs/images/example.png" width="600" height="300">
 
 # Installation
+Work with:
+- https://github.com/louis030195/vision-client/tree/master/tfrecord-builder
+- https://github.com/louis030195/frame-extractor
+
 It is recommended to just use GitPod, there is less setup to do but you can also do local dev
 ## Local development
 ### [Install NodeJS](https://www.google.com/search?ei=D3Q4XZGcM8OHjLsPs--n8AM&q=install+nodejs)

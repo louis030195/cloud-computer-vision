@@ -43,7 +43,6 @@ class VisionClientUpload extends LitElement {
           this.visionClientService.createFrame(file)
         } else if (accept.video.indexOf(file.type) > -1) { // Video is not implemented yet
           // this.visionClientService.createVideo(file)
-          // this.visionClientService.extractFrames(file)
         } else {
           incorrectFiles.push(file.name)
         }

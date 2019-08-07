@@ -47,18 +47,6 @@ export default class VisionClientService {
       .then(response => response.json())
   }
 
-  extractFrames (file) {
-      console.log('lolol', file)
-    const formData = new FormData()
-    formData.append('file', file)
-    return fetch(`${this.backendHost}/api/extract`, {
-      method: 'POST',
-      cache: 'no-cache',
-      body: formData
-    })
-      .then(response => response.json())
-  }
-
   getPrediction (id) {
     return fetch(`${this.backendHost}/api/predictions/${id}`).then(r => r.json())
   }

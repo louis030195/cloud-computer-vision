@@ -1,6 +1,6 @@
 FROM gcr.io/google-appengine/nodejs
 
-RUN apt-get -y update && apt-get install -y ffmpeg
+RUN apt-get -y update
 
 # # Add the application source code.
 ADD . /

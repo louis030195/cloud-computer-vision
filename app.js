@@ -56,9 +56,6 @@ app.use('/api/objects', require('./back/objects/api-object'))
 // Classes
 app.use('/api/classes', require('./back/classes/api-class'))
 
-// Extract
-app.use('/api/extract', require('./back/extract/api-extract'))
-
 var pathRoot = `${__dirname}/front/build`
 
 app.use('/', express.static(pathRoot))
