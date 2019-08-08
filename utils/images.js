@@ -3,7 +3,7 @@
 const Storage = require('@google-cloud/storage')
 const config = require('../config')
 
-const CLOUD_BUCKET = config.get('CLOUD_BUCKET')
+const BUCKET_NAME = config.get('BUCKET_NAME')
 const GOOGLE_APPLICATION_CREDENTIALS = config.get('GOOGLE_APPLICATION_CREDENTIALS')
 const path = require('path')
 const storage = Storage({
@@ -12,13 +12,13 @@ const storage = Storage({
 const throttledQueue = require('throttled-queue');
 const throttle = throttledQueue(1, 5000) // at most make 1 request every 5 seconds.
 
-const bucket = storage.bucket(CLOUD_BUCKET)
+const bucket = storage.bucket(BUCKET_NAME)
 
 // Returns the public, anonymously accessable URL to a given Cloud Storage
 // object.
 // The object's ACL has to be set to public read.
 function getPublicUrl (filename) {
-  return `https://storage.googleapis.com/${CLOUD_BUCKET}/${filename}`
+  return `https://storage.googleapis.com/${BUCKET_NAME}/${filename}`
 }
 
 // Express middleware that will automatically pass uploads to Cloud Storage.

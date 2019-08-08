@@ -44,7 +44,7 @@ gsutil defacl set public-read gs://[YOUR-BUCKET-NAME]
 ### Config file
 ```
 echo -e '{
-    "CLOUD_BUCKET": "[YOUR_BUCKET]",
+    "BUCKET_NAME: "[YOUR_BUCKET]",
     "OAUTH2_CLIENT_ID": "[YOUR_OAUTH2_CLIENT_ID]",
     "OAUTH2_CLIENT_SECRET": "[YOUR_OAUTH2_CLIENT_SECRET]",
     "OAUTH2_CALLBACK": "https://[PROJECT_ID].appspot.com/auth/google/callback",
@@ -97,8 +97,7 @@ Replace in cloud_functions/*.py your GCP parameters
     --project [PROJECT_ID] \
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
-    --trigger-event google.storage.object.finalize \
-    --memory 2gb
+    --trigger-event google.storage.object.finalize
 ### Deploy to Google Cloud App engine
     gcloud app deploy
 
@@ -111,6 +110,7 @@ Replace in cloud_functions/*.py your GCP parameters
 - Think about the case: calls to back API directly (without passing from front)
 - Stuff with dates, count, stats ...
 - More vizualisation / stats / graphics
+- LOGS LOGS LOGS
 - ...
 
 # Other informations about models

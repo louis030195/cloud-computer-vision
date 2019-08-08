@@ -49,8 +49,8 @@ test(`should check config`, t => {
     proxyquire(`../config`, { nconf: nconfMock })
   }
 
-  t.throws(testFunc, Error, getMsg(`CLOUD_BUCKET`))
-  nconfMock.CLOUD_BUCKET = `bucket`
+  t.throws(testFunc, Error, getMsg(`BUCKET_NAME`))
+  nconfMock.BUCKET_NAME = `bucket`
 
   t.throws(testFunc, Error, getMsg(`OAUTH2_CLIENT_ID`))
   nconfMock.OAUTH2_CLIENT_ID = `foo`

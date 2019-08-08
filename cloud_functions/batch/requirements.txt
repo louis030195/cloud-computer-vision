@@ -1,6 +1,2 @@
-google-cloud-datastore
-google-cloud-storage
+regex
 google-api-python-client
-opencv-python
-numpy
-tensorflow
