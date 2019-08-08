@@ -4,6 +4,9 @@ import cv2
 import googleapiclient.discovery
 from google.cloud import datastore
 
+BUCKET_NAME = os.environ.get('BUCKET_NAME')
+PROJECT_ID = os.environ.get('PROJECT_ID')
+MODEL_VERSION = os.environ.get('MODEL_VERSION')
 
 def online_predict_json(project, model, instances, version=None):
     """Send json data to a deployed model for prediction.
@@ -22,7 +25,7 @@ def online_predict_json(project, model, instances, version=None):
     # Create the ML Engine service object.
     # To authenticate set the environment variable
     # GOOGLE_APPLICATION_CREDENTIALS=<path_to_service_account_file>
-    service = googleapiclient.discovery.build('ml', 'v1')
+    service = googleapiclient.discovery.build('ml', MODEL_VERSION) # TODO: what is 'ml' arg
     name = 'projects/{}/models/{}'.format(project, model)
     if version is not None:
         name += '/versions/{}'.format(version)
@@ -55,7 +58,7 @@ def predict_update_datastore(client, frame):
     instances = [image_byte_dict]
 
     # Query AI Platform with the media
-    result = online_predict_json('wildlife-247309', 'm1', instances, 'v1')
+    result = online_predict_json(PROJECT_ID, 'm1', instances, 'v1')
 
     # Put the prediction in Datastore
     key_prediction = client.key('Prediction')
@@ -90,7 +93,7 @@ def predict_update_datastore(client, frame):
 # TODO: optimize code ...
 
 
-def online_processing(event, context):
+def online_prediction(event, context):
     """Triggered by a change to a Cloud Storage bucket.
     Args:
          event (dict): Event payload.

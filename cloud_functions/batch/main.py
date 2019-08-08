@@ -1,9 +1,12 @@
 import time
 import re
+import os
 
 # Imports the Google Cloud client libraries
 import googleapiclient.discovery
 
+BUCKET_NAME = os.environ.get('BUCKET_NAME')
+PROJECT_ID = os.environ.get('PROJECT_ID')
 
 def make_batch_job_body(project_name, input_paths, output_path,
                         model_name, region, data_format='TF_RECORD',
@@ -74,7 +77,7 @@ def batch_predict(project_name, body):
     return response
 
 
-def batch_processing(event, _2):
+def batch_prediction(event, _2):
     """Triggered by a change to a Cloud Storage bucket.
     Args:
          event (dict): Event payload.
@@ -84,19 +87,14 @@ def batch_processing(event, _2):
     # GCP doesn't handle trigger on folder level, so either change architecture
     # either multiple bucket (is that more expensive or ? ...)
     # https://googlecloud.tips/tips/018-trigger-cloud-functions-on-gcs-folders/
-    if '/batches' not in event['name']:
+    if not event['name'].startswith('batches/'):
         return
 
     print('Starting a batch job')
 
-    # The name for the bucket
-    bucket_name = 'bucket03y'
-
-    project_name = 'wildlife-247309'
-
-    body = make_batch_job_body(project_name,
-                               'gs://{}/batches/*'.format(bucket_name),
-                               'gs://{}/batch_results'.format(bucket_name),
+    body = make_batch_job_body(PROJECT_ID,
+                               'gs://{}/batches/*'.format(BUCKET_NAME),
+                               'gs://{}/batch_results'.format(BUCKET_NAME),
                                'm1', 'europe-west1',
                                version_name='v1')
-    batch_predict(project_name, body)
+    print('Response', batch_predict(PROJECT_ID, body))

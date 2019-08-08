@@ -1,6 +1,5 @@
 # vision-client
-## Lot of refactors atm may not work properly
-[![Try it on gitpod](https://img.shields.io/badge/try-on%20gitpod-brightgreen.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
 <img src="docs/images/example.png" width="600" height="300">
 
@@ -13,7 +12,10 @@ Work with:
 - https://github.com/louis030195/vision-client/tree/master/tfrecord-builder
 - https://github.com/louis030195/frame-extractor
 
-It is recommended to just use GitPod, there is less setup to do but you can also do local dev
+It is recommended to just use GitPod for development, there is less setup to do but you can also do locally
+
+see [bash script](setup.sh) to configure everything automatically (not full yet)
+
 ## Local development
 ### [Install NodeJS](https://www.google.com/search?ei=D3Q4XZGcM8OHjLsPs--n8AM&q=install+nodejs)
 
@@ -70,33 +72,36 @@ or somewhere else (AI Platform deployable format: SavedModel)
 
 ### Deploy Cloud Function
 
-Replace in cloud_functions/*.py your GCP parameters
-## TFRecord Caller
+Edit [FUNCTION_DIR]/.env.yaml with your GCP config
+#### TFRecord Caller
     gcloud functions deploy tfrecord_caller \
     --source cloud_functions/tfrecord_caller \
     --runtime python37 \
     --project [PROJECT_ID] \
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
-    --trigger-event google.storage.object.finalize
-## Online
-    gcloud functions deploy online_processing \
+    --trigger-event google.storage.object.finalize \
+    --env-vars-file cloud_functions/tfrecord_caller/.env.yaml
+#### Online
+    gcloud functions deploy online_prediction \
     --source cloud_functions/online \
     --runtime python37 \
     --project [PROJECT_ID] \
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
-    --trigger-event google.storage.object.finalize
-## Batches
-    gcloud functions deploy batch_processing \
+    --trigger-event google.storage.object.finalize \
+    --env-vars-file cloud_functions/online/.env.yaml
+#### Batches
+    gcloud functions deploy batch_prediction \
     --source cloud_functions/batch \
     --runtime python37 \
     --project [PROJECT_ID] \
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
-    --trigger-event google.storage.object.finalize
-## Dont take all my money
-follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#functions_billing_slack-python)
+    --trigger-event google.storage.object.finalize \
+    --env-vars-file cloud_functions/batch/.env.yaml
+#### Dont take all my money
+follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)
 
 THIS HASNT BEEN TESTED YET SO FOLLOW THE LINK INSTRUCTIONS CAREFULLY
 
@@ -105,8 +110,8 @@ THIS HASNT BEEN TESTED YET SO FOLLOW THE LINK INSTRUCTIONS CAREFULLY
     --runtime python37 \
     --project [PROJECT_ID] \
     --trigger-topic budget-notifications \
-    --region [YOUR_REGION]
-
+    --region [YOUR_REGION] \
+    --env-vars-file cloud_functions/dont_take_all_my_money/.env.yaml
 Or
 
     gcloud functions deploy limit_use \
@@ -114,8 +119,10 @@ Or
     --runtime python37 \
     --project [PROJECT_ID] \
     --trigger-topic budget-notifications \
-    --region [YOUR_REGION]
+    --region [YOUR_REGION] \
+    --env-vars-file cloud_functions/dont_take_all_my_money/.env.yaml
 ### Deploy to Google Cloud App engine
+
     gcloud config set project [PROJECT_ID]
     gcloud app deploy
 

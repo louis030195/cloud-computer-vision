@@ -3,6 +3,8 @@ import json
 import os
 import requests
 
+PROJECT_ID = os.environ.get('PROJECT_ID')
+PUBSUB_VERIFICATION_TOKEN = os.environ.get('PUBSUB_VERIFICATION_TOKEN')
 
 def tfrecord_caller(data, context):
     """Background Cloud Function to be triggered by Cloud Storage.
@@ -22,7 +24,7 @@ def tfrecord_caller(data, context):
     """
 
     # Replace with project id and pub_pub_token (the format args)
-    url = 'http://tfrecord-builder-dot-{}.appspot.com/pubsub/push?token={}'.format('wildlife-247309', 'ok123456')
+    url = 'http://tfrecord-builder-dot-{}.appspot.com/pubsub/push?token={}'.format(PROJECT_ID, PUBSUB_VERIFICATION_TOKEN)
 
     response = requests.post(
         url,

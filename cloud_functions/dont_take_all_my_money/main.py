@@ -2,12 +2,14 @@
 
 import base64
 import json
-# import os
+import os
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
-PROJECT_ID = 'wildlife-247309' #os.getenv('GCP_PROJECT')
+PROJECT_ID = os.environ.get('PROJECT_ID')
 PROJECT_NAME = f'projects/{PROJECT_ID}'
+# ZONE = os.getenv('ZONE')
+ZONE = 'us-west1-b' # TODO: ??
 
 #TODO: test everything
 
@@ -54,9 +56,6 @@ def __disable_billing_for_project(project_name, projects):
     body = {'billingAccountName': ''}  # Disable billing
     res = projects.updateBillingInfo(name=project_name, body=body).execute()
     print(f'Billing disabled: {json.dumps(res)}')
-
-
-ZONE = 'us-west1-b' # TODO: ??
 
 
 def limit_use(data, context):
