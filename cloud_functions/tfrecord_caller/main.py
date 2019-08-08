@@ -22,7 +22,7 @@ def tfrecord_caller(data, context):
     """
 
     # Replace with project id and pub_pub_token (the format args)
-    url = 'http://tfrecord-builder.{}/pubsub/push?token={}'.format('wildlife-247309', 'ok123456')
+    url = 'http://tfrecord-builder-dot-{}/pubsub/push?token={}'.format('wildlife-247309', 'ok123456')
 
     response = requests.post(
         url,

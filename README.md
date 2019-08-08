@@ -75,7 +75,7 @@ gcloud ai-platform versions create v1 \
 
 Replace in cloud_functions/*.py your GCP parameters
 ## TFRecord Caller
-    gcloud functions deploy online_processing \
+    gcloud functions deploy tfrecord_caller \
     --source cloud_functions/tfrecord_caller \
     --runtime python37 \
     --project [PROJECT_ID] \
