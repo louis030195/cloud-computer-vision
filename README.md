@@ -95,6 +95,26 @@ Replace in cloud_functions/*.py your GCP parameters
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize
+## Dont take all my money
+follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#functions_billing_slack-python)
+
+THIS HASNT BEEN TESTED YET SO FOLLOW THE LINK INSTRUCTIONS CAREFULLY
+
+    gcloud functions deploy stop_billing \
+    --source cloud_functions/dont_take_all_my_money \
+    --runtime python37 \
+    --project [PROJECT_ID] \
+    --trigger-topic budget-notifications \
+    --region [YOUR_REGION]
+
+Or
+
+    gcloud functions deploy limit_use \
+    --source cloud_functions/dont_take_all_my_money \
+    --runtime python37 \
+    --project [PROJECT_ID] \
+    --trigger-topic budget-notifications \
+    --region [YOUR_REGION]
 ### Deploy to Google Cloud App engine
     gcloud config set project [PROJECT_ID]
     gcloud app deploy
