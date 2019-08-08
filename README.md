@@ -4,6 +4,10 @@
 
 <img src="docs/images/example.png" width="600" height="300">
 
+# Objective
+
+<img src="docs/images/gcp_pipelinev3.png" width="600" height="400">
+
 # Installation
 Work with:
 - https://github.com/louis030195/vision-client/tree/master/tfrecord-builder
