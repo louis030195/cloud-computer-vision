@@ -23,7 +23,7 @@ nconf
   .argv()
   // 2. Environment variables
   .env([
-    'CLOUD_BUCKET',
+    'BUCKET_NAME',
     'NODE_ENV',
     'OAUTH2_CLIENT_ID',
     'OAUTH2_CLIENT_SECRET',
@@ -38,7 +38,7 @@ nconf
   // 4. Defaults
   .defaults({
     // Typically you will create a bucket with the same name as your project ID.
-    CLOUD_BUCKET: '',
+    BUCKET_NAME: '',
 
     OAUTH2_CLIENT_ID: '',
     OAUTH2_CLIENT_SECRET: '',
@@ -51,9 +51,10 @@ nconf
   })
 
 // Check for required settings
-checkConfig('CLOUD_BUCKET')
-checkConfig('OAUTH2_CLIENT_ID')
-checkConfig('OAUTH2_CLIENT_SECRET')
+// checkConfig('GOOGLE_APPLICATION_CREDENTIALS')
+// checkConfig('BUCKET_NAME')
+// checkConfig('OAUTH2_CLIENT_ID')
+// checkConfig('OAUTH2_CLIENT_SECRET')
 
 function checkConfig (setting) {
   if (!nconf.get(setting)) {
