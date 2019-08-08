@@ -16,60 +16,57 @@ Work with:
 It is recommended to just use GitPod, there is less setup to do but you can also do local dev
 ## Local development
 ### [Install NodeJS](https://www.google.com/search?ei=D3Q4XZGcM8OHjLsPs--n8AM&q=install+nodejs)
-```
-git clone https://github.com/louis030195/vision-client.git
-cd vision-client
-npm install
-```
+
+    git clone https://github.com/louis030195/vision-client.git
+    cd vision-client
+    npm install
+
 
 ### gcloud CLI
-```
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
- && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - \
- && sudo apt-get update \
- && sudo apt-get install -y google-cloud-sdk \
- && sudo rm -rf /var/lib/apt/lists/*
-```
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
+    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - \
+    && sudo apt-get update \
+    && sudo apt-get install -y google-cloud-sdk \
+    && sudo rm -rf /var/lib/apt/lists/*
 
 - [Get my OAuth2 IDs](https://developers.google.com/identity/protocols/OAuth2)
 - [Get a json key file and put it in key_account directory](https://cloud.google.com/docs/authentication/getting-started)
 
+
+
+
 ### Create GCP storage bucket
-```
-gsutil mb gs://[BUCKET_NAME]/ \
---regions [YOUR_REGION]
-gsutil defacl set public-read gs://[YOUR-BUCKET-NAME]
-```
+    gsutil mb gs://[BUCKET_NAME]/ \
+    --regions [YOUR_REGION]
+    gsutil defacl set public-read gs://[YOUR-BUCKET-NAME]
 
 ### Config file
-```
-echo -e '{
-    "BUCKET_NAME: "[YOUR_BUCKET]",
-    "OAUTH2_CLIENT_ID": "[YOUR_OAUTH2_CLIENT_ID]",
-    "OAUTH2_CLIENT_SECRET": "[YOUR_OAUTH2_CLIENT_SECRET]",
-    "OAUTH2_CALLBACK": "https://[PROJECT_ID].appspot.com/auth/google/callback",
-    "GOOGLE_APPLICATION_CREDENTIALS": "./key_account/[JSON__KEY_NAME]",
-    "PROJECT_ID": "[YOUR_PROJECT_ID]"
-}' > config.json
-```
+    echo -e '{
+        "BUCKET_NAME: "[YOUR_BUCKET]",
+        "OAUTH2_CLIENT_ID": "[YOUR_OAUTH2_CLIENT_ID]",
+        "OAUTH2_CLIENT_SECRET": "[YOUR_OAUTH2_CLIENT_SECRET]",
+        "OAUTH2_CALLBACK": "https://vision-client-dot-[PROJECT_ID].appspot.com/auth/google/callback",
+        "GOOGLE_APPLICATION_CREDENTIALS": "./key_account/[JSON__KEY_NAME]",
+        "PROJECT_ID": "[YOUR_PROJECT_ID]"
+    }' > config.json
 
 ### Deploy an object detection model to AI Platform
 Pick a model from [tensorflow models](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
 or somewhere else (AI Platform deployable format: SavedModel)
-```
-curl -o model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
-tar xvf model.tar.gz
-gsutil -m cp -r ssd_mobilenet_v1_coco_2018_01_28/saved_model gs://[BUCKET_NAME]/
 
-gcloud ai-platform models create m1 \
---regions [YOUR_REGION]
+    curl -o model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
+    tar xvf model.tar.gz
+    gsutil -m cp -r ssd_mobilenet_v1_coco_2018_01_28/saved_model gs://[BUCKET_NAME]/
 
-gcloud ai-platform versions create v1 \
-    --model m1 \
-    --origin gs://[BUCKET_NAME]/saved_model \
-    --runtime-version 1.14 \
-    --python-version 2.7
-```
+    gcloud ai-platform models create m1 \
+    --regions [YOUR_REGION]
+
+    gcloud ai-platform versions create v1 \
+        --model m1 \
+        --origin gs://[BUCKET_NAME]/saved_model \
+        --runtime-version 1.14 \
+        --python-version 2.7
+
 
 ### Deploy Cloud Function
 
@@ -99,6 +96,7 @@ Replace in cloud_functions/*.py your GCP parameters
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize
 ### Deploy to Google Cloud App engine
+    gcloud config set project [PROJECT_ID]
     gcloud app deploy
 
 # TODO

@@ -9,8 +9,8 @@ const path = require('path')
 const storage = Storage({
   keyFilename: path.join(__dirname, '..', GOOGLE_APPLICATION_CREDENTIALS)
 })
-const throttledQueue = require('throttled-queue');
-const throttle = throttledQueue(1, 5000) // at most make 1 request every 5 seconds.
+// const throttledQueue = require('throttled-queue');
+// const throttle = throttledQueue(1, 5000) // at most make 1 request every 5 seconds.
 
 const bucket = storage.bucket(BUCKET_NAME)
 
@@ -26,7 +26,7 @@ function getPublicUrl (filename) {
 // * ``cloudStorageObject`` the object name in cloud storage.
 // * ``cloudStoragePublicUrl`` the public url to the object.
 function sendUploadToGCS (req, res, next) {
-  throttle(() => {
+  // throttle(() => {
     if (!req.file) {
       return next()
     }
@@ -55,7 +55,7 @@ function sendUploadToGCS (req, res, next) {
     })
 
     stream.end(req.file.buffer)
-  })
+  // })
 }
 
 // Multer handles parsing multipart/form-data requests.
