@@ -54,6 +54,8 @@ echo -e '{
 ```
 
 ### Deploy an object detection model to AI Platform
+Pick a model from [tensorflow models](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
+or somewhere else (AI Platform deployable format: SavedModel)
 ```
 curl -o model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
 tar xvf model.tar.gz
@@ -72,37 +74,43 @@ gcloud ai-platform versions create v1 \
 ### Deploy Cloud Function
 
 Replace in cloud_functions/*.py your GCP parameters
+## TFRecord Caller
+    gcloud functions deploy online_processing \
+    --source cloud_functions/tfrecord_caller \
+    --runtime python37 \
+    --project [PROJECT_ID] \
+    --trigger-resource gs://[BUCKET_NAME] \
+    --region [YOUR_REGION] \
+    --trigger-event google.storage.object.finalize
 ## Online
-```
-gcloud functions deploy online_processing \
---source cloud_functions/online \
---runtime python37 \
---project [PROJECT_ID] \
---trigger-resource gs://[BUCKET_NAME] \
---region [YOUR_REGION] \
---trigger-event google.storage.object.finalize
-```
+    gcloud functions deploy online_processing \
+    --source cloud_functions/online \
+    --runtime python37 \
+    --project [PROJECT_ID] \
+    --trigger-resource gs://[BUCKET_NAME] \
+    --region [YOUR_REGION] \
+    --trigger-event google.storage.object.finalize
 ## Batches
-```
-gcloud functions deploy batch_processing \
---source cloud_functions/batch \
---runtime python37 \
---project [PROJECT_ID] \
---trigger-resource gs://[BUCKET_NAME] \
---region [YOUR_REGION] \
---trigger-event google.storage.object.finalize \
---memory 2gb
-```
+    gcloud functions deploy batch_processing \
+    --source cloud_functions/batch \
+    --runtime python37 \
+    --project [PROJECT_ID] \
+    --trigger-resource gs://[BUCKET_NAME] \
+    --region [YOUR_REGION] \
+    --trigger-event google.storage.object.finalize \
+    --memory 2gb
 ### Deploy to Google Cloud App engine
-```
-gcloud app deploy
-```
+    gcloud app deploy
 
 # TODO
 - Script that configure all the repo + gcp automatically
-- Batch prediction
-- Videos
+- Split back / front
+- Let user choose whether he wants online / batch predictions
+- Reset / remake new predictions (new model ...)
+- Time / price estimator / simulator (before launching the task and after also)
+- Think about the case: calls to back API directly (without passing from front)
 - Stuff with dates, count, stats ...
+- More vizualisation / stats / graphics
 - ...
 
 # Other informations about models
@@ -110,10 +118,10 @@ gcloud app deploy
 - [github/tensorflow/models](https://github.com/tensorflow/models/blob/master/research/object_detection)
 - [tfhub](https://tfhub.dev/s?module-type=image-object-detection)
 ## Check graph of a SavedModel
-```
-# https://github.com/tensorflow/tensorflow
-python tensorflow/tensorflow/python/tools/saved_model_cli.py show --dir ssd_mobilenet_v1_coco_2018_01_28/saved_model --all
-```
+
+    git clone https://github.com/tensorflow/tensorflow
+    python tensorflow/tensorflow/python/tools/saved_model_cli.py show --dir ssd_mobilenet_v1_coco_2018_01_28/saved_model --all
+
 
 ## AI Platform is limited to 250 mb models
 [Optimizing models](https://medium.com/google-cloud/optimizing-tensorflow-models-for-serving-959080e9ddbf)
