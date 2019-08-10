@@ -7,6 +7,8 @@ import googleapiclient.discovery
 
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
 PROJECT_ID = os.environ.get('PROJECT_ID')
+MODEL_NAME = os.environ.get('MODEL_NAME')
+VERSION_NAME = os.environ.get('VERSION_NAME')
 
 def make_batch_job_body(project_name, input_paths, output_path,
                         model_name, region, data_format='TF_RECORD',
@@ -61,7 +63,7 @@ def make_batch_job_body(project_name, input_paths, output_path,
 def batch_predict(project_name, body):
     project_id = 'projects/{}'.format(project_name)
 
-    service = googleapiclient.discovery.build('ml', 'v1')
+    service = googleapiclient.discovery.build('m1', 'v1')
     request = service.projects().jobs().create(parent=project_id,
                                                body=body)
 
