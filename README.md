@@ -81,7 +81,8 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize \
-    --env-vars-file cloud_functions/tfrecord_caller/.env.yaml
+    --env-vars-file cloud_functions/tfrecord_caller/.env.yaml \
+    --max-instances 1
 #### Online
     gcloud functions deploy online_prediction \
     --source cloud_functions/online \
@@ -90,7 +91,8 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize \
-    --env-vars-file cloud_functions/online/.env.yaml
+    --env-vars-file cloud_functions/online/.env.yaml \
+    --max-instances 1
 #### Batches
     gcloud functions deploy batch_prediction \
     --source cloud_functions/batch \
@@ -99,7 +101,8 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize \
-    --env-vars-file cloud_functions/batch/.env.yaml
+    --env-vars-file cloud_functions/batch/.env.yaml \
+    --max-instances 1
 #### Dont take all my money
 follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)
 

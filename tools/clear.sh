@@ -16,6 +16,6 @@ datastoreDeleteProjectId=DATASTORE_READ_AND_DELETE_PROJECT_ID
 # Clear functions
 gcloud functions delete --region europe-west1 --project [PROJECT-ID] online_prediction
 gcloud functions delete --region europe-west1 --project [PROJECT-ID] batch_prediction
-gcloud functions delete --region europe-west1 --project [PROJECT-ID] tfrecord_caller_prediction
+gcloud functions delete --region europe-west1 --project [PROJECT-ID] tfrecord_caller
 gcloud functions delete --region europe-west1 --project [PROJECT-ID] stop_billing
 gcloud functions delete --region europe-west1 --project [PROJECT-ID] limit_use
