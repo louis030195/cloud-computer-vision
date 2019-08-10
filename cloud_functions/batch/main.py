@@ -63,7 +63,7 @@ def make_batch_job_body(project_name, input_paths, output_path,
 def batch_predict(project_name, body):
     project_id = 'projects/{}'.format(project_name)
 
-    service = googleapiclient.discovery.build('m1', 'v1')
+    service = googleapiclient.discovery.build(MODEL_NAME, VERSION_NAME)
     request = service.projects().jobs().create(parent=project_id,
                                                body=body)
 
@@ -97,6 +97,6 @@ def batch_prediction(event, _2):
     body = make_batch_job_body(PROJECT_ID,
                                'gs://{}/batches/*'.format(BUCKET_NAME),
                                'gs://{}/batch_results'.format(BUCKET_NAME),
-                               'm1', 'europe-west1',
-                               version_name='v1')
+                               MODEL_NAME, 'europe-west1',
+                               version_name=VERSION_NAME)
     print('Response', batch_predict(PROJECT_ID, body))
