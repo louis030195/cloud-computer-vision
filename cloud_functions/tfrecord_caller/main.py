@@ -1,12 +1,14 @@
+
 import base64
 import json
 import os
 import requests
 
-PROJECT_ID = os.environ.get('PROJECT_ID')
-PUBSUB_VERIFICATION_TOKEN = os.environ.get('PUBSUB_VERIFICATION_TOKEN')
+PROJECT_ID = os.environ['PROJECT_ID']
+PUBSUB_VERIFICATION_TOKEN = os.environ['PUBSUB_VERIFICATION_TOKEN']
 
-def tfrecord_caller(data, context):
+
+def tfrecord_caller(data, _):
     """Background Cloud Function to be triggered by Cloud Storage.
        This generic function logs relevant data when a file is changed.
 
@@ -18,10 +20,14 @@ def tfrecord_caller(data, context):
 
     Args:
         data (dict): The Cloud Functions event payload.
-        context (google.cloud.functions.Context): Metadata of triggering event.
+        _ (google.cloud.functions.Context): Metadata of triggering event.
     Returns:
         None; the output is written to Stackdriver Logging
     """
+
+    if not data['contentType'].startswith('image') or not data['contentType'].startswith('video'):
+        print("Unhandled file type")
+        return
 
     # Replace with project id and pub_pub_token (the format args)
     url = 'http://tfrecord-builder-dot-{}.appspot.com/pubsub/push?token={}'.format(PROJECT_ID, PUBSUB_VERIFICATION_TOKEN)
@@ -36,5 +42,5 @@ def tfrecord_caller(data, context):
             }
         })
     )
-
-    return response.text
+    print('Response', response.text)
+    return
