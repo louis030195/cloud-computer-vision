@@ -223,6 +223,13 @@ def online_batch_prediction(event, context):
     if len(frames_to_process) > TRESHOLD:
         # Instantiates a GCS client
         storage_client = storage.Client()
+        body = make_batch_job_body(PROJECT_ID,
+                            'gs://{}/batches/*'.format(BUCKET_NAME),
+                            'gs://{}/batch_results'.format(BUCKET_NAME),
+                            MODEL_NAME,
+                            REGION,
+                            version_name=VERSION_NAME,
+                            max_worker_count=72)
         for frame in frames_to_process:
             # Download
             dl_request = requests.get(frame['imageUrl'], stream=True)
@@ -252,7 +259,7 @@ def online_batch_prediction(event, context):
             obj = dict(frame)
 
             # Update the predictions properties of the Frame row to stop launching jobs
-            obj['predictions'] = 'processing'
+            obj['predictions'] = body['jobId']
 
             # Push into datastore
             entity_frame.update(obj)
@@ -265,20 +272,13 @@ def online_batch_prediction(event, context):
 
         print('File uploaded')
 
-        body = make_batch_job_body(PROJECT_ID,
-                                   'gs://{}/batches/*'.format(BUCKET_NAME),
-                                   'gs://{}/batch_results'.format(BUCKET_NAME),
-                                   MODEL_NAME,
-                                   REGION,
-                                   version_name=VERSION_NAME,
-                                   max_worker_count=72)
         print('Response', batch_predict(PROJECT_ID, body))
         return
 
     # Avoid jumping on online prediction too early
-    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M.%S.%fZ')) < 120:
+    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')) < 120:
         print('Waiting more frames',
-              datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M.%S.%fZ'))
+              datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ'))
         return
     else:
         # Iterate through the media to process
