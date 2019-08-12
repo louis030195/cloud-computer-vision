@@ -93,7 +93,7 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --trigger-event google.storage.object.finalize \
     --env-vars-file cloud_functions/online/.env.yaml \
     --max-instances 1
-#### Batches
+#### Batch
     gcloud functions deploy batch_prediction \
     --source cloud_functions/batch \
     --runtime python37 \
@@ -102,6 +102,16 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize \
     --env-vars-file cloud_functions/batch/.env.yaml \
+    --max-instances 1
+#### Online + Batch
+    gcloud functions deploy online_batch_prediction \
+    --source cloud_functions/online_batch \
+    --runtime python37 \
+    --project [PROJECT_ID] \
+    --trigger-resource gs://[BUCKET_NAME] \
+    --region [YOUR_REGION] \
+    --trigger-event google.storage.object.finalize \
+    --env-vars-file cloud_functions/online_batch/.env.yaml \
     --max-instances 1
 #### Dont take all my money
 follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)

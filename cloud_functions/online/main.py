@@ -1,12 +1,13 @@
+import os
 import requests
 import numpy as np
 import cv2
 import googleapiclient.discovery
 from google.cloud import datastore
 
-BUCKET_NAME = os.environ.get('BUCKET_NAME')
-PROJECT_ID = os.environ.get('PROJECT_ID')
-MODEL_VERSION = os.environ.get('MODEL_VERSION')
+BUCKET_NAME = os.environ['BUCKET_NAME']
+PROJECT_ID = os.environ['PROJECT_ID']
+MODEL_VERSION = os.environ['MODEL_VERSION']
 
 def online_predict_json(project, model, instances, version=None):
     """Send json data to a deployed model for prediction.
