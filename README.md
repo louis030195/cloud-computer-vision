@@ -112,7 +112,8 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize \
     --env-vars-file cloud_functions/online_batch/.env.yaml \
-    --max-instances 1
+    --max-instances 1 \
+    --memory 2gb
 #### Dont take all my money
 follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)
 

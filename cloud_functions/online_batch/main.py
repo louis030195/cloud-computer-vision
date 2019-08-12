@@ -86,7 +86,7 @@ def batch_predict(project_name, body):
     """
     project_id = 'projects/{}'.format(project_name)
 
-    service = googleapiclient.discovery.build(MODEL_NAME, VERSION_NAME)
+    service = googleapiclient.discovery.build('ml', 'v1') # its not ai platform model / version btw
     request = service.projects().jobs().create(parent=project_id,
                                                body=body)
 
@@ -215,6 +215,10 @@ def online_batch_prediction(event, context):
     frames_to_process = list(query_frame.fetch())
 
     # Above which amount of frames we pick batch instead of online predictions
+    # timestamp: 2019-08-12T07:46:33.401Z
+    # 'updated': '2019-08-12T07:46:33.063Z'
+    # TODO: only start online if under treshold and a specific length of time
+    # has passed (from the image timestamp)
     if True:  #len(frames_to_process) > TRESHOLD:
         # Instantiates a GCS client
         storage_client = storage.Client()
@@ -227,15 +231,16 @@ def online_batch_prediction(event, context):
             arr = np.asarray(bytearray(dl_request.content), dtype=np.uint8)
 
             # Preprocessing
+            # TODO:calculate the scaling that has been done and put into the image datastore in order to rescale boxes etc
             img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (100, 100))
 
             # Create an object containing the data
             image_byte_dict = {"inputs": img.tolist()}
             json_object = json.dumps(image_byte_dict)
-            # u = "\n".join([j for i in range(1, 10000)])
+            file_path = "/tmp/inputs.json"
 
             # Open file with "a" = append the file
-            with open("inputs.json", "a") as json_file:
+            with open(file_path, "a+") as json_file:
                 json_file.write(json_object + "\n")
 
             # Get the frame key in Datastore
@@ -253,9 +258,9 @@ def online_batch_prediction(event, context):
             client.put(entity_frame)
 
         bucket = storage_client.get_bucket(BUCKET_NAME)
-        blob = bucket.blob('batches')
+        blob = bucket.blob('batches/inputs.json')
 
-        blob.upload_from_filename("inputs.json")
+        blob.upload_from_filename(file_path)
 
         print('File uploaded')
 
@@ -264,7 +269,8 @@ def online_batch_prediction(event, context):
                                    'gs://{}/batch_results'.format(BUCKET_NAME),
                                    MODEL_NAME,
                                    REGION,
-                                   version_name=VERSION_NAME)
+                                   version_name=VERSION_NAME,
+                                   max_worker_count=72)
         print('Response', batch_predict(PROJECT_ID, body))
         return
 
