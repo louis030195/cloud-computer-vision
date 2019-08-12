@@ -6,6 +6,7 @@ import json
 
 # Google Cloud client libraries
 from google.cloud import datastore
+from google.cloud import storage
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 
@@ -24,10 +25,12 @@ def batch_result(event, context):
 
     client = datastore.Client()
 
-    print('path:', os.path.join('gs://{}'.format(BUCKET_NAME), 'batch_results', event['name']))
 
+
+    file_absolute_path = os.path.join('gs://{}'.format(BUCKET_NAME), 'batch_results', event['name'])
+    print('path:', file_absolute_path)
     # Open the batch result file
-    with open(os.path.join('gs://{}'.format(BUCKET_NAME), 'batch_results', event['name']), 'r') as f:
+    with open(file_absolute_path, 'r') as f:
         # Split every prediction (\n) and remove the "" which is at the end
         predictions_raw = filter(lambda x: x != "", f.read().split("\n"))
 
@@ -68,6 +71,14 @@ def batch_result(event, context):
             # Update the prediction in datastore
             client.put(entity_prediction)
 
+    # Initliaze storage client
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(BUCKET_NAME)
+    blob = bucket.blob(file_absolute_path)
+
+    blob.delete()
+
+    print('Blob {} deleted.'.format(file_absolute_path))
 
     # TODO: How to link prediction with frame in batch ?
     """
