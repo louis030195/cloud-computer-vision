@@ -276,9 +276,9 @@ def online_batch_prediction(event, context):
         return
 
     # Avoid jumping on online prediction too early
-    elif (datetime.now() - datetime.strptime(event['timestamp'], '%Y-%m-%dT%H:%M.%S.%fZ')) < 120:
+    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M.%S.%fZ')) < 120:
         print('Waiting more frames',
-              datetime.now() - datetime.strptime(event['timestamp'], '%Y-%m-%dT%H:%M.%S.%fZ'))
+              datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M.%S.%fZ'))
         return
     else:
         # Iterate through the media to process
