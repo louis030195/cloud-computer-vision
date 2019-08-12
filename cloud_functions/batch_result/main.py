@@ -25,9 +25,7 @@ def batch_result(event, context):
 
     client = datastore.Client()
 
-
-
-    file_absolute_path = os.path.join('gs://{}'.format(BUCKET_NAME), 'batch_results', event['name'])
+    file_absolute_path = os.path.join('gs://{}'.format(BUCKET_NAME), event['name'])
     print('path:', file_absolute_path)
     # Open the batch result file
     with open(file_absolute_path, 'r') as f:

@@ -4,6 +4,7 @@ import os
 import time
 import json
 import re
+from datetime import datetime
 
 # Requests
 import requests
@@ -219,7 +220,7 @@ def online_batch_prediction(event, context):
     # 'updated': '2019-08-12T07:46:33.063Z'
     # TODO: only start online if under treshold and a specific length of time
     # has passed (from the image timestamp)
-    if True:  #len(frames_to_process) > TRESHOLD:
+    if len(frames_to_process) > TRESHOLD:
         # Instantiates a GCS client
         storage_client = storage.Client()
         for frame in frames_to_process:
@@ -274,27 +275,33 @@ def online_batch_prediction(event, context):
         print('Response', batch_predict(PROJECT_ID, body))
         return
 
-    # Iterate through the media to process
-    for frame in frames_to_process:
-        image_url = frame['imageUrl']
+    # Avoid jumping on online prediction too early
+    elif (datetime.now() - datetime.strptime(event['timestamp'], '%Y-%m-%dT%H:%M.%S.%fZ')) < 120:
+        print('Waiting more frames',
+              datetime.now() - datetime.strptime(event['timestamp'], '%Y-%m-%dT%H:%M.%S.%fZ'))
+        return
+    else:
+        # Iterate through the media to process
+        for frame in frames_to_process:
+            image_url = frame['imageUrl']
 
-        # Download the image
-        dl_request = requests.get(image_url, stream=True)
-        dl_request.raise_for_status()
+            # Download the image
+            dl_request = requests.get(image_url, stream=True)
+            dl_request.raise_for_status()
 
-        entity_prediction = predict_update_datastore(
-            client, dl_request.content)
+            entity_prediction = predict_update_datastore(
+                client, dl_request.content)
 
-        # Get the frame key in Datastore
-        key_frame = client.key('Frame', frame.id)
-        entity_frame = datastore.Entity(key=key_frame)
+            # Get the frame key in Datastore
+            key_frame = client.key('Frame', frame.id)
+            entity_frame = datastore.Entity(key=key_frame)
 
-        # Create an object to put in datastore
-        obj = dict(frame)
+            # Create an object to put in datastore
+            obj = dict(frame)
 
-        # Update the predictions properties of the Frame row
-        obj['predictions'] = entity_prediction.id
+            # Update the predictions properties of the Frame row
+            obj['predictions'] = entity_prediction.id
 
-        # Push into datastore
-        entity_frame.update(obj)
-        client.put(entity_frame)
+            # Push into datastore
+            entity_frame.update(obj)
+            client.put(entity_frame)
