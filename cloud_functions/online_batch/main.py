@@ -19,6 +19,7 @@ import cv2
 import googleapiclient.discovery
 from google.cloud import datastore
 from google.cloud import storage
+from google.cloud import pubsub_v1
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 PROJECT_ID = os.environ['PROJECT_ID']
@@ -59,7 +60,7 @@ def make_batch_job_body(project_name, input_paths, output_path,
             'predictionInput': {
                 'dataFormat': data_format,
                 'inputPaths': input_paths,
-                'outputPath': output_path,
+                'outputPath': '{}/{}'.format(output_path, job_id),
                 'region': region}}
 
     # Use the version if present, the model (its default version) if not.
@@ -204,6 +205,15 @@ def online_batch_prediction(event, context):
     if event['name'].startswith('batch_results/') or event['name'].startswith('batches/'): # (e.g. batch results put here, we skip)
         return
 
+    if event['contentType'].startswith('video'):
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path(PROJECT_ID, 'topic_extractor')
+        publisher.publish(
+            topic_path,
+            data=os.path.join('gs://{}'.format(BUCKET_NAME),
+                              event['name']).encode('utf-8')  # data must be a bytestring.
+        )
+
     # A file has been added to the bucket but it's either an image or a video (split into frames)
     if not event['contentType'].startswith('image'):
         print("Unhandled file type")
@@ -229,7 +239,7 @@ def online_batch_prediction(event, context):
                                    version_name=VERSION_NAME,
                                    max_worker_count=72)
         # TODO: handle case where the batch is too big to be written to a single file
-        for frame in frames_to_process:
+        for index, frame in enumerate(frames_to_process):
             # Download
             dl_request = requests.get(frame['imageUrl'], stream=True)
             dl_request.raise_for_status()
@@ -242,7 +252,7 @@ def online_batch_prediction(event, context):
             img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (100, 100))
 
             # Create an object containing the data
-            image_byte_dict = {"inputs": img.tolist(), "key": frame.id}
+            image_byte_dict = {"inputs": img.tolist()}
             json_object = json.dumps(image_byte_dict)
             file_path = "/tmp/inputs.json"
 
@@ -258,7 +268,9 @@ def online_batch_prediction(event, context):
             obj = dict(frame)
 
             # Update the predictions properties of the Frame row to stop launching jobs
-            obj['predictions'] = 'processing' #TODO: handle case where multiple job ended => #body['jobId']
+            obj['predictions'] = 'processing' #TODO: handle case where multiple job ended => #
+            obj['job'] = body['jobId']
+            obj['index'] = index
 
             # Push into datastore
             entity_frame.update(obj)

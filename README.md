@@ -125,6 +125,16 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --env-vars-file cloud_functions/batch_result/.env.yaml \
     --max-instances 1 \
     --memory 2gb
+#### Frame extractor
+    gcloud functions deploy extractPubSub \
+    --source cloud_functions/frame_extractor \
+    --runtime nodejs10 \
+    --project [PROJECT_ID] \
+    --trigger-topic topic_extractor \
+    --region [YOUR_REGION] \
+    --env-vars-file cloud_functions/frame_extractor/.env.yaml \
+    --max-instances 1 \
+    --memory 2gb
 #### Dont take all my money
 follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)
 

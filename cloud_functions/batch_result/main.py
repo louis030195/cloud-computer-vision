@@ -20,7 +20,8 @@ def batch_result(event, context):
     # GCP doesn't handle trigger on folder level, so either change architecture
     # either multiple bucket (is that more expensive or ? ...)
     # https://googlecloud.tips/tips/018-trigger-cloud-functions-on-gcs-folders/
-    if not event['name'].startswith('batch_results/'):
+    print('AAAAAAAAAAAAAAAAAA', event, context)
+    if 'batch_results/' not in event['name']:
         return
 
     if 'error' in event['name']:
@@ -31,22 +32,18 @@ def batch_result(event, context):
     if 'beam' in event['name']:
         return
 
-    client = datastore.Client()
+    datastore_client = datastore.Client()
     storage_client = storage.Client()
-
-    # TODO: How to link prediction with frame in batch ?
-    query_frame = client.query(kind='Frame')
-    query_frame.add_filter('predictions', '=', 'processing') # TODO: fix filter get processing frames
-    frames_processed = list(query_frame.fetch())
 
     file_absolute_path = os.path.join('gs://{}'.format(BUCKET_NAME), event['name'])
 
     # Open the result file
-    gcs_file = storage_client.open(file_absolute_path)
-    contents = storage_client.read()
+    bucket = storage_client.get_bucket('bucket03y')
+    blob = bucket.get_blob(event['name'])
+    result_file = blob.download_as_string().decode('utf-8')
 
     # Split every prediction (\n) and remove the "" which is at the end
-    predictions_raw = filter(lambda x: x != "", contents.split("\n"))
+    predictions_raw = filter(lambda x: x != "", result_file.split("\n"))
 
     # Load everything as json so it can be used
     predictions_json = [json.loads(prediction_raw) for prediction_raw in predictions_raw]
@@ -55,7 +52,7 @@ def batch_result(event, context):
     for index, pred in enumerate(predictions_json):
 
         # Create the prediction in Datastore
-        key_prediction = client.key('Prediction')
+        key_prediction = datastore_client.key('Prediction')
         entity_prediction = datastore.Entity(key=key_prediction)
 
         # Create a keys list that will be used to reference each object detected
@@ -71,10 +68,10 @@ def batch_result(event, context):
             object_detected['detection_scores'] = pred['detection_scores'][i]
 
             # Put the object into a new table row ...
-            key_object = client.key('Object')
+            key_object = datastore_client.key('Object')
             entity_object = datastore.Entity(key=key_object)
             entity_object.update(object_detected)
-            client.put(entity_object)
+            datastore_client.put(entity_object)
 
             # Store the id generated for reference in Prediction table
             keys_object.append(entity_object.id)
@@ -83,10 +80,18 @@ def batch_result(event, context):
         entity_prediction.update({'objects': keys_object})
 
         # Update the prediction in datastore
-        client.put(entity_prediction)
+        datastore_client.put(entity_prediction)
+
+         # TODO: How to link prediction with frame in batch ?
+        query_frame = datastore_client.query(kind='Frame')
+        # E.g. /batch_results/job_id/project_id.results-00000-of-00001 (splitting '/')
+        query_frame.add_filter('job', '=', event['name'].split('/')[0]) # TODO: filename = jobname
+        query_frame.add_filter('predictions', '=', 'processing') # TODO: fix filter get processing frames
+        query_frame.add_filter('key', '=', index) # TODO: fix filter get processing frames
+        frame = list(query_frame.fetch())[0]
 
         # Get the frame key in Datastore
-        key_frame = client.key('Frame', pred['key'])
+        key_frame = datastore_client.key('Frame', frame.id)
         entity_frame = datastore.Entity(key=key_frame)
 
         # Create an object to put in datastore
@@ -98,10 +103,7 @@ def batch_result(event, context):
 
         # Push into datastore
         #entity_frame.update(obj)
-        client.put(entity_frame)
-
-    # Close the file
-    gcs_file.close()
+        datastore_client.put(entity_frame)
 
     # Erase file from bucket
     bucket = storage_client.get_bucket(BUCKET_NAME)
