@@ -53,22 +53,22 @@ see [bash script](setup.sh) to configure everything automatically (not full yet)
     }' > config.json
 
 ### Deploy an object detection model to AI Platform
-Pick a model from [tensorflow models](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
+- Pick a model from [tensorflow models](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
 or somewhere else (AI Platform deployable format: SavedModel)
 
-    curl -o model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
-    tar xvf model.tar.gz
-    gsutil -m cp -r ssd_mobilenet_v1_coco_2018_01_28/saved_model gs://[BUCKET_NAME]/
+- [Update the graph for batch key mapping and upload to GCS](https://colab.research.google.com/drive/1CZxrvowmuzwfJJoUBjgIjsIpb-1gh53h)
 
-    gcloud ai-platform models create m1 \
-    --regions [YOUR_REGION]
 
-    gcloud ai-platform versions create v1 \
-        --model m1 \
-        --origin gs://[BUCKET_NAME]/saved_model \
-        --runtime-version 1.14 \
-        --python-version 2.7
+```
+gcloud ai-platform models create m1 \
+--regions [YOUR_REGION]
 
+gcloud ai-platform versions create v1 \
+    --model m1 \
+    --origin gs://[BUCKET_NAME]/saved_model \
+    --runtime-version 1.14 \
+    --python-version 2.7
+```
 
 ### Deploy Cloud Function
 
