@@ -216,20 +216,19 @@ def online_batch_prediction(event, context):
     frames_to_process = list(query_frame.fetch())
 
     # Above which amount of frames we pick batch instead of online predictions
-    # timestamp: 2019-08-12T07:46:33.401Z
-    # 'updated': '2019-08-12T07:46:33.063Z'
     # TODO: only start online if under treshold and a specific length of time
     # has passed (from the image timestamp)
     if len(frames_to_process) > TRESHOLD:
         # Instantiates a GCS client
         storage_client = storage.Client()
         body = make_batch_job_body(PROJECT_ID,
-                            'gs://{}/batches/*'.format(BUCKET_NAME),
-                            'gs://{}/batch_results'.format(BUCKET_NAME),
-                            MODEL_NAME,
-                            REGION,
-                            version_name=VERSION_NAME,
-                            max_worker_count=72)
+                                   'gs://{}/batches/*'.format(BUCKET_NAME),
+                                   'gs://{}/batch_results'.format(BUCKET_NAME),
+                                   MODEL_NAME,
+                                   REGION,
+                                   version_name=VERSION_NAME,
+                                   max_worker_count=72)
+        # TODO: handle case where the batch is too big to be written to a single file
         for frame in frames_to_process:
             # Download
             dl_request = requests.get(frame['imageUrl'], stream=True)
@@ -243,7 +242,7 @@ def online_batch_prediction(event, context):
             img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (100, 100))
 
             # Create an object containing the data
-            image_byte_dict = {"inputs": img.tolist()}
+            image_byte_dict = {"inputs": img.tolist(), "key": frame.id}
             json_object = json.dumps(image_byte_dict)
             file_path = "/tmp/inputs.json"
 
@@ -259,7 +258,7 @@ def online_batch_prediction(event, context):
             obj = dict(frame)
 
             # Update the predictions properties of the Frame row to stop launching jobs
-            obj['predictions'] = body['jobId']
+            obj['predictions'] = 'processing' #TODO: handle case where multiple job ended => #body['jobId']
 
             # Push into datastore
             entity_frame.update(obj)
@@ -276,9 +275,9 @@ def online_batch_prediction(event, context):
         return
 
     # Avoid jumping on online prediction too early
-    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')) < 120:
+    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')).total_seconds() < 120:
         print('Waiting more frames',
-              datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ'))
+              (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')).total_seconds())
         return
     else:
         # Iterate through the media to process

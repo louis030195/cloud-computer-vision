@@ -23,74 +23,90 @@ def batch_result(event, context):
     if not event['name'].startswith('batch_results/'):
         return
 
+    if 'error' in event['name']:
+        print('Batch predictions failed')
+        return
+
+    # TODO: why there is "beam" thing here ?
+    if 'beam' in event['name']:
+        return
+
     client = datastore.Client()
+    storage_client = storage.Client()
+
+    # TODO: How to link prediction with frame in batch ?
+    query_frame = client.query(kind='Frame')
+    query_frame.add_filter('predictions', '=', 'processing') # TODO: fix filter get processing frames
+    frames_processed = list(query_frame.fetch())
 
     file_absolute_path = os.path.join('gs://{}'.format(BUCKET_NAME), event['name'])
-    print('path:', file_absolute_path)
-    # Open the batch result file
-    with open(file_absolute_path, 'r') as f:
-        # Split every prediction (\n) and remove the "" which is at the end
-        predictions_raw = filter(lambda x: x != "", f.read().split("\n"))
 
-        # Load everything as json so it can be used
-        predictions_json = [json.loads(prediction_raw) for prediction_raw in predictions_raw]
+    # Open the result file
+    gcs_file = storage_client.open(file_absolute_path)
+    contents = storage_client.read()
 
-        # For each frame's prediction
-        for pred in predictions_json:
+    # Split every prediction (\n) and remove the "" which is at the end
+    predictions_raw = filter(lambda x: x != "", contents.split("\n"))
 
-            # Create the prediction in Datastore
-            key_prediction = client.key('Prediction')
-            entity_prediction = datastore.Entity(key=key_prediction)
+    # Load everything as json so it can be used
+    predictions_json = [json.loads(prediction_raw) for prediction_raw in predictions_raw]
 
-            # Create a keys list that will be used to reference each object detected
-            keys_object = list()
+    # For each frame's prediction
+    for index, pred in enumerate(predictions_json):
 
-            # For every object detected
-            for i in range(int(pred['num_detections'])):
+        # Create the prediction in Datastore
+        key_prediction = client.key('Prediction')
+        entity_prediction = datastore.Entity(key=key_prediction)
 
-                # Create a new dict that will be put in datastore in a clean format
-                object_detected = dict()
-                object_detected['detection_classes'] = int(pred['detection_classes'][i])
-                object_detected['detection_boxes'] = pred['detection_boxes'][i]
-                object_detected['detection_scores'] = pred['detection_scores'][i]
+        # Create a keys list that will be used to reference each object detected
+        keys_object = list()
 
-                # Put the object into a new table row ...
-                key_object = client.key('Object')
-                entity_object = datastore.Entity(key=key_object)
-                entity_object.update(object_detected)
-                client.put(entity_object)
+        # For every object detected
+        for i in range(int(pred['num_detections'])):
 
-                # Store the id generated for reference in Prediction table
-                keys_object.append(entity_object.id)
+            # Create a new dict that will be put in datastore in a clean format
+            object_detected = dict()
+            object_detected['detection_classes'] = int(pred['detection_classes'][i])
+            object_detected['detection_boxes'] = pred['detection_boxes'][i]
+            object_detected['detection_scores'] = pred['detection_scores'][i]
 
-            # Put a list of objects detected in prediction row
-            entity_prediction.update({'objects': keys_object})
+            # Put the object into a new table row ...
+            key_object = client.key('Object')
+            entity_object = datastore.Entity(key=key_object)
+            entity_object.update(object_detected)
+            client.put(entity_object)
 
-            # Update the prediction in datastore
-            client.put(entity_prediction)
+            # Store the id generated for reference in Prediction table
+            keys_object.append(entity_object.id)
 
-    # Initliaze storage client
-    storage_client = storage.Client()
+        # Put a list of objects detected in prediction row
+        entity_prediction.update({'objects': keys_object})
+
+        # Update the prediction in datastore
+        client.put(entity_prediction)
+
+        # Get the frame key in Datastore
+        key_frame = client.key('Frame', pred['key'])
+        entity_frame = datastore.Entity(key=key_frame)
+
+        # Create an object to put in datastore
+        #obj = dict(frames_processed[index])
+
+        # Update the predictions properties of the Frame row
+        entity_frame['predictions'] = entity_prediction.id
+        #obj['predictions'] = entity_prediction.id
+
+        # Push into datastore
+        #entity_frame.update(obj)
+        client.put(entity_frame)
+
+    # Close the file
+    gcs_file.close()
+
+    # Erase file from bucket
     bucket = storage_client.get_bucket(BUCKET_NAME)
     blob = bucket.blob(file_absolute_path)
 
     blob.delete()
 
     print('Blob {} deleted.'.format(file_absolute_path))
-
-    # TODO: How to link prediction with frame in batch ?
-    """
-    # Get the frame key in Datastore
-    key_frame = client.key('Frame', frame.id)
-    entity_frame = datastore.Entity(key=key_frame)
-
-    # Create an object to put in datastore
-    obj = dict(frame)
-
-    # Update the predictions properties of the Frame row
-    obj['predictions'] = entity_prediction.id
-
-    # Push into datastore
-    entity_frame.update(obj)
-    client.put(entity_frame)
-    """
