@@ -8,11 +8,6 @@ import json
 from google.cloud import datastore
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
-PROJECT_ID = os.environ['PROJECT_ID']
-MODEL_NAME = os.environ['MODEL_NAME']
-VERSION_NAME = os.environ['VERSION_NAME']
-REGION = os.environ['REGION']
-TRESHOLD = int(os.environ['TRESHOLD'])
 
 
 def batch_result(event, context):

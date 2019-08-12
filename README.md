@@ -114,6 +114,17 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --env-vars-file cloud_functions/online_batch/.env.yaml \
     --max-instances 1 \
     --memory 2gb
+#### Batch result
+    gcloud functions deploy batch_result \
+    --source cloud_functions/batch_result \
+    --runtime python37 \
+    --project [PROJECT_ID] \
+    --trigger-resource gs://[BUCKET_NAME] \
+    --region [YOUR_REGION] \
+    --trigger-event google.storage.object.finalize \
+    --env-vars-file cloud_functions/batch_result/.env.yaml \
+    --max-instances 1 \
+    --memory 2gb
 #### Dont take all my money
 follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)
 
