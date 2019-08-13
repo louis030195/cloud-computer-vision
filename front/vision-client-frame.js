@@ -12,7 +12,8 @@ class VisionClientFrame extends LitElement {
       id: { type: Object }, // Id in datastore
       imageUrl: { type: String },
       width: { type: Object },
-      height: { type: Object }
+      height: { type: Object },
+      classes: { type: Array }
     }
   }
 
@@ -56,6 +57,7 @@ class VisionClientFrame extends LitElement {
   }
 
   firstUpdated () {
+    if (this.predictionId === null || this.predictionId === 'processing') return
     this.visionClientService.getPrediction(this.predictionId).then(prediction => {
       prediction['objects'].forEach(object => {
         this.visionClientService.getObject(object).then(o => { this.objects.push(o) }).then(o => { this.renderPredictions() })
@@ -101,9 +103,12 @@ class VisionClientFrame extends LitElement {
     ctx.drawImage(image, 0, 0, this.width, this.height)
 
     this.objects.forEach(async object => {
+      if (object['detection_scores'] < 0.5) {
+        return
+      }
       let boxText
-      await this.visionClientService.getClass(object['detection_classes'])
-      .then(name => boxText = `${name['name']} ${object['detection_scores'].toFixed(2)}`)
+      console.log(object['detection_classes'])
+      boxText = `${object['detection_classes']}-${this.classes[object['detection_classes']-1]['name']} ${object['detection_scores'].toFixed(2)}`
 
       const ymin = object['detection_boxes'][0] * this.height
       const xmin = object['detection_boxes'][1] * this.width

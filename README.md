@@ -5,7 +5,7 @@
 
 # Objective
 
-<img src="docs/images/gcp_pipelinev3.png" width="600" height="400">
+<img src="docs/images/gcp_pipelinev4.png" width="600" height="400">
 
 # Installation
 Work with:
@@ -58,6 +58,7 @@ or somewhere else (AI Platform deployable format: SavedModel)
 
 - [Update the graph for batch key mapping and upload to GCS](https://colab.research.google.com/drive/1CZxrvowmuzwfJJoUBjgIjsIpb-1gh53h)
 
+- [Push class mapping to datastore](https://colab.research.google.com/drive/1JLJt4tUXNgeuq3Y9PPvZitBS2B7J7Ker)
 
 ```
 gcloud ai-platform models create m1 \

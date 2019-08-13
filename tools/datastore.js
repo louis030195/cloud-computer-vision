@@ -12,7 +12,7 @@ async function clear() {
     // beware it seems that GCP has quota limit on query
     // That's why the limit()
     const query = datastore
-        .createQuery('Object').limit(1000)
+        .createQuery('Prediction').limit(10000)
     const [tasks] = await datastore.runQuery(query)
     tasks.forEach(async task => {
         await datastore.delete(task[datastore.KEY])

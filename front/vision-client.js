@@ -12,6 +12,9 @@ class VisionClient extends LitElement {
     this.page = 'upload'
 
     this.backendHost = 'https://' + window.location.hostname
+    if(window.location.hostname === 'localhost') {
+      this.backendHost = 'http://localhost:9090/https://vision-client-dot-wildlife-247309.appspot.com'
+    }
 
     this.visionClientService = new VisionClientService(this.backendHost)
   }

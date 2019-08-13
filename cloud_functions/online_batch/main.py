@@ -27,7 +27,9 @@ MODEL_NAME = os.environ['MODEL_NAME']
 VERSION_NAME = os.environ['VERSION_NAME']
 REGION = os.environ['REGION']
 TRESHOLD = int(os.environ['TRESHOLD'])
-
+WIDTH = int(os.environ['WIDTH'])
+HEIGHT = int(os.environ['HEIGHT'])
+DELAY_ONLINE = int(os.environ['DELAY_ONLINE'])
 
 
 def make_batch_job_body(project_name, input_paths, output_path,
@@ -147,7 +149,7 @@ def predict_update_datastore(client, frame):
     # Compose a JSON Predict request (send JPEG image as array).
     arr = np.asarray(bytearray(frame), dtype=np.uint8)
     img = cv2.resize(cv2.cvtColor(cv2.imdecode(
-        arr, -1), cv2.COLOR_BGR2RGB), (300, 300))
+        arr, -1), cv2.COLOR_BGR2RGB), (WIDTH, HEIGHT))
 
     # Create an object containing the data
     # b64
@@ -248,7 +250,7 @@ def online_batch_prediction(event, context):
 
             # Preprocessing
             # TODO:calculate the scaling that has been done and put into the image datastore in order to rescale boxes etc
-            img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (300, 300))
+            img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (WIDTH, HEIGHT))
 
             # Create an object containing the data
             image_byte_dict = {"inputs": img.tolist(), "input_keys": str(frame.id)}
@@ -285,7 +287,7 @@ def online_batch_prediction(event, context):
         return
 
     # Avoid jumping on online prediction too early
-    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')).total_seconds() < 120:
+    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')).total_seconds() < DELAY_ONLINE:
         print('Waiting more frames',
               (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')).total_seconds())
         return

@@ -55,6 +55,10 @@ export default class VisionClientService {
     return fetch(`${this.backendHost}/api/objects/${id}`).then(r => r.json())
   }
 
+  getClasses () {
+    return fetch(`${this.backendHost}/api/classes`).then(r => r.json())
+  }
+
   getClass (id) {
     return fetch(`${this.backendHost}/api/classes/${id}`).then(r => r.json())
   }

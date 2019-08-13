@@ -17,3 +17,5 @@
 node_modules/
 
 # TODO: all other gcp services
+cloud_functions/
+.gitpod*
