@@ -239,7 +239,7 @@ def online_batch_prediction(event, context):
                                    version_name=VERSION_NAME,
                                    max_worker_count=72)
         # TODO: handle case where the batch is too big to be written to a single file
-        for index, frame in enumerate(frames_to_process):
+        for frame in frames_to_process:
             # Download
             dl_request = requests.get(frame['imageUrl'], stream=True)
             dl_request.raise_for_status()
@@ -252,7 +252,7 @@ def online_batch_prediction(event, context):
             img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (100, 100))
 
             # Create an object containing the data
-            image_byte_dict = {"inputs": img.tolist()}
+            image_byte_dict = {"inputs": img.tolist(), "input_keys": str(frame.id)}
             json_object = json.dumps(image_byte_dict)
             file_path = "/tmp/inputs.json"
 
@@ -270,7 +270,6 @@ def online_batch_prediction(event, context):
             # Update the predictions properties of the Frame row to stop launching jobs
             obj['predictions'] = 'processing' #TODO: handle case where multiple job ended => #
             obj['job'] = body['jobId']
-            obj['index'] = index
 
             # Push into datastore
             entity_frame.update(obj)

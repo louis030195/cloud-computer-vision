@@ -49,7 +49,7 @@ def batch_result(event, context):
     predictions_json = [json.loads(prediction_raw) for prediction_raw in predictions_raw]
 
     # For each frame's prediction
-    for index, pred in enumerate(predictions_json):
+    for pred in predictions_json:
 
         # Create the prediction in Datastore
         key_prediction = datastore_client.key('Prediction')
@@ -83,32 +83,28 @@ def batch_result(event, context):
         datastore_client.put(entity_prediction)
 
          # TODO: How to link prediction with frame in batch ?
-        query_frame = datastore_client.query(kind='Frame')
-        # E.g. /batch_results/job_id/project_id.results-00000-of-00001 (splitting '/')
-        query_frame.add_filter('job', '=', event['name'].split('/')[0]) # TODO: filename = jobname
-        query_frame.add_filter('predictions', '=', 'processing') # TODO: fix filter get processing frames
-        query_frame.add_filter('key', '=', index) # TODO: fix filter get processing frames
-        frame = list(query_frame.fetch())[0]
-
-        # Get the frame key in Datastore
-        key_frame = datastore_client.key('Frame', frame.id)
-        entity_frame = datastore.Entity(key=key_frame)
+        query = datastore_client.query(kind='Frame')
+        first_key = datastore_client.key('Frame', int(pred['output_keys']))
+        query.key_filter(first_key, '=')
+        frame = list(query.fetch())[0]
 
         # Create an object to put in datastore
         #obj = dict(frames_processed[index])
 
         # Update the predictions properties of the Frame row
-        entity_frame['predictions'] = entity_prediction.id
+        frame['predictions'] = entity_prediction.id
         #obj['predictions'] = entity_prediction.id
 
         # Push into datastore
         #entity_frame.update(obj)
-        datastore_client.put(entity_frame)
+        datastore_client.put(frame)
+
 
     # Erase file from bucket
     bucket = storage_client.get_bucket(BUCKET_NAME)
-    blob = bucket.blob(file_absolute_path)
+    blob = bucket.blob("/".join(file_absolute_path.split('/')[1:]))
 
     blob.delete()
 
-    print('Blob {} deleted.'.format(file_absolute_path))
+    print('Blob {} deleted.'.format("/".join(file_absolute_path.split('/')[1:])))
+
