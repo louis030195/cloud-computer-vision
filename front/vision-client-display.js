@@ -21,6 +21,16 @@ class VisionClientDisplay extends LitElement {
 
   static get styles () {
     return css`
+    .wrapper {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-column-gap: 10px;
+      grid-row-gap: 20px;
+      width:100%;
+    }
+    .wrapper > img {
+      max-width:100%;
+    }
     `
   }
 
@@ -33,7 +43,9 @@ class VisionClientDisplay extends LitElement {
   render () {
     return html`
     <br />
-      ${this.frames !== undefined && this.classes != undefined ? this.frames.map((f, i) =>
+    <div id="content">
+      <div class="wrapper">
+      ${this.frames !== undefined && this.classes != undefined ? this.frames.slice(0, 30).map((f, i) =>
         f['predictions'] !== null ?
         html`<vision-client-frame
         .width=${300}
@@ -44,6 +56,9 @@ class VisionClientDisplay extends LitElement {
         .imageUrl=${f['imageUrl']}
         .classes=${this.classes}
         </vision-client-frame>` : '') : ''}
+      </div>
+    </div>
+      
     `
   }
 }

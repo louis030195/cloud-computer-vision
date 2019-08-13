@@ -11,8 +11,8 @@ class VisionClientFrame extends LitElement {
       objects: { type: Array }, // A frame can have multiple objects detected
       id: { type: Object }, // Id in datastore
       imageUrl: { type: String },
-      width: { type: Object },
-      height: { type: Object },
+      width: { type: Number },
+      height: { type: Number },
       classes: { type: Array }
     }
   }
@@ -20,15 +20,6 @@ class VisionClientFrame extends LitElement {
   constructor () {
     super()
     this.objects = []
-  }
-
-  static get styles () {
-    return css`
-    img {
-        width:${this.width !== undefined ? this.width : 300}px;
-        height:${this.height !== undefined ? this.height : 300}px;
-    }
-    `
   }
 
   rainbow(n, maxLength) {
@@ -58,10 +49,9 @@ class VisionClientFrame extends LitElement {
 
   firstUpdated () {
     if (this.predictionId === null || this.predictionId === 'processing') return
-    this.visionClientService.getPrediction(this.predictionId).then(prediction => {
-      prediction['objects'].forEach(object => {
-        this.visionClientService.getObject(object).then(o => { this.objects.push(o) }).then(o => { this.renderPredictions() })
-      })
+    this.visionClientService.getPredictionObjects(this.predictionId).then(prediction => {
+      this.objects = prediction['objectEntities']
+      this.renderPredictions()
     })
   }
 
@@ -103,13 +93,14 @@ class VisionClientFrame extends LitElement {
     ctx.drawImage(image, 0, 0, this.width, this.height)
 
     this.objects.forEach(async object => {
-      if (object['detection_scores'] < 0.5) {
+      if (object['detection_scores'] < 0.6) {
         return
       }
       let boxText
-      console.log(object['detection_classes'])
-      boxText = `${object['detection_classes']}-${this.classes[object['detection_classes']-1]['name']} ${object['detection_scores'].toFixed(2)}`
-
+      const id = object['detection_classes']-1
+      const name =  this.classes[id] === undefined ? '' : this.classes[id].name
+      boxText = `${id}-${name} ${object['detection_scores'].toFixed(2)}`
+      
       const ymin = object['detection_boxes'][0] * this.height
       const xmin = object['detection_boxes'][1] * this.width
       const ymax = object['detection_boxes'][2] * this.height
@@ -118,7 +109,7 @@ class VisionClientFrame extends LitElement {
       // Draw the bounding box.
       ctx.strokeStyle = boxColor
       ctx.lineWidth = 2
-      ctx.strokeRect(xmin, ymin, xmax, ymax)
+      ctx.strokeRect(xmin, ymin, xmax-xmin, ymax-ymin)
       // Draw the label background.
       ctx.fillStyle = boxColor
       const textWidth = ctx.measureText(boxText).width
@@ -165,10 +156,36 @@ class VisionClientFrame extends LitElement {
     return Math.sqrt((point.x-circle.x) ** 2 + (point.y - circle.y) ** 2) < circle.radius;
   }
 
+
+  static get styles () {
+    return css`
+    .outsideWrapper{ 
+        width:${this.width !== undefined ? this.width : 300}px;
+        height:${this.height !== undefined ? this.height : 300}px;
+        border:1px solid blue;}
+    .insideWrapper{ 
+        width:100%; height:100%; 
+        position:relative;}
+    .coveredImage{ 
+        width:100%; height:100%; 
+        position:absolute; top:0px; left:0px;
+    }
+    .coveringCanvas{ 
+        width:100%; height:100%; 
+        position:absolute; top:0px; left:0px;
+        background-color: rgba(255,0,0,.1);
+    }
+    `
+  }
+
   render () {
     return html`
-    <canvas id="myCanvas"></canvas>
-    <img style="height:0px;width:0px;visibility:hidden;" id="img" src=${this.imageUrl}>
+    <div class="outsideWrapper">
+        <div class="insideWrapper">
+            <img id="img" src=${this.imageUrl} class="coveredImage">
+            <canvas id="myCanvas" class="coveringCanvas"></canvas>
+        </div>
+    </div>
     `
   }
 }

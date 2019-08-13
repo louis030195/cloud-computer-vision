@@ -3,6 +3,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const model = require('./model-datastore-prediction')
+const modelObject = require('../objects/model-datastore-object')
 
 const router = express.Router()
 
@@ -54,6 +55,34 @@ router.get('/:prediction', (req, res, next) => {
       return
     }
     res.json(entity)
+  })
+})
+
+/**
+ * GET /api/predictions/:id/objects/
+ *
+ * Retrieve a prediction.
+ */
+
+const readObject = (id) => new Promise((resolve,reject) => modelObject.read(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
+router.get('/:prediction/objects', (req, res, next) => {
+  model.read(req.params.prediction, (err, entity) => {
+    if (err) {
+      next(err)
+      return
+    }
+    Promise.all(entity.objects.map(objectId => readObject(objectId)))
+    .then(objectEntities => {
+      entity.objectEntities = objectEntities
+      res.json(entity)
+    })
   })
 })
 
