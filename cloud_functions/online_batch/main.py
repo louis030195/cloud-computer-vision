@@ -198,7 +198,6 @@ def online_batch_prediction(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    print('online_batch_prediction', event, context)
     # GCP doesn't handle trigger on folder level, so either change architecture
     # either multiple bucket (is that more expensive or ? ...)
     # https://googlecloud.tips/tips/018-trigger-cloud-functions-on-gcs-folders/
@@ -249,7 +248,7 @@ def online_batch_prediction(event, context):
 
             # Preprocessing
             # TODO:calculate the scaling that has been done and put into the image datastore in order to rescale boxes etc
-            img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (100, 100))
+            img = cv2.resize(cv2.cvtColor(cv2.imdecode(arr, -1), cv2.COLOR_BGR2RGB), (300, 300))
 
             # Create an object containing the data
             image_byte_dict = {"inputs": img.tolist(), "input_keys": str(frame.id)}
