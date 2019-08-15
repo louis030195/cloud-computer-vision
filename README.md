@@ -1,11 +1,17 @@
 # vision-client
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
+# Front end
 <img src="docs/images/example.png" width="600" height="300">
 
-# Objective
+# Pipeline
 
 <img src="docs/images/gcp_pipelinev4.png" width="600" height="400">
+
+# Performances
+
+<img src="docs/images/10k_job.png" width="600" height="400">
+
 
 # Installation
 Work with:
