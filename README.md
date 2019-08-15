@@ -175,6 +175,8 @@ Or
 - ...
 
 # Other informations about models
+## Upload frames fast from colab
+- [Multithread upload colab directly request back](https://colab.research.google.com/drive/1b6i1Vq-CK52cWUyyTgICJOxr_UeXzE70)
 ## Object detection models
 - [github/tensorflow/models](https://github.com/tensorflow/models/blob/master/research/object_detection)
 - [tfhub](https://tfhub.dev/s?module-type=image-object-detection)

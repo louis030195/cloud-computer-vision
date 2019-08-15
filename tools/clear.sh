@@ -2,7 +2,8 @@
 gsutil -m rm gs://[BUCKET_NAME]/*.png
 gsutil -m rm gs://[BUCKET_NAME]/*.jpg
 gsutil -m rm gs://[BUCKET_NAME]/*.mp4
-
+gsutil -m rm -R gs://[BUCKET_NAME]/batches
+gsutil -m rm -R gs://[BUCKET_NAME]/batch_results
 
 # https://cloud.google.com/dataflow/docs/guides/templates/provided-utilities
 # TODO: fix it
