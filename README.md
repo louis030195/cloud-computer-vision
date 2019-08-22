@@ -2,16 +2,21 @@
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
 # Front end
+Using [Lit-Element](https://lit-element.polymer-project.org/)
+
 <img src="docs/images/example.png" width="600" height="300">
 
 # Pipeline
 
 <img src="docs/images/gcp_pipelinev4.png" width="600" height="400">
 
+# Pricing
+
+[see](docs/PRICING.md)
+
 # Performances
 
-<img src="docs/images/10k_job.png" width="600" height="400">
-
+[see](docs/PERFORMANCES.md)
 
 # Installation
 Work with:
@@ -67,11 +72,13 @@ or somewhere else (AI Platform deployable format: SavedModel)
 - [Push class mapping to datastore](https://colab.research.google.com/drive/1JLJt4tUXNgeuq3Y9PPvZitBS2B7J7Ker)
 
 ```
-gcloud ai-platform models create m1 \
---regions [YOUR_REGION]
+gcloud -q ai-platform versions delete [VERSION] --model [MODEL]
+gcloud -q ai-platform models delete [MODEL]
+gcloud ai-platform models create [MODEL] \
+--regions [YOUR-REGION]
 
-gcloud ai-platform versions create v1 \
-    --model m1 \
+gcloud ai-platform versions create [VERSION] \
+    --model [MODEL] \
     --origin gs://[BUCKET_NAME]/saved_model \
     --runtime-version 1.14 \
     --python-version 2.7
@@ -80,45 +87,24 @@ gcloud ai-platform versions create v1 \
 ### Deploy Cloud Function
 
 Edit [FUNCTION_DIR]/.env.yaml with your GCP config
-#### TFRecord Caller
-    gcloud functions deploy tfrecord_caller \
-    --source cloud_functions/tfrecord_caller \
+#### Input Pub/Sub
+    gcloud functions deploy input_pubsub \
+    --source cloud_functions/input_pubsub \
     --runtime python37 \
     --project [PROJECT_ID] \
     --trigger-resource gs://[BUCKET_NAME] \
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize \
-    --env-vars-file cloud_functions/tfrecord_caller/.env.yaml \
+    --env-vars-file cloud_functions/input_pubsub/.env.yaml \
     --max-instances 1
-#### Online
-    gcloud functions deploy online_prediction \
-    --source cloud_functions/online \
+#### Predictor
+    gcloud functions deploy predictor \
+    --source cloud_functions/predictor \
     --runtime python37 \
     --project [PROJECT_ID] \
-    --trigger-resource gs://[BUCKET_NAME] \
+    --trigger-topic topic_input \
     --region [YOUR_REGION] \
-    --trigger-event google.storage.object.finalize \
-    --env-vars-file cloud_functions/online/.env.yaml \
-    --max-instances 1
-#### Batch
-    gcloud functions deploy batch_prediction \
-    --source cloud_functions/batch \
-    --runtime python37 \
-    --project [PROJECT_ID] \
-    --trigger-resource gs://[BUCKET_NAME] \
-    --region [YOUR_REGION] \
-    --trigger-event google.storage.object.finalize \
-    --env-vars-file cloud_functions/batch/.env.yaml \
-    --max-instances 1
-#### Online + Batch
-    gcloud functions deploy online_batch_prediction \
-    --source cloud_functions/online_batch \
-    --runtime python37 \
-    --project [PROJECT_ID] \
-    --trigger-resource gs://[BUCKET_NAME] \
-    --region [YOUR_REGION] \
-    --trigger-event google.storage.object.finalize \
-    --env-vars-file cloud_functions/online_batch/.env.yaml \
+    --env-vars-file cloud_functions/predictor/.env.yaml \
     --max-instances 1 \
     --memory 2gb
 #### Batch result

@@ -12,13 +12,15 @@
 # limitations under the License.
 #
 service: vision-client
-runtime: nodejs10
+runtime: custom # nodejs10
+env: flex
 
-instance_class: B8
+instance_class: F2
 
-basic_scaling:
-  max_instances: 1
-  idle_timeout: 10m
+
+#basic_scaling:
+#  max_instances: 1
+#  idle_timeout: 10m
 
 # For custom ...
 #instance_class: F2

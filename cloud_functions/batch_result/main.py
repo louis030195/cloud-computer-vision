@@ -20,7 +20,6 @@ def batch_result(event, context):
     # GCP doesn't handle trigger on folder level, so either change architecture
     # either multiple bucket (is that more expensive or ? ...)
     # https://googlecloud.tips/tips/018-trigger-cloud-functions-on-gcs-folders/
-    print('AAAAAAAAAAAAAAAAAA', event, context)
     if 'batch_results/' not in event['name']:
         return
 

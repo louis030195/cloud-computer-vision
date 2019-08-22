@@ -2,16 +2,13 @@ FROM gcr.io/google-appengine/nodejs
 
 RUN apt-get -y update
 
-# # Add the application source code.
-ADD . /
+# Copy application code.
+COPY . /app/
 
-RUN npm install
+# Install dependencies.
+RUN npm --unsafe-perm install
 
-# Set common env vars
-#ENV NODE_ENV production
-#ENV PORT 8080
-
-WORKDIR /
+WORKDIR /app
 
 # start
 CMD ["npm", "start"]
