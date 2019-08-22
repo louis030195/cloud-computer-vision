@@ -150,7 +150,7 @@ def online_predict(project, model, instances, version=None):
     # Create the ML Engine service object.
     # To authenticate set the environment variable
     # GOOGLE_APPLICATION_CREDENTIALS=<path_to_service_account_file>
-    # TODO: what is 'ml' arg
+    print('instances', instances)
     service = googleapiclient.discovery.build('ml', 'v1')
     name = 'projects/{}/models/{}'.format(project, model)
     if version is not None:

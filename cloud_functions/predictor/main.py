@@ -29,7 +29,6 @@ REGION = os.environ['REGION']
 TRESHOLD = int(os.environ['TRESHOLD'])
 WIDTH = int(os.environ['WIDTH'])
 HEIGHT = int(os.environ['HEIGHT'])
-DELAY_ONLINE = int(os.environ['DELAY_ONLINE'])
 TOPIC_INPUT = os.environ['TOPIC_INPUT']
 SUBSCRIPTION_INPUT = os.environ['SUBSCRIPTION_INPUT']
 
@@ -41,12 +40,12 @@ def predictor(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    pubsub_data = base64.b64decode(event['data']).decode('utf-8')
-    pubsub_json = json.loads(pubsub_data)
+    #pubsub_data = base64.b64decode(event['data']).decode('utf-8')
+    #pubsub_json = json.loads(pubsub_data)
 
     frames_to_process, ack_ids = synchronous_pull(PROJECT_ID, TOPIC_INPUT, SUBSCRIPTION_INPUT)
     client_datastore = datastore.Client()
-    # Above which amount of frames we pick batch instead of online predictions
+    # Above which amount of frames in the queue we pick batch instead of online predictions
     if len(frames_to_process) > TRESHOLD:
         # Instantiates a GCS client
         storage_client = storage.Client()
@@ -93,15 +92,11 @@ def predictor(event, context):
         print('Response', batch_predict(PROJECT_ID, body))
         return
 
-    # Avoid jumping on online prediction too early
-    elif (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')).total_seconds() < DELAY_ONLINE:
-        print('Waiting more frames',
-              (datetime.now() - datetime.strptime(event['timeCreated'], '%Y-%m-%dT%H:%M:%S.%fZ')).total_seconds())
-        return
     else:
         # Iterate through the media to process
         for frame in frames_to_process:
-            instances = [frame]
+            json_frame = json.loads(frame.replace("'", "\""))
+            instances = [json_frame]
 
             # Query AI Platform with the input
             result = online_predict(PROJECT_ID, MODEL_NAME, instances, VERSION_NAME)
@@ -135,18 +130,16 @@ def predictor(event, context):
             client_datastore.put(entity_prediction)
 
             # Get the frame key in Datastore
-            key_frame = client_datastore.key('Frame', frame.id)
-            entity_frame = datastore.Entity(key=key_frame)
-
-            # Create an object to put in datastore
-            obj = dict(frame)
+            query = client_datastore.query(kind='Frame')
+            key_frame = client_datastore.key('Frame', int(json_frame['input_keys']))
+            query.key_filter(key_frame, '=')
+            frame = list(query.fetch())[0]
 
             # Update the predictions properties of the Frame row
-            obj['predictions'] = entity_prediction.id
+            frame['predictions'] = entity_prediction.id
 
             # Push into datastore
-            entity_frame.update(obj)
-            client_datastore.put(entity_frame)
+            client_datastore.put(frame)
 
             # Dismiss processed messages from the  queue
             acknowledge_messages(PROJECT_ID, SUBSCRIPTION_INPUT, ack_ids)

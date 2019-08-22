@@ -1,26 +1,31 @@
 export BUCKET_NAME = [BUCKET_NAME] # Replace with your bucket name
-export PROJECT-ID = [PROJECT-ID] # Replace with your project id
+export PROJECT_ID = [PROJECT_ID] # Replace with your project id
+export SUBSCRIPTION_INPUT = [SUBSCRIPTION_INPUT] # Replace with your topic name
 
 # Clear gcp storages
-gsutil -m rm gs://BUCKET_NAME/*.png
-gsutil -m rm gs://BUCKET_NAME/*.jpg
-gsutil -m rm gs://BUCKET_NAME/*.mp4
-gsutil -m rm -R gs://BUCKET_NAME/batches
-gsutil -m rm -R gs://BUCKET_NAME/batch_results
+gsutil -m rm gs://$BUCKET_NAME/*.png
+gsutil -m rm gs://$BUCKET_NAME/*.jpg
+gsutil -m rm gs://$BUCKET_NAME/*.mp4
+gsutil -m rm -rf gs://$BUCKET_NAME/batches
+gsutil -m rm -rf gs://$BUCKET_NAME/batch_results
 
 # Clear functions
-gcloud functions delete --region europe-west1 --project PROJECT-ID online_prediction
-gcloud functions delete --region europe-west1 --project PROJECT-ID batch_prediction
-gcloud functions delete --region europe-west1 --project PROJECT-ID online_batch_prediction
-gcloud functions delete --region europe-west1 --project PROJECT-ID batch_result
-gcloud functions delete --region europe-west1 --project PROJECT-ID extractPubSub
-gcloud functions delete --region europe-west1 --project PROJECT-ID tfrecord_caller
-gcloud functions delete --region europe-west1 --project PROJECT-ID stop_billing
-gcloud functions delete --region europe-west1 --project PROJECT-ID limit_use
+gcloud functions delete --region europe-west1 --project $PROJECT_ID online_prediction
+gcloud functions delete --region europe-west1 --project $PROJECT_ID batch_prediction
+gcloud functions delete --region europe-west1 --project $PROJECT_ID online_batch_prediction
+gcloud functions delete --region europe-west1 --project $PROJECT_ID batch_result
+gcloud functions delete --region europe-west1 --project $PROJECT_ID extractPubSub
+gcloud functions delete --region europe-west1 --project $PROJECT_ID tfrecord_caller
+gcloud functions delete --region europe-west1 --project $PROJECT_ID stop_billing
+gcloud functions delete --region europe-west1 --project $PROJECT_ID limit_use
+
+# Clear pubsub messages
+gcloud pubsub subscriptions seek "projects/$PROJECT_ID/subscriptions/$SUBSCRIPTION_INPUT" \
+--time=2050-09-25T10:49:41.519Z # Increase the year if you live in 2050+
 
 # You could also disable App Engine if you stop using it for a while (just in case)
 # https://cloud.google.com/appengine/docs/standard/python/console (no CLI for this ...)
 
 # Full stop billing by deleting your project
 # Beware, can break all your GCP config
-# gcloud projects delete PROJECT-ID
+# gcloud projects delete $PROJECT_ID

@@ -90,7 +90,7 @@ def input_pubsub(event, context):
         if 'encoded_image_string_tensor' in INPUT_TYPE:
             # Model input is b64
             # Compose a JSON Predict request (send JPEG image in base64).
-            img = base64.b64encode(dl_request.content).decode('utf-8')
+            img = {"b64":base64.b64encode(dl_request.content).decode('utf-8')}
         else: # image_tensor
             # Load into array
             arr = np.asarray(bytearray(dl_request.content), dtype=np.uint8)
@@ -102,11 +102,11 @@ def input_pubsub(event, context):
 
         # Create an object containing the data
         image_byte_dict = {"inputs": img, "input_keys": str(frame.id)}
-        json_object = json.dumps(image_byte_dict)
+        #json_object = json.dumps(image_byte_dict)
 
         # Publish the frame id
         topic_path = publisher.topic_path(PROJECT_ID, TOPIC_INPUT)
         publisher.publish(
             topic_path,
-            data=json_object.encode('utf-8')  # data must be a bytestring.
+            data=str(image_byte_dict).encode('utf-8')  # data must be a bytestring.
         )

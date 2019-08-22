@@ -81,21 +81,16 @@ def batch_result(event, context):
         # Update the prediction in datastore
         datastore_client.put(entity_prediction)
 
-         # TODO: How to link prediction with frame in batch ?
         query = datastore_client.query(kind='Frame')
         first_key = datastore_client.key('Frame', int(pred['output_keys']))
         query.key_filter(first_key, '=')
         frame = list(query.fetch())[0]
-
-        # Create an object to put in datastore
-        #obj = dict(frames_processed[index])
 
         # Update the predictions properties of the Frame row
         frame['predictions'] = entity_prediction.id
         #obj['predictions'] = entity_prediction.id
 
         # Push into datastore
-        #entity_frame.update(obj)
         datastore_client.put(frame)
 
 
