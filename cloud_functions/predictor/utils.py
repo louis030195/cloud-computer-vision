@@ -17,7 +17,7 @@ def create_subscription(project_id, topic_name, subscription_name):
 
     print('Subscription created: {}'.format(subscription))
 
-def synchronous_pull(project_id, topic_name, subscription_name):
+def synchronous_pull(project_id, topic_name, subscription_name, max_messages):
     """Pulling messages synchronously."""
     subscriber = pubsub_v1.SubscriberClient()
     subscription_path = subscriber.subscription_path(
@@ -28,10 +28,8 @@ def synchronous_pull(project_id, topic_name, subscription_name):
     except Exception as ex:
         print(ex)
 
-    NUM_MESSAGES = 3
-
     # The subscriber pulls a specific number of messages.
-    response = subscriber.pull(subscription_path, max_messages=NUM_MESSAGES)
+    response = subscriber.pull(subscription_path, max_messages=max_messages)
 
     ack_ids = []
     messages = []
@@ -150,7 +148,6 @@ def online_predict(project, model, instances, version=None):
     # Create the ML Engine service object.
     # To authenticate set the environment variable
     # GOOGLE_APPLICATION_CREDENTIALS=<path_to_service_account_file>
-    print('instances', instances)
     service = googleapiclient.discovery.build('ml', 'v1')
     name = 'projects/{}/models/{}'.format(project, model)
     if version is not None:

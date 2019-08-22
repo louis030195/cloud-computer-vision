@@ -7,16 +7,18 @@ const datastore = new Datastore({
 })
 
 // Delete multiple entities
-async function clear() {
+async function clear(entity) {
     // Tweak the entity name as you want,
     // beware it seems that GCP has quota limit on query
     // That's why the limit()
     const query = datastore
-        .createQuery('Frame').limit(10000)
+        .createQuery(entity).limit(10000)
     const [tasks] = await datastore.runQuery(query)
     tasks.forEach(async task => {
         await datastore.delete(task[datastore.KEY])
     })
 }
 
-clear()
+clear('Frame')
+clear('Object')
+clear('Prediction')
