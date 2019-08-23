@@ -158,4 +158,5 @@ def online_predict(project, model, instances, version=None):
     ).execute()
     if 'error' in response:
         raise RuntimeError(response['error']) # https://cloud.google.com/ml-engine/docs/troubleshooting#troubleshooting_prediction
+    print('Online response', response)
     return response

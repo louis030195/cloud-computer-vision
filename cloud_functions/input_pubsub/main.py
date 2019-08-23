@@ -30,9 +30,8 @@ INPUT_TYPE = os.environ['INPUT_TYPE']
 WIDTH = int(os.environ['WIDTH'])
 HEIGHT = int(os.environ['HEIGHT'])
 
-def create_topic(project_id, topic_name):
+def create_topic(publisher, project_id, topic_name):
     """Create a new Pub/Sub topic if it doesn't exist"""
-    publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, topic_name)
     try:
         publisher.create_topic(topic_path)
@@ -56,10 +55,14 @@ def input_pubsub(event, context):
     if 'batch_results/' in event['name'].lower() or 'batches/' in event['name'].lower(): # (e.g. batch results put here, we skip)
         return
 
-    publisher = pubsub_v1.PublisherClient()
+    # Configure the batch to publish as soon as X seconds / X bytes has passed.
+    batch_settings = pubsub_v1.types.BatchSettings(
+        max_bytes=5 * (10 ** 6) # 10**6 = 1 mb #max_latency=3,
+    )
+    publisher = pubsub_v1.PublisherClient(batch_settings)
     if any(ex in event['name'].lower() for ex in ['.avi', '.mp4']):
         # Checking if the pubsub topic exist, if it doesn't, create it
-        create_topic(PROJECT_ID, TOPIC_EXTRACTOR)
+        create_topic(publisher, PROJECT_ID, TOPIC_EXTRACTOR)
 
         # Publish the video url to extract
         topic_path = publisher.topic_path(PROJECT_ID, TOPIC_EXTRACTOR)
@@ -75,20 +78,24 @@ def input_pubsub(event, context):
         return
 
     # The public url of the file that triggered this cloud function
-    frameUrl = os.path.join('https://storage.googleapis.com', BUCKET_NAME, event['name'])
+    # frameUrl = os.path.join('https://storage.googleapis.com', BUCKET_NAME, event['name'])
 
     client = datastore.Client()
     # Then get by key for this entity
     query_frame = client.query(kind='Frame')
-    query_frame.add_filter('imageUrl', '=', frameUrl)
+    #query_frame.add_filter('imageUrl', '=', frameUrl)
+    query_frame.add_filter('predictions', '=', None)
     frames_to_process = list(query_frame.fetch())
+    if not frames_to_process:
+        return
     
     # Checking if the pubsub topic exist, if it doesn't, create it
-    create_topic(PROJECT_ID, TOPIC_INPUT)
+    create_topic(publisher, PROJECT_ID, TOPIC_INPUT)
 
+    pushed_messages = 0
     for frame in frames_to_process:
         # Download
-        img = download_Image(frame['imageUrl'], WIDTH)
+        img = download_Image(frame['imageUrl'], resize_width=WIDTH)
 
         if 'encoded_image_string_tensor' in INPUT_TYPE:
             # Model input is b64
@@ -107,4 +114,22 @@ def input_pubsub(event, context):
             topic_path,
             data=str(image_byte_dict).encode('utf-8')  # data must be a bytestring.
         )
-        print('Pushed', response)
+
+        # Sucessfully pushed the message to Pub/Sub
+        if response.exception() == None:
+            pushed_messages+=1 
+
+            # Get the frame key in Datastore
+            key_frame = client.key('Frame', frame.id)
+            entity_frame = datastore.Entity(key=key_frame)
+
+            # Create an object to put in datastore
+            obj = dict(frame)
+
+            # Update the predictions properties of the Frame row to avoid duplicating
+            obj['predictions'] = 'processing'
+
+            # Push into datastore
+            entity_frame.update(obj)
+            client.put(entity_frame)
+    print('Pushed {} messages'.format(pushed_messages))

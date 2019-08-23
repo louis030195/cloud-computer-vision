@@ -64,7 +64,7 @@ def predictor(event, context):
 
             # Open file with "a" = append the file
             with open(file_path, "a+") as json_file:
-                json_file.write(json_frame + "\n")
+                json_file.write(json.dumps(json_frame) + "\n")
 
             # Get the frame key in Datastore
             query = client_datastore.query(kind='Frame')

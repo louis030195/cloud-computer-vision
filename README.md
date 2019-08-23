@@ -96,7 +96,8 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --region [YOUR_REGION] \
     --trigger-event google.storage.object.finalize \
     --env-vars-file cloud_functions/input_pubsub/.env.yaml \
-    --max-instances 1
+    --max-instances 1 \
+    --memory 2gb
 #### Predictor
     gcloud functions deploy predictor \
     --source cloud_functions/predictor \
@@ -164,6 +165,7 @@ Or
 - Stuff with dates, count, stats ...
 - More vizualisation / stats / graphics
 - LOGS LOGS LOGS
+- Datastore callbacks (E.g delete frame => delete its predictions+objects see [doc](https://cloud.google.com/appengine/docs/standard/java/datastore/callbacks#top_of_page))
 - ...
 
 # Other informations about models
