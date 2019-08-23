@@ -19,10 +19,6 @@ Using [Lit-Element](https://lit-element.polymer-project.org/)
 [see](docs/PERFORMANCES.md)
 
 # Installation
-Work with:
-- https://github.com/louis030195/vision-client/tree/master/tfrecord-builder
-- https://github.com/louis030195/frame-extractor
-
 It is recommended to just use GitPod for development, there is less setup to do but you can also do locally
 
 see [bash script](setup.sh) to configure everything automatically (not full yet)

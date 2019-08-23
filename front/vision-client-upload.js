@@ -28,7 +28,7 @@ class VisionClientUpload extends LitElement {
 
   render () {
     return html`
-      <vaadin-upload accept=".video/*,image/*">
+      <vaadin-upload accept="video/*,image/*">
         <span slot="drop-label">Drop your images / videos here</span>
       </vaadin-upload>
       Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) => {

@@ -96,9 +96,9 @@ def batch_result(event, context):
 
     # Erase file from bucket
     bucket = storage_client.get_bucket(BUCKET_NAME)
-    blob = bucket.blob("/".join(file_absolute_path.split('/')[1:]))
+    blob = bucket.blob("/".join(file_absolute_path.split('/')[3:]))
 
-    blob.delete()
+    blob.delete() # TODO: FIX
 
-    print('Blob {} deleted.'.format("/".join(file_absolute_path.split('/')[1:])))
+    print('Blob {} deleted.'.format("/".join(file_absolute_path.split('/')[3:])))
 

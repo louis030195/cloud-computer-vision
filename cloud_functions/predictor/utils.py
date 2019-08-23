@@ -121,14 +121,13 @@ def batch_predict(project_name, body):
 
     response = request.execute()
 
-    print('Job requested.')
-
     # The state returned will almost always be QUEUED.
     print('state : {}'.format(response['state']))
 
     if 'error' in response:
         raise RuntimeError(response['error'])
-    return response
+
+    return response['state']
 
 
 def online_predict(project, model, instances, version=None):

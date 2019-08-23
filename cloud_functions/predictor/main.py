@@ -5,15 +5,11 @@ import json
 import base64
 from datetime import datetime
 
-
 # Requests
 import requests
 
 # Vectors
 import numpy as np
-
-# Images
-import cv2
 
 # Google Cloud client libraries
 from google.cloud import datastore
@@ -58,6 +54,11 @@ def predictor(event, context):
                                    version_name=VERSION_NAME,
                                    max_worker_count=72)
         # TODO: handle case where the batch is too big to be written to a single file
+        #def chunks(l, n):
+        #"""Yield successive n-sized chunks from l."""
+        #for i in range(0, len(l), n):
+        #    yield l[i:i + n]
+        # for frames_chunk in chunks(frames_to_process, TRESHOLD):
         for frame in frames_to_process:
             json_frame = json.loads(frame.replace("'", "\""))
             file_path = "/tmp/inputs.json"
@@ -72,22 +73,26 @@ def predictor(event, context):
             query.key_filter(key_frame, '=')
             frame = list(query.fetch())[0]
 
+            # Useless
             # Update the predictions properties of the Frame row to stop launching jobs
-            frame['predictions'] = 'processing' #TODO: handle case where multiple job ended => #
-            frame['job'] = body['jobId']
+            # frame['predictions'] = 'processing' #TODO: handle case where multiple job ended => #
+            # frame['job'] = body['jobId']
 
             # Push into datastore
             client_datastore.put(frame)
 
         bucket = storage_client.get_bucket(BUCKET_NAME)
         blob = bucket.blob('batches/inputs.json')
-
+        # Upload the input
         blob.upload_from_filename(file_path)
 
-        # TODO: messages shouldn't be acknowledged if batch_predict failed
-        # Dismiss processed messages from the  queue
-        acknowledge_messages(PROJECT_ID, SUBSCRIPTION_INPUT, ack_ids)
-        print('Response', batch_predict(PROJECT_ID, body))
+        # Launch the batch prediction job
+        response = batch_predict(PROJECT_ID, body)
+        # Dismiss processed messages from the  queue in case the job has been queued only
+        if 'QUEUED' in response:
+            acknowledge_messages(PROJECT_ID, SUBSCRIPTION_INPUT, ack_ids)
+            _, x = synchronous_pull(PROJECT_ID, TOPIC_INPUT, SUBSCRIPTION_INPUT, TRESHOLD)
+            print('Number of messages in the queue after acknowledgement: {}'.format(len(x)))
         return
 
     else:

@@ -86,7 +86,7 @@ def input_pubsub(event, context):
     #query_frame.add_filter('imageUrl', '=', frameUrl)
     query_frame.add_filter('predictions', '=', None)
     frames_to_process = list(query_frame.fetch())
-    if not frames_to_process:
+    if len(frames_to_process) == 0:
         return
     
     # Checking if the pubsub topic exist, if it doesn't, create it
