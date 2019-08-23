@@ -131,7 +131,15 @@ def predictor(event, context):
         query = client_datastore.query(kind='Frame')
         key_frame = client_datastore.key('Frame', int(json_frame['input_keys']))
         query.key_filter(key_frame, '=')
-        frame = list(query.fetch())[0]
+        query_result = list(query.fetch())
+
+        # Happens when debugging and removing while predicting ...
+        # Just to avoid having irrelevant errors in logs
+        if len(query_result) == 0:
+            print("It appears that frame {} isn't in datastore, probably deleted".format(json_frame['input_keys']))
+            return
+            
+        frame = query_result[0]
 
         # Update the predictions properties of the Frame row
         frame['predictions'] = entity_prediction.id

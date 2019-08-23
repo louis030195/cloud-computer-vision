@@ -5,7 +5,10 @@ import base64
 
 def download_Image(url, rescale_width=None, resize_width=None):
     response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
+    try:
+        img = Image.open(BytesIO(response.content))
+    except OSError:
+        print("Failed to read image")
     # If png cast to jpeg, i don't even know if that's required
     if '.png' in url:
         img = img.convert('RGB')

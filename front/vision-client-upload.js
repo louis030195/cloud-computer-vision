@@ -1,6 +1,7 @@
 /* globals customElements */
 
 import { LitElement, html, css } from 'lit-element'
+import '@vaadin/vaadin-upload/vaadin-upload.js'
 
 class VisionClientUpload extends LitElement {
   static get properties () {
@@ -27,6 +28,9 @@ class VisionClientUpload extends LitElement {
 
   render () {
     return html`
+      <vaadin-upload accept=".video/*,image/*">
+        <span slot="drop-label">Drop your images / videos here</span>
+      </vaadin-upload>
       Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) => {
     // object for allowed media types
     const accept = {

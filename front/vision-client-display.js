@@ -92,7 +92,7 @@ class VisionClientDisplay extends LitElement {
     </div>
     <div id="content">
       <div class="wrapper">
-      ${this.frames !== undefined && this.classes != undefined ? this.frames.slice(this.pagination, this.pagination + 10).map((f, i) =>
+      ${this.frames !== undefined && this.classes != undefined ? this.frames.slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
         html`<vision-client-frame
         .width=${300}
         .height=${300}

@@ -37,6 +37,7 @@
     "@google-cloud/connect-datastore": "^3.0.0",
     "@google-cloud/datastore": "^4.0.0",
     "@google-cloud/storage": "^1.7.0",
+    "@vaadin/vaadin-upload": "^4.2.2",
     "@webcomponents/webcomponentsjs": "^2.2.10",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",

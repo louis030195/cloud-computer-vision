@@ -47,7 +47,7 @@ class VisionClientFrame extends LitElement {
       return '#' + ('000000' + h.toString(16)).slice(-6);
   }
 
-  firstUpdated () {
+  changeUpdated () {
     if (this.predictionId === null || this.predictionId === 'processing') return
     this.visionClientService.getPredictionObjects(this.predictionId).then(prediction => {
       this.objects = prediction['objectEntities']
@@ -137,6 +137,8 @@ class VisionClientFrame extends LitElement {
     })
 
     canvas.addEventListener('click', (e) => {
+      // TODO: delete objects & predictions 
+      // OR make a trigger / callback in datastore that delete p/o of frame postdelete
       this.visionClientService.deleteFrame(this.id) // Then update somehow
       // .then(name => boxText = `${name['name']} ${object['detection_scores'].toFixed(2)}`)
       /*
