@@ -55,7 +55,7 @@ class VisionClientFrame extends LitElement {
       this.renderPredictions()
     })*/
     // console.log(this.objects)
-    if (this.objects.constructor !== Array) return
+    if (this.objects === null || this.objects.constructor !== Array) return
     this.renderPredictions()
   }
 

@@ -80,10 +80,13 @@ class VisionClientDisplay extends LitElement {
   }
 
   firstUpdated () {
+    console.log(process.env.REGION)
+
     this.visionClientService.getVideos().then(videos => { this.videos = videos['items'] })
     this.visionClientService.getFrames()
                             .then(frames => { this.frames = frames['items'] })
-                            .then(() => this.frames.forEach(frame => this.visionClientService.getPredictionObjects(frame['predictions'])
+                            .then(() => this.frames.filter(f => f.predictions !== null)
+                                                   .forEach(frame => this.visionClientService.getPredictionObjects(frame['predictions'])
                                                                                              .then(objects => frame['predictions'] = objects['objectEntities'])))                                         
                             //.then(() => this.renderGraphics())
                             //.then(() => console.log(this.frames))
@@ -171,7 +174,7 @@ class VisionClientDisplay extends LitElement {
   }
 
   renderGraphics() {
-    
+    return
     // console.log(this.mode(this.frames))
     // countElements(temp1.map(t => t['predictions'].map(x => x['detection_classes'])).flat(), true, 100)
     //const t = this.shadowRoot.getElementById('tester')

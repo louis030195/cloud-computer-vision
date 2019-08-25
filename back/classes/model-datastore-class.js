@@ -6,6 +6,7 @@ const ds = new Datastore({
   projectId: process.env.PROJECT_ID,
   keyFilename: path.join(__dirname, '..', '..', process.env.GOOGLE_APPLICATION_CREDENTIALS)
 })
+
 const kind = 'Class'
 
 // Translates from Datastore's entity format to

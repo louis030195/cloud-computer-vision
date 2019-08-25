@@ -54,6 +54,7 @@ class VisionClientUpload extends LitElement {
     })
     // TODO: display time estimation here
     // https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/FUNCTION_NAME
+    console.log('REGIONENV', process.env.REGION)
     fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
       method: 'post',
       body:    JSON.stringify({ text: 'i call you' }),
