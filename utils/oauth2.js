@@ -1,7 +1,6 @@
 'use strict'
 
 const express = require('express')
-const config = require('../config')
 
 // [START setup]
 const passport = require('passport')
@@ -29,9 +28,9 @@ function extractProfile (profile) {
 passport.use(
   new GoogleStrategy(
     {
-      clientID: config.get('OAUTH2_CLIENT_ID'),
-      clientSecret: config.get('OAUTH2_CLIENT_SECRET'),
-      callbackURL: config.get('OAUTH2_CALLBACK'),
+      clientID: process.env.OAUTH2_CLIENT_ID,
+      clientSecret: process.env.OAUTH2_CLIENT_SECRET,
+      callbackURL: process.env.OAUTH2_CALLBACK,
       accessType: 'offline',
       userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
     },

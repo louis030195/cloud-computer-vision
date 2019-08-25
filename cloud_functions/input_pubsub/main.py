@@ -43,23 +43,20 @@ def create_topic(publisher, project_id, topic_name):
 
 
 
-def input_pubsub(event, context):
+def input_pubsub(request):
     """Triggered by a change to a Cloud Storage bucket.
     Args:
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    # GCP doesn't handle trigger on folder level, so either change architecture
-    # either multiple bucket (is that more expensive or ? ...)
-    # https://googlecloud.tips/tips/018-trigger-cloud-functions-on-gcs-folders/
-    if 'batch_results/' in event['name'].lower() or 'batches/' in event['name'].lower(): # (e.g. batch results put here, we skip)
-        return
+    print(request.get_json(silent=True))
 
     # Configure the batch to publish as soon as X seconds / X bytes has passed.
     batch_settings = pubsub_v1.types.BatchSettings(
         max_bytes=5 * (10 ** 6) # 10**6 = 1 mb #max_latency=3,
     )
     publisher = pubsub_v1.PublisherClient(batch_settings)
+    """
     if any(ex in event['name'].lower() for ex in ['.avi', '.mp4']):
         # Checking if the pubsub topic exist, if it doesn't, create it
         create_topic(publisher, PROJECT_ID, TOPIC_EXTRACTOR)
@@ -71,15 +68,8 @@ def input_pubsub(event, context):
             data=os.path.join('gs://{}'.format(BUCKET_NAME),
                               event['name']).encode('utf-8')  # data must be a bytestring.
         )
-
-    # A file has been added to the bucket but it's either an image or a video (split into frames)
-    if all(ex not in event['name'].lower() for ex in ['.png', '.jpg', '.jpeg']):
-        print("Unhandled file type", event)
-        return
-
-    # The public url of the file that triggered this cloud function
-    # frameUrl = os.path.join('https://storage.googleapis.com', BUCKET_NAME, event['name'])
-
+    """
+    
     client = datastore.Client()
     # Then get by key for this entity
     query_frame = client.query(kind='Frame')

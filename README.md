@@ -29,7 +29,31 @@ see [bash script](configure_gcp_and_deploy.sh) to configure everything automatic
     export BUCKET_NAME=
     export MODEL=
     export VERSION=
+    export OAUTH2_CLIENT_ID=
+    export OAUTH2_CLIENT_SECRET=
+    export OAUTH2_CALLBACK=
+    export GOOGLE_APPLICATION_CREDENTIALS=
 
+- [Get my OAuth2 IDs](https://developers.google.com/identity/protocols/OAuth2)
+- [Get a json key file and put it in key_account directory](https://cloud.google.com/docs/authentication/getting-started)
+
+## Create the App Engine config file
+    echo -e '{
+        service: vision-client
+        runtime: custom
+        env: flex
+        instance_class: F2
+
+        # GCP Config
+        env_variables:
+          PROJECT_ID: $PROJECT_ID
+          BUCKET_NAME: $BUCKET_NAME
+          REGION: $REGION
+          OAUTH2_CLIENT_ID: $OAUTH2_CLIENT_ID
+          OAUTH2_CLIENT_SECRET: $OAUTH2_CLIENT_SECRET
+          OAUTH2_CALLBACK: $OAUTH2_CALLBACK
+          GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
+    }' > app.yaml
 
 ## gcloud CLI
     echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
@@ -72,9 +96,8 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --source cloud_functions/input_pubsub \
     --runtime python37 \
     --project $PROJECT_ID \
-    --trigger-resource gs://$BUCKET_NAME \
+    --trigger-http \
     --region $REGION \
-    --trigger-event google.storage.object.finalize \
     --env-vars-file cloud_functions/input_pubsub/.env.yaml \
     --max-instances 1 \
     --memory 2gb
@@ -147,28 +170,11 @@ cd vision-client
 npm install
 ```
 
-### JS Config file
-- [Get my OAuth2 IDs](https://developers.google.com/identity/protocols/OAuth2)
-- [Get a json key file and put it in key_account directory](https://cloud.google.com/docs/authentication/getting-started)
-
-```
-echo -e '{
-    "BUCKET_NAME: "[YOUR_BUCKET]",
-    "OAUTH2_CLIENT_ID": "[YOUR_OAUTH2_CLIENT_ID]",
-    "OAUTH2_CLIENT_SECRET": "[YOUR_OAUTH2_CLIENT_SECRET]",
-    "OAUTH2_CALLBACK": "https://vision-client-dot-[PROJECT_ID].appspot.com/auth/google/callback",
-    "GOOGLE_APPLICATION_CREDENTIALS": "./key_account/[JSON__KEY_NAME]",
-    "PROJECT_ID": "[YOUR_PROJECT_ID]"
-}' > config.json
-```
-
 # TODO
 - Script that configure all the repo + gcp automatically
 - Split back / front
-- Let user choose whether he wants online / batch predictions
 - Reset / remake new predictions (new model ...)
 - Time / price estimator / simulator (before launching the task and after also)
-- Think about the case: calls to back API directly (without passing from front)
 - Stuff with dates, count, stats ...
 - More vizualisation / stats / graphics
 - LOGS LOGS LOGS

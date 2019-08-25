@@ -3,7 +3,6 @@
 const express = require('express')
 const session = require('express-session')
 const passport = require('passport')
-const config = require('./config')
 const { Datastore } = require('@google-cloud/datastore')
 const DatastoreStore = require('@google-cloud/connect-datastore')(session)
 const oauth2 = require('./utils/oauth2')
@@ -22,12 +21,12 @@ app.use(oauth2.template)
 const sessionConfig = {
   resave: false,
   saveUninitialized: false,
-  secret: config.get('SECRET'),
+  secret: process.env.SECRET,
   signed: true,
   store: new DatastoreStore({
     dataset: new Datastore({
-      projectId: config.get('PROJECT_ID'),
-      keyFilename: config.get('GOOGLE_APPLICATION_CREDENTIALS')
+      projectId: process.env.PROJECT_ID,
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
     }),
     kind: 'express-sessions'
   })
@@ -79,7 +78,7 @@ app.use((err, req, res) => {
 
 if (module === require.main) {
   // Start the server
-  const server = app.listen(config.get('PORT'), () => {
+  const server = app.listen(process.env.PORT, () => {
     const port = server.address().port
     console.log(`App listening on port ${port}`)
   })

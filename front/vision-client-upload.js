@@ -1,4 +1,4 @@
-/* globals customElements */
+/* globals fetch, customElements */
 
 import { LitElement, html, css } from 'lit-element'
 import '@vaadin/vaadin-upload/vaadin-upload.js'
@@ -52,6 +52,16 @@ class VisionClientUpload extends LitElement {
         }
       }
     })
+    // TODO: display time estimation here
+    // https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/FUNCTION_NAME
+    fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
+      method: 'post',
+      body:    JSON.stringify({ text: 'i call you' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    .then(res => res.json())
+    .then(json => console.log(json))
+
     this.incorrectFiles = incorrectFiles
   }}>
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}

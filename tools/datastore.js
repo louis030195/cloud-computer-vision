@@ -1,9 +1,8 @@
 const { Datastore } = require('@google-cloud/datastore')
-const config = require('../config')
 const path = require('path')
 const datastore = new Datastore({
-  projectId: config.get('PROJECT_ID'),
-  keyFilename: path.join(__dirname, '..', config.get('GOOGLE_APPLICATION_CREDENTIALS'))
+  projectId: process.env.PROJECT_ID,
+  keyFilename: path.join(__dirname, '..', process.env.GOOGLE_APPLICATION_CREDENTIALS)
 })
 
 // Delete multiple entities

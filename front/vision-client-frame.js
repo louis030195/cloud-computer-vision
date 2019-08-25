@@ -7,7 +7,6 @@ class VisionClientFrame extends LitElement {
   static get properties () {
     return {
       visionClientService: { type: Object },
-      predictionId: { type: Object }, // Foreign key passed from a frame
       objects: { type: Array }, // A frame can have multiple objects detected
       id: { type: Object }, // Id in datastore
       imageUrl: { type: String },
@@ -47,12 +46,17 @@ class VisionClientFrame extends LitElement {
       return '#' + ('000000' + h.toString(16)).slice(-6);
   }
 
-  changeUpdated () {
-    if (this.predictionId === null || this.predictionId === 'processing') return
+  firstUpdated () {
+    //if (this.predictionId === null || this.predictionId === 'processing') return
+    //console.log(this.objects)
+    /*
     this.visionClientService.getPredictionObjects(this.predictionId).then(prediction => {
       this.objects = prediction['objectEntities']
       this.renderPredictions()
-    })
+    })*/
+    // console.log(this.objects)
+    if (this.objects.constructor !== Array) return
+    this.renderPredictions()
   }
 
   // Based on https://github.com/eisbilen/TFJS-ObjectDetection/blob/06324d6a4673d2933695bd6644fa2a7bc5e81326/src/app/app.component.ts

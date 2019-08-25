@@ -4,3 +4,4 @@ config.json
 package-lock.json
 front/build
 my_config.sh
+app.yaml
