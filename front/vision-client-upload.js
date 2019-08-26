@@ -31,6 +31,7 @@ class VisionClientUpload extends LitElement {
       <vaadin-upload accept="video/*,image/*">
         <span slot="drop-label">Drop your images / videos here</span>
       </vaadin-upload>
+      <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>
       Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) => {
     // object for allowed media types
     const accept = {
@@ -52,16 +53,9 @@ class VisionClientUpload extends LitElement {
         }
       }
     })
-    // TODO: display time estimation here
-    // https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/FUNCTION_NAME
-    console.log('REGIONENV', process.env.REGION)
     fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
-      method: 'post',
-      body:    JSON.stringify({ text: 'i call you' }),
-      headers: { 'Content-Type': 'application/json' },
+      mode: 'no-cors',
     })
-    .then(res => res.json())
-    .then(json => console.log(json))
 
     this.incorrectFiles = incorrectFiles
   }}>

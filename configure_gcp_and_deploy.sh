@@ -104,3 +104,4 @@ gcloud functions deploy extractPubSub \
     --memory 2gb
 
 gcloud app deploy
+gcloud app deploy cron.yaml

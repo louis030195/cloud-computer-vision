@@ -2,6 +2,7 @@
 
 import { LitElement, html, css } from 'lit-element'
 import './vision-client-frame'
+import '@vaadin/vaadin-progress-bar/vaadin-progress-bar.js'
 // import { Plotly } from 'plotly.js'
 // const Plotly = require('plotly.js')
 // https://github.com/plotly/plotly-webpack
@@ -15,7 +16,8 @@ class VisionClientDisplay extends LitElement {
       frames: { type: Array },
       predictions: { type: Array },
       objects: { type: Array },
-      pagination: { type: Number }
+      pagination: { type: Number },
+      progress: { type: Number}
     }
   }
 
@@ -27,6 +29,7 @@ class VisionClientDisplay extends LitElement {
     this.predictions = []
     this.objects = []
     this.pagination = 0
+    this.progress = 0
   }
 
   static get styles () {
@@ -79,18 +82,27 @@ class VisionClientDisplay extends LitElement {
     `
   }
 
-  firstUpdated () {
-    console.log(process.env.REGION)
+  updated(changedProperties) {
+    const v = (this.frames.length / this.frames.filter(f => f.predictions === null).length)
+    this.progress = v //100 - isNaN(v) ? 0 : v
+  }
 
+  firstUpdated () {
     this.visionClientService.getVideos().then(videos => { this.videos = videos['items'] })
+    this.visionClientService.getFrames().then(frames => { this.frames = frames['items'] })
+    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
+
+    /*
     this.visionClientService.getFrames()
                             .then(frames => { this.frames = frames['items'] })
-                            .then(() => this.frames.filter(f => f.predictions !== null)
+                            .then(() => this.frames.filter(f => f.predictions !== null && f.predictions !== 'processing')
                                                    .forEach(frame => this.visionClientService.getPredictionObjects(frame['predictions'])
                                                                                              .then(objects => frame['predictions'] = objects['objectEntities'])))                                         
+     
+    */                                                                                        
                             //.then(() => this.renderGraphics())
                             //.then(() => console.log(this.frames))
-    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
+    
     //this.visionClientService.getPredictions().then(predictions => { this.predictions = predictions['items'] })
     //this.visionClientService.getObjects().then(objects => { this.objects = objects['items'] })
   }
@@ -98,6 +110,9 @@ class VisionClientDisplay extends LitElement {
   render () {
     return html`
     <br />
+    frames being processed ${this.frames.filter(f => f.predictions === null).length}
+    <vaadin-progress-bar min="0" max="100" value="${this.progress}"></vaadin-progress-bar>
+    Content processed: <span>${this.progress}</span> %
     <div id="tester" style="width:90%;height:250px;"></div>
     <div class="center">
       <div class="pagination">

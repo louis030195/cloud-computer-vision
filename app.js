@@ -6,7 +6,7 @@ const passport = require('passport')
 const { Datastore } = require('@google-cloud/datastore')
 const DatastoreStore = require('@google-cloud/connect-datastore')(session)
 const oauth2 = require('./utils/oauth2')
-
+const fetch = require('node-fetch')
 const app = express()
 
 app.disable('etag')
@@ -55,10 +55,17 @@ app.use('/api/objects', require('./back/objects/api-object'))
 // Classes
 app.use('/api/classes', require('./back/classes/api-class'))
 
+// Endpoint for calling input_pubsub cloud function
+app.use('/cron/input/', (req, res) => {
+  fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
+    mode: 'no-cors',
+  }).then(() => res.status(200).send('Cloud function input_pubsub called'))
+})
+
 var pathRoot = `${__dirname}/front/build`
 
 app.use('/', express.static(pathRoot))
-app.get('/*', function (req, res) {
+app.get('/*', (req, res) => {
   res.sendFile(pathRoot + '/index.html')
 })
 

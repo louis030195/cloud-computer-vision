@@ -165,6 +165,7 @@ Or
 
     gcloud config set project $PROJECT_ID
     gcloud app deploy
+    gcloud app deploy cron.yaml
 
 # Development
 It is highly recommended to just use GitPod for development, there is less setup to do but you can also do locally

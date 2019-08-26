@@ -3,6 +3,9 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const model = require('./model-datastore-frame')
+const modelPrediction = require('../predictions/model-datastore-prediction')
+const modelObject = require('../objects/model-datastore-object')
+
 const { sendUploadToGCS, multer } = require('../../utils/images')
 
 const router = express.Router()
@@ -26,6 +29,44 @@ router.get('/', (req, res, next) => {
     res.json({
       items: entities,
       nextPageToken: cursor
+    })
+  })
+})
+
+/**
+ * GET /api/predictions/:id/objects/
+ *
+ * Retrieve a prediction.
+ */
+
+const readObject = (id) => new Promise((resolve,reject) => modelObject.read(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
+const readPrediction = (id) => new Promise((resolve,reject) => modelPrediction.read(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
+router.get('/predictions/objects', (req, res, next) => {
+  model.list(100, req.query.pageToken, (err, entities, cursor) => {
+    if (err) {
+      next(err)
+      return
+    }
+    Promise.all(entities.filter(f => f.predictions !== null && f.predictions !== 'processing')
+                        .map(f => readPrediction(f.predictions)))
+    .then(p => p.map(p => p.objects.map(o => readObject(o))))
+    .then(objectEntities => {
+      // entity.objectEntities = objectEntities
+      res.json(objectEntities)
     })
   })
 })
