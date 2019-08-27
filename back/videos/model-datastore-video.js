@@ -1,11 +1,10 @@
 'use strict'
 
 const { Datastore } = require('@google-cloud/datastore')
-const config = require('../../config')
 const path = require('path')
 const ds = new Datastore({
-  projectId: config.get('PROJECT_ID'),
-  keyFilename: path.join(__dirname, '..', '..', config.get('GOOGLE_APPLICATION_CREDENTIALS'))
+  projectId: process.env.PROJECT_ID,
+  keyFilename: path.join(__dirname, '..', '..', process.env.GOOGLE_APPLICATION_CREDENTIALS)
 })
 const kind = 'Video'
 
@@ -98,8 +97,8 @@ function list (limit, token, cb) {
 function listBy (userId, limit, token, cb) {
   const q = ds
     .createQuery([kind])
-    .limit(limit)
     .start(token)
+    //.limit(limit)
 
   ds.runQuery(q, (err, entities, nextQuery) => {
     if (err) {

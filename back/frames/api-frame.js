@@ -3,6 +3,9 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const model = require('./model-datastore-frame')
+const modelPrediction = require('../predictions/model-datastore-prediction')
+const modelObject = require('../objects/model-datastore-object')
+
 const { sendUploadToGCS, multer } = require('../../utils/images')
 
 const router = express.Router()
@@ -31,6 +34,46 @@ router.get('/', (req, res, next) => {
 })
 
 /**
+ * GET /api/frames/predictions/objects/
+ *
+ * Retrieve all frames and their objects.
+ */
+
+const readObject = (id) => new Promise((resolve,reject) => modelObject.read(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
+const readPrediction = (id) => new Promise((resolve,reject) => modelPrediction.read(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
+router.get('/predictions/objects', (req, res, next) => {
+  model.list(100, req.query.pageToken, async (err, entities, cursor) => {
+    if (err) {
+      next(err)
+      return
+    }
+    const frames = entities.filter(f => f.predictions !== null && f.predictions !== 'processing')
+    for(const frame of frames) {
+        frame.predictions = await readPrediction(frame.predictions)
+        frame.predictions.objects = await Promise.all(frame.predictions.objects.map(o => readObject(o)))
+    }
+    res.json({
+      items: frames,
+      nextPageToken: cursor
+    })
+  })
+})
+
+/**
  * POST /api/frames
  *
  * Create a new frame.
@@ -40,7 +83,7 @@ router.post(
   multer.single('file'),
   sendUploadToGCS,
   (req, res, next) => {
-    const data = { imageUrl: req.file.cloudStoragePublicUrl, predictions: null } // Predictions represents the object detected in the media
+    const data = { imageUrl: req.file.cloudStoragePublicUrl, predictions: null }
     model.create(data, (err, entity) => {
       if (err) {
         next(err)

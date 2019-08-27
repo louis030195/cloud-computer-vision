@@ -9,8 +9,8 @@ export default class VisionClientService {
     return fetch(`${this.backendHost}/api/frames`).then(r => r.json())
   }
 
-  deleteFrame (id) {
-    return fetch(`${this.backendHost}/api/frames/${id}`).then(r => r.json())
+  getFramesPredictionsObjects () {
+    return fetch(`${this.backendHost}/api/frames/predictions/objects`).then(r => r.json())
   }
 
   deleteFrame (id) {
@@ -45,6 +45,10 @@ export default class VisionClientService {
       body: formData
     })
       .then(response => response.json())
+  }
+
+  getPredictions () {
+    return fetch(`${this.backendHost}/api/predictions`).then(r => r.json())
   }
 
   getPrediction (id) {

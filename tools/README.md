@@ -4,7 +4,6 @@
     node datastore.js
 
 ## Clear storage + gcp services ...
-
-First remplace export with your gcp config
+Don't run without reading the script content ...
 
     ./clear.sh

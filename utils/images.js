@@ -1,13 +1,11 @@
 'use strict'
 
 const Storage = require('@google-cloud/storage')
-const config = require('../config')
 
-const BUCKET_NAME = config.get('BUCKET_NAME')
-const GOOGLE_APPLICATION_CREDENTIALS = config.get('GOOGLE_APPLICATION_CREDENTIALS')
+const BUCKET_NAME = process.env.BUCKET_NAME
 const path = require('path')
 const storage = Storage({
-  keyFilename: path.join(__dirname, '..', GOOGLE_APPLICATION_CREDENTIALS)
+  keyFilename: path.join(__dirname, '..', process.env.GOOGLE_APPLICATION_CREDENTIALS)
 })
 // const throttledQueue = require('throttled-queue');
 // const throttle = throttledQueue(1, 5000) // at most make 1 request every 5 seconds.

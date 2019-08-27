@@ -3,11 +3,10 @@
 const express = require('express')
 const session = require('express-session')
 const passport = require('passport')
-const config = require('./config')
 const { Datastore } = require('@google-cloud/datastore')
 const DatastoreStore = require('@google-cloud/connect-datastore')(session)
 const oauth2 = require('./utils/oauth2')
-
+const fetch = require('node-fetch')
 const app = express()
 
 app.disable('etag')
@@ -22,12 +21,12 @@ app.use(oauth2.template)
 const sessionConfig = {
   resave: false,
   saveUninitialized: false,
-  secret: config.get('SECRET'),
+  secret: process.env.SECRET,
   signed: true,
   store: new DatastoreStore({
     dataset: new Datastore({
-      projectId: config.get('PROJECT_ID'),
-      keyFilename: config.get('GOOGLE_APPLICATION_CREDENTIALS')
+      projectId: process.env.PROJECT_ID,
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
     }),
     kind: 'express-sessions'
   })
@@ -56,10 +55,17 @@ app.use('/api/objects', require('./back/objects/api-object'))
 // Classes
 app.use('/api/classes', require('./back/classes/api-class'))
 
+// Endpoint for calling input_pubsub cloud function
+app.use('/cron/input/', (req, res) => {
+  fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
+    mode: 'no-cors',
+  }).then(() => res.status(200).send('Cloud function input_pubsub called'))
+})
+
 var pathRoot = `${__dirname}/front/build`
 
 app.use('/', express.static(pathRoot))
-app.get('/*', function (req, res) {
+app.get('/*', (req, res) => {
   res.sendFile(pathRoot + '/index.html')
 })
 
@@ -79,7 +85,7 @@ app.use((err, req, res) => {
 
 if (module === require.main) {
   // Start the server
-  const server = app.listen(config.get('PORT'), () => {
+  const server = app.listen(process.env.PORT, () => {
     const port = server.address().port
     console.log(`App listening on port ${port}`)
   })

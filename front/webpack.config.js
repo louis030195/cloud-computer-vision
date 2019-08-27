@@ -11,6 +11,8 @@ const INDEX_TEMPLATE = join(__dirname, 'index.html')
 
 const webcomponentsjs = join(__dirname, '/../node_modules/@webcomponents/webcomponentsjs')
 
+const Dotenv = require('dotenv-webpack')
+
 const assets = [
 ]
 const polyfills = [
@@ -64,6 +66,7 @@ const developmentConfig = merge([
   {
     devtool: 'cheap-module-source-map',
     plugins: [
+      new Dotenv(),
       new CopyWebpackPlugin([...polyfills, ...assets]),
       new HtmlWebpackPlugin({
         template: INDEX_TEMPLATE
@@ -85,6 +88,7 @@ const productionConfig = merge([
   {
     devtool: 'nosources-source-map',
     plugins: [
+      new Dotenv(),
       new CleanWebpackPlugin({ verbose: true }),
       new CopyWebpackPlugin([...polyfills, ...assets]),
       new HtmlWebpackPlugin({

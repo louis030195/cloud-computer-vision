@@ -1,7 +1,3 @@
-export BUCKET_NAME = [BUCKET_NAME] # Replace with your bucket name
-export PROJECT_ID = [PROJECT_ID] # Replace with your project id
-export SUBSCRIPTION_INPUT = [SUBSCRIPTION_INPUT] # Replace with your topic name
-
 # Clear gcp storages
 gsutil -m rm gs://$BUCKET_NAME/*.png
 gsutil -m rm gs://$BUCKET_NAME/*.jpg

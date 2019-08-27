@@ -1,4 +1,4 @@
-/* globals customElements */
+/* globals fetch, customElements */
 
 import { LitElement, html, css } from 'lit-element'
 import '@vaadin/vaadin-upload/vaadin-upload.js'
@@ -31,6 +31,7 @@ class VisionClientUpload extends LitElement {
       <vaadin-upload accept="video/*,image/*">
         <span slot="drop-label">Drop your images / videos here</span>
       </vaadin-upload>
+      <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>
       Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) => {
     // object for allowed media types
     const accept = {
@@ -52,6 +53,10 @@ class VisionClientUpload extends LitElement {
         }
       }
     })
+    fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
+      mode: 'no-cors',
+    })
+
     this.incorrectFiles = incorrectFiles
   }}>
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
