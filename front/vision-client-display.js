@@ -81,7 +81,7 @@ class VisionClientDisplay extends LitElement {
     `
   }
 
-  updated(changedProperties) {
+  firstUpdated() {
     const v = this.frames !== undefined ? (this.frames.length / this.frames.filter(f => f.predictions === null).length) : 0
     this.progress = v //100 - isNaN(v) ? 0 : v
 
@@ -91,6 +91,7 @@ class VisionClientDisplay extends LitElement {
                             .then(() => this.updateGraphics())
     this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
   }
+  
 
   render () {
     return html`

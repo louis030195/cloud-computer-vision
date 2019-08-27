@@ -107,14 +107,13 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --trigger-http \
     --region $REGION \
     --env-vars-file cloud_functions/input_pubsub/.env.yaml \
-    --max-instances 1 \
     --memory 2gb
 ### Predictor
     gcloud functions deploy predictor \
     --source cloud_functions/predictor \
     --runtime python37 \
     --project $PROJECT_ID \
-    --trigger-topic topic_input \
+    --trigger-http \
     --region $REGION \
     --env-vars-file cloud_functions/predictor/.env.yaml \
     --max-instances 1 \

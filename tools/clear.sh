@@ -6,14 +6,12 @@ gsutil -m rm -rf gs://$BUCKET_NAME/batches
 gsutil -m rm -rf gs://$BUCKET_NAME/batch_results
 
 # Clear functions
-gcloud functions delete --region europe-west1 --project $PROJECT_ID online_prediction
-gcloud functions delete --region europe-west1 --project $PROJECT_ID batch_prediction
-gcloud functions delete --region europe-west1 --project $PROJECT_ID online_batch_prediction
-gcloud functions delete --region europe-west1 --project $PROJECT_ID batch_result
-gcloud functions delete --region europe-west1 --project $PROJECT_ID extractPubSub
-gcloud functions delete --region europe-west1 --project $PROJECT_ID tfrecord_caller
-gcloud functions delete --region europe-west1 --project $PROJECT_ID stop_billing
-gcloud functions delete --region europe-west1 --project $PROJECT_ID limit_use
+#gcloud functions delete --region $REGION --project $PROJECT_ID input_pubsub
+#gcloud functions delete --region $REGION --project $PROJECT_ID predictor
+#gcloud functions delete --region $REGION --project $PROJECT_ID batch_result
+#gcloud functions delete --region $REGION --project $PROJECT_ID extractPubSub
+#gcloud functions delete --region $REGION --project $PROJECT_ID stop_billing
+#gcloud functions delete --region $REGION --project $PROJECT_ID limit_use
 
 # Clear pubsub messages
 gcloud pubsub subscriptions seek "projects/$PROJECT_ID/subscriptions/$SUBSCRIPTION_INPUT" \

@@ -2,16 +2,9 @@
 # Standard libs
 import os
 import time
-import json
-import re
-from datetime import datetime
-import base64
 
 # Vectors
 import numpy as np
-
-# Images
-import cv2
 
 # Requests
 import requests
@@ -25,6 +18,7 @@ from utils import download_Image, Image_to_b64
 BUCKET_NAME = os.environ['BUCKET_NAME']
 PROJECT_ID = os.environ['PROJECT_ID']
 TOPIC_EXTRACTOR = os.environ['TOPIC_EXTRACTOR']
+REGION = os.environ['REGION']
 TOPIC_INPUT = os.environ['TOPIC_INPUT']
 INPUT_TYPE = os.environ['INPUT_TYPE']
 WIDTH = int(os.environ['WIDTH'])
@@ -42,18 +36,20 @@ def create_topic(publisher, project_id, topic_name):
 
 
 
-
+# TODO: https://cloud.google.com/functions/docs/bestpractices/networking
 def input_pubsub(request):
     """Triggered by a change to a Cloud Storage bucket.
     Args:
-         event (dict): Event payload.
-         context (google.cloud.functions.Context): Metadata for the event.
+         request
     """
     #print(request.get_json(silent=True))
-
+    start_time = time.time()
+    print('Start at', start_time)
+    
     # Configure the batch to publish as soon as X seconds / X bytes has passed.
     batch_settings = pubsub_v1.types.BatchSettings(
-        max_bytes=5 * (10 ** 6) # 10**6 = 1 mb #max_latency=3,
+        max_bytes = 5 * (10 ** 6), # 10**6 = 1 mb 
+        max_latency = 3
     )
     publisher = pubsub_v1.PublisherClient(batch_settings)
     """
@@ -85,8 +81,19 @@ def input_pubsub(request):
 
     published_messages = 0
     for frame in frames_to_process:
+        elapsed_time = time.time() - start_time
+        print('Elapsed time', elapsed_time)
+
+        # Avoid timeout (40s)
+        if elapsed_time > 4:
+            break
+
         # Download
         img = download_Image(frame['imageUrl'], resize_width=WIDTH)
+
+        # Failed to read image
+        if img is None:
+            return
 
         if 'encoded_image_string_tensor' in INPUT_TYPE:
             # Model input is b64
@@ -108,7 +115,7 @@ def input_pubsub(request):
 
         # Sucessfully published the message to Pub/Sub
         if response.exception() == None:
-            published_messages+=1 
+            published_messages += 1 
 
             # Get the frame key in Datastore
             key_frame = client.key('Frame', frame.id)
@@ -123,4 +130,9 @@ def input_pubsub(request):
             # Push into datastore
             entity_frame.update(obj)
             client.put(entity_frame)
+    
+
     print('Published {} messages'.format(published_messages))
+
+    response = requests.get('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
+    print('Predictor response', response.text)

@@ -41,21 +41,25 @@ class VisionClientUpload extends LitElement {
     }
 
     const incorrectFiles = []
-    Array.from(e.target.files).forEach((file) => {
-      // if file type could be detected
-      if (file !== null) {
-        if (accept.image.indexOf(file.type) > -1) {
-          this.visionClientService.createFrame(file)
-        } else if (accept.video.indexOf(file.type) > -1) { // Video is not implemented yet
-          // this.visionClientService.createVideo(file)
-        } else {
-          incorrectFiles.push(file.name)
+    new Promise(resolve => {
+      Array.from(e.target.files).forEach((file) => {
+        // if file type could be detected
+        if (file !== null) {
+          if (accept.image.indexOf(file.type) > -1) {
+            this.visionClientService.createFrame(file)
+          } else if (accept.video.indexOf(file.type) > -1) { // Video is not implemented yet
+            // this.visionClientService.createVideo(file)
+          } else {
+            incorrectFiles.push(file.name)
+          }
         }
-      }
-    })
-    fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
-      mode: 'no-cors',
-    })
+      })
+      resolve()
+    }).then(setTimeout(() => {
+      fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
+        mode: 'no-cors',
+      })
+    }, 2000)) // Timeout seems to be required to wait the api put well into datastore
 
     this.incorrectFiles = incorrectFiles
   }}>

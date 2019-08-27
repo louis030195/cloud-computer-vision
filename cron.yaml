@@ -1,4 +1,4 @@
 cron:
 - description: "Regularly call input_pubsub cloud function to process data, just in case a fetch has failed during upload"
-  url: /cron/input/
+  url: /cron/input
   schedule: every 30 mins

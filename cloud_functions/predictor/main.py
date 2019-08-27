@@ -28,12 +28,13 @@ SUBSCRIPTION_INPUT = os.environ['SUBSCRIPTION_INPUT']
 
 
 
-def predictor(event, context):
+def predictor(request):
     """Triggered by a PubSub subscription.
     Args:
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
+    #print(request.get_json(silent=True))
     #pubsub_data = base64.b64decode(event['data']).decode('utf-8')
     #pubsub_json = json.loads(pubsub_data)
 

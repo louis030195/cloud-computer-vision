@@ -69,14 +69,13 @@ gcloud functions deploy input_pubsub \
     --trigger-http \
     --region $REGION \
     --env-vars-file cloud_functions/input_pubsub/.env.yaml \
-    --max-instances 1 \
     --memory 2gb
 
 gcloud functions deploy predictor \
     --source cloud_functions/predictor \
     --runtime python37 \
     --project $PROJECT_ID \
-    --trigger-topic topic_input \
+    ---trigger-http \
     --region $REGION \
     --env-vars-file cloud_functions/predictor/.env.yaml \
     --max-instances 1 \
