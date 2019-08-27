@@ -3,10 +3,7 @@
 import { LitElement, html, css } from 'lit-element'
 import './vision-client-frame'
 import '@vaadin/vaadin-progress-bar/vaadin-progress-bar.js'
-// import { Plotly } from 'plotly.js'
-// const Plotly = require('plotly.js')
-// https://github.com/plotly/plotly-webpack
-const Plotly = require('plotly.js/lib/index-basic')
+import '@google-web-components/google-chart/google-chart.js'
 
 class VisionClientDisplay extends LitElement {
   static get properties () {
@@ -17,7 +14,8 @@ class VisionClientDisplay extends LitElement {
       predictions: { type: Array },
       objects: { type: Array },
       pagination: { type: Number },
-      progress: { type: Number}
+      progress: { type: Number},
+      countDetectionClasses: { type: Array }
     }
   }
 
@@ -30,6 +28,7 @@ class VisionClientDisplay extends LitElement {
     this.objects = []
     this.pagination = 0
     this.progress = 0
+    this.countDetectionClasses = []
   }
 
   static get styles () {
@@ -83,56 +82,48 @@ class VisionClientDisplay extends LitElement {
   }
 
   updated(changedProperties) {
-    const v = (this.frames.length / this.frames.filter(f => f.predictions === null).length)
+    const v = this.frames !== undefined ? (this.frames.length / this.frames.filter(f => f.predictions === null).length) : 0
     this.progress = v //100 - isNaN(v) ? 0 : v
   }
 
   firstUpdated () {
     this.visionClientService.getVideos().then(videos => { this.videos = videos['items'] })
-    this.visionClientService.getFrames().then(frames => { this.frames = frames['items'] })
-    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
-
-    /*
-    this.visionClientService.getFrames()
+    this.visionClientService.getFramesPredictionsObjects()
                             .then(frames => { this.frames = frames['items'] })
-                            .then(() => this.frames.filter(f => f.predictions !== null && f.predictions !== 'processing')
-                                                   .forEach(frame => this.visionClientService.getPredictionObjects(frame['predictions'])
-                                                                                             .then(objects => frame['predictions'] = objects['objectEntities'])))                                         
-     
-    */                                                                                        
-                            //.then(() => this.renderGraphics())
-                            //.then(() => console.log(this.frames))
-    
-    //this.visionClientService.getPredictions().then(predictions => { this.predictions = predictions['items'] })
-    //this.visionClientService.getObjects().then(objects => { this.objects = objects['items'] })
+                            .then(() => this.renderGraphics())
+    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
   }
 
   render () {
     return html`
     <br />
-    frames being processed ${this.frames.filter(f => f.predictions === null).length}
+    frames being processed ${this.frames !== undefined ? this.frames.filter(f => f.predictions === null).length : 0}
     <vaadin-progress-bar min="0" max="100" value="${this.progress}"></vaadin-progress-bar>
     Content processed: <span>${this.progress}</span> %
-    <div id="tester" style="width:90%;height:250px;"></div>
+    <google-chart
+    options='{"title": "Class occurences"}'
+    cols='[{"label":"Class", "type":"string"}, {"label":"Occurences", "type":"number"}]'
+    rows='${JSON.stringify(this.countDetectionClasses.map(f => [this.classes[f.element].name, f.occurences]))}''>
+    </google-chart>
     <div class="center">
       <div class="pagination">
         <a @click="${this.previousPage}">&laquo;</a>
-        ${new Array(Math.floor(this.frames.length / 10)).fill().map((f, i) =>
+        ${this.frames !== undefined ? new Array(Math.floor(this.frames.length / 10)).fill().map((f, i) =>
           html`<a class="${this.pagination == i ? `active` : ``}" @click="${this.goTo}">${i}</a>`
-        )}
+        ) : ''}
         <a @click="${this.nextPage}">&raquo;</a>
       </div>
     </div>
     <div id="content">
       <div class="wrapper">
-      ${this.frames !== undefined && this.classes !== undefined /*&& this.predictions !== undefined*/ ? this.frames.slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
+      ${this.frames !== undefined /*&& this.classes !== undefined && this.predictions !== undefined*/ ? this.frames.slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
         html`<vision-client-frame
         .width=${300}
         .height=${300}
         .visionClientService=${this.visionClientService}
-        .objects=${f['predictions']}
-        .id=${f['id']}
-        .imageUrl=${f['imageUrl']}
+        .objects=${f.predictions.objects}
+        .id=${f.id}
+        .imageUrl=${f.imageUrl}
         .classes=${this.classes}
         </vision-client-frame>`) : ''}
       </div>
@@ -164,7 +155,7 @@ class VisionClientDisplay extends LitElement {
     let a = [], b = [], prev
     
     arr.sort();
-    for ( var i = 0; i < arr.length; i++ ) {
+    for ( let i = 0; i < arr.length; i++ ) {
         if ( arr[i] !== prev ) {
             a.push(arr[i])
             b.push(1)
@@ -177,7 +168,7 @@ class VisionClientDisplay extends LitElement {
     let result = a.map((e, i) => { return { element: e, occurences: b[i] }})
     
     if (sortByOccurences) {
-      result.sort(function(a, b) {
+      result.sort((a, b) => {
         return ((a.occurences > b.occurences) ? -1 : ((a.occurences == b.occurences) ? 0 : 1))
       })
       // I don't see any point in taking limit of unsorted elements
@@ -189,54 +180,12 @@ class VisionClientDisplay extends LitElement {
   }
 
   renderGraphics() {
-    return
-    // console.log(this.mode(this.frames))
-    // countElements(temp1.map(t => t['predictions'].map(x => x['detection_classes'])).flat(), true, 100)
-    //const t = this.shadowRoot.getElementById('tester')
-    /*
-    const limitFiveOccurences = this.countElements(this.frames.map(frame => frame['predictions'].map(prediction => prediction['detection_classes']))
-                                                              .flat(), true, 5)
-                                                              */
-                                                             
-    console.log(this.frames[0].predictions)
-    console.log(this.frames[0])
-    return
-    const limitFiveOccurences = this.countElements(this.frames.map(frame => frame['predictions'])
+    console.log(this.frames)
+    this.countDetectionClasses = this.countElements(this.frames.map(frame => frame.predictions.objects)
                                                               .flat()
-                                                              .map(prediction => prediction['detection_classes']), true, 5)
-    console.log(limitFiveOccurences)
-    return
-    var trace1 = {
-      x: limitFiveOccurences['occurences'],
-      y: limitFiveOccurences['element'],
-      name: 'control',
-      autobinx: false, 
-      histnorm: "count", 
-      marker: {
-        color: "rgba(255, 100, 102, 0.7)", 
-          line: {
-          color:  "rgba(255, 100, 102, 1)", 
-          width: 1
-        }
-      },  
-      opacity: 0.5, 
-      type: "histogram", 
-      xbins: {
-        end: 2.8, 
-        size: 0.06, 
-        start: .5
-      }
-    }
-    var data = [trace1]
-    var layout = {
-      bargap: 0.05, 
-      bargroupgap: 0.2, 
-      barmode: "overlay", 
-      title: "Sampled Results", 
-      xaxis: {title: "Value"}, 
-      yaxis: {title: "Count"}
-    };
-    Plotly.newPlot('tester', data, layout)
+                                                              .filter(object => object.detection_scores > 0.6)
+                                                              .map(object => object.detection_classes), true, 5)
+    console.log(this.countDetectionClasses)
   }
 
   goTo(e) {

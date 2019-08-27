@@ -34,9 +34,9 @@ router.get('/', (req, res, next) => {
 })
 
 /**
- * GET /api/predictions/:id/objects/
+ * GET /api/frames/predictions/objects/
  *
- * Retrieve a prediction.
+ * Retrieve all frames and their objects.
  */
 
 const readObject = (id) => new Promise((resolve,reject) => modelObject.read(id, (err, entity) => {
@@ -56,17 +56,19 @@ const readPrediction = (id) => new Promise((resolve,reject) => modelPrediction.r
 }))
 
 router.get('/predictions/objects', (req, res, next) => {
-  model.list(100, req.query.pageToken, (err, entities, cursor) => {
+  model.list(100, req.query.pageToken, async (err, entities, cursor) => {
     if (err) {
       next(err)
       return
     }
-    Promise.all(entities.filter(f => f.predictions !== null && f.predictions !== 'processing')
-                        .map(f => readPrediction(f.predictions)))
-    .then(p => p.map(p => p.objects.map(o => readObject(o))))
-    .then(objectEntities => {
-      // entity.objectEntities = objectEntities
-      res.json(objectEntities)
+    const frames = entities.filter(f => f.predictions !== null && f.predictions !== 'processing')
+    for(const frame of frames) {
+        frame.predictions = await readPrediction(frame.predictions)
+        frame.predictions.objects = await Promise.all(frame.predictions.objects.map(o => readObject(o)))
+    }
+    res.json({
+      items: frames,
+      nextPageToken: cursor
     })
   })
 })

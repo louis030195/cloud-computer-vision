@@ -37,6 +37,7 @@
     "@google-cloud/connect-datastore": "^3.0.0",
     "@google-cloud/datastore": "^4.0.0",
     "@google-cloud/storage": "^1.7.0",
+    "@google-web-components/google-chart": "^3.0.6",
     "@vaadin/vaadin-progress-bar": "^1.1.2",
     "@vaadin/vaadin-upload": "^4.2.2",
     "@webcomponents/webcomponentsjs": "^2.2.10",
@@ -54,7 +55,6 @@
     "page": "^1.11.4",
     "passport": "^0.4.0",
     "passport-google-oauth20": "^2.0.0",
-    "plotly.js": "^1.49.4",
     "prompt": "^1.0.0",
     "uglify-js": "^3.4.9"
   },

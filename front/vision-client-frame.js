@@ -47,14 +47,6 @@ class VisionClientFrame extends LitElement {
   }
 
   firstUpdated () {
-    //if (this.predictionId === null || this.predictionId === 'processing') return
-    //console.log(this.objects)
-    /*
-    this.visionClientService.getPredictionObjects(this.predictionId).then(prediction => {
-      this.objects = prediction['objectEntities']
-      this.renderPredictions()
-    })*/
-    // console.log(this.objects)
     if (this.objects === null || this.objects.constructor !== Array) return
     this.renderPredictions()
   }
