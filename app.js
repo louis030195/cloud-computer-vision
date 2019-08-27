@@ -56,10 +56,11 @@ app.use('/api/objects', require('./back/objects/api-object'))
 app.use('/api/classes', require('./back/classes/api-class'))
 
 // Endpoint for calling input_pubsub cloud function
-app.use('/cron/input/', (req, res) => {
+app.use('/cron/input', (req, res) => {
   fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
     mode: 'no-cors',
   }).then(() => res.status(200).send('Cloud function input_pubsub called'))
+    .catch((failed) => console.log(failed))
 })
 
 var pathRoot = `${__dirname}/front/build`

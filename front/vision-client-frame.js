@@ -46,7 +46,7 @@ class VisionClientFrame extends LitElement {
       return '#' + ('000000' + h.toString(16)).slice(-6);
   }
 
-  firstUpdated () {
+  updated() {
     if (this.objects === null || this.objects.constructor !== Array) return
     this.renderPredictions()
   }
@@ -94,8 +94,9 @@ class VisionClientFrame extends LitElement {
       }
       let boxText
       const id = object['detection_classes']-1
-      const name =  this.classes[id] === undefined ? '' : this.classes[id].name
-      boxText = `${id}-${name} ${object['detection_scores'].toFixed(2)}`
+      const name =  this.classes[id] === undefined ? 'unknown' : this.classes[id].name
+      boxText = `${name} ${object['detection_scores'].toFixed(2)}`
+      //boxText = `${id}-${name} ${object['detection_scores'].toFixed(2)}`
       
       const ymin = object['detection_boxes'][0] * this.height
       const xmin = object['detection_boxes'][1] * this.width
