@@ -1,39 +1,5 @@
-# DONT RUN THIS, NOT READY
-# Complete env variable with your GCP config
-export PROJECT_ID=
-export REGION=
-export BUCKET_NAME=
-export MODEL=
-export VERSION=
-export OAUTH2_CLIENT_ID=
-export OAUTH2_CLIENT_SECRET=
-export OAUTH2_CALLBACK=
-export GOOGLE_APPLICATION_CREDENTIALS=
-
-echo -e "
-service: vision-client
-runtime: custom
-env: flex
-instance_class: F2
-
-# GCP Config
-env_variables:
-  PROJECT_ID: $PROJECT_ID
-  BUCKET_NAME: $BUCKET_NAME
-  REGION: $REGION
-  OAUTH2_CLIENT_ID: $OAUTH2_CLIENT_ID
-  OAUTH2_CLIENT_SECRET: $OAUTH2_CLIENT_SECRET
-  OAUTH2_CALLBACK: $OAUTH2_CALLBACK
-  GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS" > app.yaml
-
-echo -e "
-PROJECT_ID=$PROJECT_ID
-BUCKET_NAME=$BUCKET_NAME
-REGION=$REGION
-OAUTH2_CLIENT_ID=$OAUTH2_CLIENT_ID
-OAUTH2_CLIENT_SECRET=$OAUTH2_CLIENT_SECRET
-OAUTH2_CALLBACK=$OAUTH2_CALLBACK
-GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" > .env
+#!/bin/bash
+configure_gcp.sh
 
 # gcloud CLI
 echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \

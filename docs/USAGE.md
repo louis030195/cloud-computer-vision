@@ -1,4 +1,14 @@
-see [bash script](../configure_gcp_and_deploy.sh) to configure everything automatically (not tested yet)
+
+# Scripts
+Fill configure_gcp.sh exports with your gcp config
+
+    chmod +x configure_gcp.sh
+    ./configure_gcp.sh
+or configure + deploy
+
+    chmod +x configure_gcp_and_deploy.sh
+    ./configure_gcp_and_deploy.sh
+
 
 # Environment variables
 
@@ -84,6 +94,25 @@ gcloud ai-platform versions create $VERSION \
 
 Edit [FUNCTION_DIR]/.env.yaml with your GCP config
 ## Input Pub/Sub
+### Update config
+```
+echo -e "
+BUCKET_NAME: $BUCKET_NAME
+PROJECT_ID: $PROJECT_ID
+TOPIC_EXTRACTOR: topic_extractor
+REGION: $REGION
+
+# Vector shape (-1, -1, -1, 3) = image_tensor
+# Base64 string shape (-1) = encoded_image_string_tensor
+TOPIC_INPUT: topic_input
+INPUT_TYPE: encoded_image_string_tensor
+
+WIDTH: '400'
+HEIGHT: '400' " > cloud_functions/input_pubsub/.env.yaml
+```
+
+### Deploy
+
     gcloud functions deploy input_pubsub \
     --source cloud_functions/input_pubsub \
     --runtime python37 \
@@ -93,6 +122,22 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --env-vars-file cloud_functions/input_pubsub/.env.yaml \
     --memory 2gb
 ## Predictor
+### Update config
+```
+echo -e "
+BUCKET_NAME: $BUCKET_NAME
+PROJECT_ID: $PROJECT_ID
+MODEL_NAME: $MODEL
+VERSION_NAME: $VERSION
+REGION: $REGION
+
+# Above which amount of frames we pick batch instead of online predictions
+TRESHOLD: '100'
+TOPIC_INPUT: topic_input
+SUBSCRIPTION_INPUT: subscription_input " > cloud_functions/predictor/.env.yaml
+```
+
+### Deploy
     gcloud functions deploy predictor \
     --source cloud_functions/predictor \
     --runtime python37 \
@@ -103,6 +148,13 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --max-instances 1 \
     --memory 2gb
 ## Batch result
+### Update config
+```
+echo -e "
+BUCKET_NAME: $BUCKET_NAME " > cloud_functions/batch_result/.env.yaml
+```
+
+### Deploy
     gcloud functions deploy batch_result \
     --source cloud_functions/batch_result \
     --runtime python37 \
@@ -114,6 +166,13 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --max-instances 1 \
     --memory 2gb
 ## Frame extractor
+### Update config
+```
+echo -e "
+BUCKET_NAME: $BUCKET_NAME " > cloud_functions/frame_extractor/.env.yaml
+```
+
+### Deploy
     gcloud functions deploy extractPubSub \
     --source cloud_functions/frame_extractor \
     --runtime nodejs10 \
@@ -124,6 +183,13 @@ Edit [FUNCTION_DIR]/.env.yaml with your GCP config
     --max-instances 1 \
     --memory 2gb
 ## Dont take all my money
+### Update config
+```
+echo -e "
+PROJECT_ID: $PROJECT_ID " > cloud_functions/dont_take_all_my_money/.env.yaml
+```
+
+### Deploy
 follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)
 
 THIS HASNT BEEN TESTED YET SO FOLLOW THE LINK INSTRUCTIONS CAREFULLY
