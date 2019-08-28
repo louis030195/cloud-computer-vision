@@ -81,18 +81,17 @@ class VisionClientDisplay extends LitElement {
     `
   }
 
-  updated(changedProperties) {
+  firstUpdated() {
     const v = this.frames !== undefined ? (this.frames.length / this.frames.filter(f => f.predictions === null).length) : 0
     this.progress = v //100 - isNaN(v) ? 0 : v
-  }
 
-  firstUpdated () {
     this.visionClientService.getVideos().then(videos => { this.videos = videos['items'] })
     this.visionClientService.getFramesPredictionsObjects()
                             .then(frames => { this.frames = frames['items'] })
-                            .then(() => this.renderGraphics())
+                            .then(() => this.updateGraphics())
     this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
   }
+  
 
   render () {
     return html`
@@ -103,7 +102,7 @@ class VisionClientDisplay extends LitElement {
     <google-chart
     options='{"title": "Class occurences"}'
     cols='[{"label":"Class", "type":"string"}, {"label":"Occurences", "type":"number"}]'
-    rows='${JSON.stringify(this.countDetectionClasses.map(f => [this.classes[f.element].name, f.occurences]))}''>
+    rows='${JSON.stringify(this.countDetectionClasses.map(f => [f.element - 1 < this.classes.length ? this.classes[f.element - 1].name : 'unknown', f.occurences]))}''>
     </google-chart>
     <div class="center">
       <div class="pagination">
@@ -179,13 +178,13 @@ class VisionClientDisplay extends LitElement {
     return result
   }
 
-  renderGraphics() {
-    console.log(this.frames)
+  updateGraphics() {
+    //console.log(this.frames)
     this.countDetectionClasses = this.countElements(this.frames.map(frame => frame.predictions.objects)
                                                               .flat()
                                                               .filter(object => object.detection_scores > 0.6)
-                                                              .map(object => object.detection_classes), true, 5)
-    console.log(this.countDetectionClasses)
+                                                              .map(object => object.detection_classes), true)
+    //console.log(this.countDetectionClasses)
   }
 
   goTo(e) {

@@ -1,5 +1,6 @@
-from PIL import Image
+
 import requests
+from PIL import Image
 from io import BytesIO
 import base64
 
@@ -9,6 +10,7 @@ def download_Image(url, rescale_width=None, resize_width=None):
         img = Image.open(BytesIO(response.content))
     except OSError:
         print("Failed to read image")
+        return None
     # If png cast to jpeg, i don't even know if that's required
     if '.png' in url:
         img = img.convert('RGB')
