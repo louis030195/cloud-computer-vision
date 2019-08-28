@@ -41,8 +41,9 @@ class VisionClientUpload extends LitElement {
     }
 
     const incorrectFiles = []
+    const files = Array.from(e.target.files)
     new Promise(resolve => {
-      Array.from(e.target.files).forEach((file) => {
+      files.forEach((file) => {
         // if file type could be detected
         if (file !== null) {
           if (accept.image.indexOf(file.type) > -1) {
@@ -55,10 +56,10 @@ class VisionClientUpload extends LitElement {
         }
       })
       resolve()
-    }).then(setTimeout(() =>  {
+    }).then(setTimeout(() =>  { // TODO: settimeout shouldn't block backend
         this.timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, { mode: 'no-cors' })
         , 1000)
-      }), 2000) // Wait a bit before calling input, so the api have time to update datastore and don't wait request response
+    }, 5000)) // Wait a bit before calling input, so the api have time to update datastore and don't wait request response
     this.incorrectFiles = incorrectFiles
   }}>
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}

@@ -14,7 +14,7 @@ def create_subscription(project_id, topic_name, subscription_name):
         project_id, subscription_name)
 
     subscription = subscriber.create_subscription(
-        subscription_path, topic_path)
+        subscription_path, topic_path, ack_deadline_seconds=600)
 
     print('Subscription created: {}'.format(subscription))
 
@@ -52,7 +52,7 @@ def acknowledge_messages(project_id, subscription_name, ack_ids):
     # Acknowledges the received messages so they will not be sent again.
     if ack_ids: # If it's not empty
         subscriber.acknowledge(subscription_path, ack_ids)
-        print('Acknowledged {} message(s): \n{}'.format(len(ack_ids), ack_ids))
+        print('Acknowledged {} message(s)'.format(len(ack_ids)))
         return True
     else:
         return False

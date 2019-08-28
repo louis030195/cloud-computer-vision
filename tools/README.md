@@ -1,9 +1,4 @@
 # Tools
-## Clear datastore
+To clear storage (except the model) + datastore (except the class mapping) + pubsub
 
-    node datastore.js
-
-## Clear storage + gcp services ...
-Don't run without reading the script content ...
-
-    ./clear.sh
+    node tools/datastore.js && tools/clear.sh

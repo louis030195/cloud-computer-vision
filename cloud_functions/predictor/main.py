@@ -12,7 +12,7 @@ import numpy as np
 from google.cloud import datastore
 from google.cloud import storage
 
-from utils import create_subscription, synchronous_pull, acknowledge_messages, make_batch_job_body, batch_predict, online_predict, get_no_response
+from utils import  synchronous_pull, acknowledge_messages, make_batch_job_body, batch_predict, online_predict, get_no_response
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 PROJECT_ID = os.environ['PROJECT_ID']
@@ -23,20 +23,24 @@ TRESHOLD = int(os.environ['TRESHOLD'])
 TOPIC_INPUT = os.environ['TOPIC_INPUT']
 SUBSCRIPTION_INPUT = os.environ['SUBSCRIPTION_INPUT']
 
+def count_duplicates(my_list):  
+    unique = set(my_list)  
+    count = 0
+    for each in unique:  
+        occurences = my_list.count(each)
+        count += occurences if occurences > 1 else 0
+    return count
 
-
-def predictor(request):
-    """Triggered by a PubSub subscription.
-    Args:
-         event (dict): Event payload.
-         context (google.cloud.functions.Context): Metadata for the event.
+def predictor(_):
+    """Triggered by HTTP.
     """
     start_time = time.time()
     frames_to_process, ack_ids = synchronous_pull(PROJECT_ID, TOPIC_INPUT, SUBSCRIPTION_INPUT, TRESHOLD)
-    print('ack_ids', ack_ids)
     if len(frames_to_process) == 0:
         print("No frames to process")
         return
+    print("{} frames to process".format(len(frames_to_process)))
+    print('Number of duplicates ack_ids', count_duplicates(ack_ids))
     client_datastore = datastore.Client()
     # Above which amount of frames in the queue we pick batch instead of online predictions
     if len(frames_to_process) >= TRESHOLD:
@@ -103,7 +107,7 @@ def predictor(request):
                 #print('Frames left to process {}'.format(len(frames_to_process) - index + 1))
                 # Recursive call until everything is in the queue
                 get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
-                print('Recursive call, {} frames left to process'.format(len(frames_to_process) - index + 1))
+                print('Recursive call, {} frames left to process'.format(len(frames_to_process) - index))
                 break
 
             json_frame = json.loads(frame.replace("'", "\""))

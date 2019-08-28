@@ -77,6 +77,8 @@ def input_pubsub(request):
         print("Nothing to process")
         return
     
+    print("{} frames to queue".format(len(frames_to_process)))
+
     # Checking if the pubsub topic exist, if it doesn't, create it
     create_topic(publisher, PROJECT_ID, TOPIC_INPUT)
 
@@ -90,7 +92,7 @@ def input_pubsub(request):
 
             # Recursive call until everything is in the queue
             get_no_response('https://{}-{}.cloudfunctions.net/input_pubsub'.format(REGION, PROJECT_ID))
-            print('Recursive call, {} frames left to queue'.format(len(frames_to_process) - index + 1))
+            print('Recursive call, {} frames left to queue'.format(len(frames_to_process) - index))
             break
 
         # Download
@@ -120,7 +122,7 @@ def input_pubsub(request):
 
         # Sucessfully published the message to Pub/Sub
         if response.exception() == None:
-            published_messages += 1 
+            published_messages += 1
 
             # Get the frame key in Datastore
             key_frame = client.key('Frame', frame.id)
@@ -139,5 +141,4 @@ def input_pubsub(request):
 
     print('Published {} messages'.format(published_messages))
     get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
-    print('Predictor called')
     return 'Success'

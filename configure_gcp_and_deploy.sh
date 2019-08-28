@@ -10,22 +10,24 @@ export OAUTH2_CLIENT_SECRET=
 export OAUTH2_CALLBACK=
 export GOOGLE_APPLICATION_CREDENTIALS=
 
-echo -e "service: vision-client
+echo -e "
+service: vision-client
 runtime: custom
 env: flex
 instance_class: F2
 
 # GCP Config
 env_variables:
-    PROJECT_ID: $PROJECT_ID
-    BUCKET_NAME: $BUCKET_NAME
-    REGION: $REGION
-    OAUTH2_CLIENT_ID: $OAUTH2_CLIENT_ID
-    OAUTH2_CLIENT_SECRET: $OAUTH2_CLIENT_SECRET
-    OAUTH2_CALLBACK: $OAUTH2_CALLBACK
-    GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS" > app.yaml
+  PROJECT_ID: $PROJECT_ID
+  BUCKET_NAME: $BUCKET_NAME
+  REGION: $REGION
+  OAUTH2_CLIENT_ID: $OAUTH2_CLIENT_ID
+  OAUTH2_CLIENT_SECRET: $OAUTH2_CLIENT_SECRET
+  OAUTH2_CALLBACK: $OAUTH2_CALLBACK
+  GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS" > app.yaml
 
-echo -e "PROJECT_ID=$PROJECT_ID
+echo -e "
+PROJECT_ID=$PROJECT_ID
 BUCKET_NAME=$BUCKET_NAME
 REGION=$REGION
 OAUTH2_CLIENT_ID=$OAUTH2_CLIENT_ID
@@ -75,10 +77,9 @@ gcloud functions deploy predictor \
     --source cloud_functions/predictor \
     --runtime python37 \
     --project $PROJECT_ID \
-    ---trigger-http \
+    --trigger-http \
     --region $REGION \
     --env-vars-file cloud_functions/predictor/.env.yaml \
-    --max-instances 1 \
     --memory 2gb
 
 gcloud functions deploy batch_result \
