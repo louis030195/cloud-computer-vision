@@ -1,61 +1,19 @@
+Either you configure everything fast with scripts or follow the follwing instructions to do it manually
 
 # Scripts
-Fill configure_gcp.sh exports with your gcp config
 
-    chmod +x configure_gcp.sh
-    ./configure_gcp.sh
-or configure + deploy
+1. [Get my OAuth2 IDs](https://developers.google.com/identity/protocols/OAuth2)
 
-    chmod +x configure_gcp_and_deploy.sh
-    ./configure_gcp_and_deploy.sh
+2. [Get a json key file and put it in key_account directory](https://cloud.google.com/docs/authentication/getting-started)
 
-
-# Environment variables
-
-    export PROJECT_ID=
-    export REGION=
-    export BUCKET_NAME=
-    export MODEL=
-    export VERSION=
-    export OAUTH2_CLIENT_ID=
-    export OAUTH2_CLIENT_SECRET=
-    export OAUTH2_CALLBACK=
-    export GOOGLE_APPLICATION_CREDENTIALS=
-
-- [Get my OAuth2 IDs](https://developers.google.com/identity/protocols/OAuth2)
-- [Get a json key file and put it in key_account directory](https://cloud.google.com/docs/authentication/getting-started)
-
-# Create the App Engine config file
-```
-echo -e "
-service: vision-client
-runtime: custom
-env: flex
-instance_class: F2
-
-# GCP Config
-env_variables:
-  PROJECT_ID: $PROJECT_ID
-  BUCKET_NAME: $BUCKET_NAME
-  REGION: $REGION
-  OAUTH2_CLIENT_ID: $OAUTH2_CLIENT_ID
-  OAUTH2_CLIENT_SECRET: $OAUTH2_CLIENT_SECRET
-  OAUTH2_CALLBACK: $OAUTH2_CALLBACK
-  GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS" > app.yaml
-```
-
-For webpack
+3. Fill configure_gcp.sh exports with your gcp config
 
 ```
-echo -e "
-PROJECT_ID=$PROJECT_ID
-BUCKET_NAME=$BUCKET_NAME
-REGION=$REGION
-OAUTH2_CLIENT_ID=$OAUTH2_CLIENT_ID
-OAUTH2_CLIENT_SECRET=$OAUTH2_CLIENT_SECRET
-OAUTH2_CALLBACK=$OAUTH2_CALLBACK
-GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" > .env
+chmod +x configure_gcp.sh
+./configure_gcp.sh
 ```
+
+then follow following instructions (or check configure_gcp_and_deploy.sh but not tested)
 
 # gcloud CLI
     echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
@@ -92,27 +50,7 @@ gcloud ai-platform versions create $VERSION \
 
 # Deploy Cloud Function
 
-Edit [FUNCTION_DIR]/.env.yaml with your GCP config
 ## Input Pub/Sub
-### Update config
-```
-echo -e "
-BUCKET_NAME: $BUCKET_NAME
-PROJECT_ID: $PROJECT_ID
-TOPIC_EXTRACTOR: topic_extractor
-REGION: $REGION
-
-# Vector shape (-1, -1, -1, 3) = image_tensor
-# Base64 string shape (-1) = encoded_image_string_tensor
-TOPIC_INPUT: topic_input
-INPUT_TYPE: encoded_image_string_tensor
-
-WIDTH: '400'
-HEIGHT: '400' " > cloud_functions/input_pubsub/.env.yaml
-```
-
-### Deploy
-
     gcloud functions deploy input_pubsub \
     --source cloud_functions/input_pubsub \
     --runtime python37 \
@@ -122,22 +60,6 @@ HEIGHT: '400' " > cloud_functions/input_pubsub/.env.yaml
     --env-vars-file cloud_functions/input_pubsub/.env.yaml \
     --memory 2gb
 ## Predictor
-### Update config
-```
-echo -e "
-BUCKET_NAME: $BUCKET_NAME
-PROJECT_ID: $PROJECT_ID
-MODEL_NAME: $MODEL
-VERSION_NAME: $VERSION
-REGION: $REGION
-
-# Above which amount of frames we pick batch instead of online predictions
-TRESHOLD: '100'
-TOPIC_INPUT: topic_input
-SUBSCRIPTION_INPUT: subscription_input " > cloud_functions/predictor/.env.yaml
-```
-
-### Deploy
     gcloud functions deploy predictor \
     --source cloud_functions/predictor \
     --runtime python37 \
@@ -148,13 +70,6 @@ SUBSCRIPTION_INPUT: subscription_input " > cloud_functions/predictor/.env.yaml
     --max-instances 1 \
     --memory 2gb
 ## Batch result
-### Update config
-```
-echo -e "
-BUCKET_NAME: $BUCKET_NAME " > cloud_functions/batch_result/.env.yaml
-```
-
-### Deploy
     gcloud functions deploy batch_result \
     --source cloud_functions/batch_result \
     --runtime python37 \
@@ -166,13 +81,6 @@ BUCKET_NAME: $BUCKET_NAME " > cloud_functions/batch_result/.env.yaml
     --max-instances 1 \
     --memory 2gb
 ## Frame extractor
-### Update config
-```
-echo -e "
-BUCKET_NAME: $BUCKET_NAME " > cloud_functions/frame_extractor/.env.yaml
-```
-
-### Deploy
     gcloud functions deploy extractPubSub \
     --source cloud_functions/frame_extractor \
     --runtime nodejs10 \
@@ -183,13 +91,6 @@ BUCKET_NAME: $BUCKET_NAME " > cloud_functions/frame_extractor/.env.yaml
     --max-instances 1 \
     --memory 2gb
 ## Dont take all my money
-### Update config
-```
-echo -e "
-PROJECT_ID: $PROJECT_ID " > cloud_functions/dont_take_all_my_money/.env.yaml
-```
-
-### Deploy
 follow [to avoid having your bank account emptied by Google](https://cloud.google.com/billing/docs/how-to/notify#set_up_budget_notifications)
 
 THIS HASNT BEEN TESTED YET SO FOLLOW THE LINK INSTRUCTIONS CAREFULLY
