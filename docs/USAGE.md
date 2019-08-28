@@ -1,5 +1,3 @@
-Either you configure everything fast with scripts or follow the follwing instructions to do it manually
-
 # Scripts
 
 1. [Get my OAuth2 IDs](https://developers.google.com/identity/protocols/OAuth2)
