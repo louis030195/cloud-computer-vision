@@ -55,16 +55,24 @@ class VisionClientUpload extends LitElement {
         }
       })
       resolve()
-    }).then(setTimeout(() => {
-      fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, {
-        mode: 'no-cors',
-      })
-    }, 2000)) // Timeout seems to be required to wait the api put well into datastore
-
+    }).then(setTimeout(() =>  {
+        this.timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, { mode: 'no-cors' })
+        , 1000)
+      }), 2000) // Wait a bit before calling input, so the api have time to update datastore and don't wait request response
     this.incorrectFiles = incorrectFiles
   }}>
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
     `
+  }
+
+  // https://stackoverflow.com/questions/46946380/fetch-api-request-timeout
+  timeoutPromise(promise, timeout) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve()
+      }, timeout)
+      promise.then(resolve, reject)
+    })
   }
 
   static get styles () {

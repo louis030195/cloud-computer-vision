@@ -28,7 +28,7 @@ function sendUploadToGCS (req, res, next) {
     if (!req.file) {
       return next()
     }
-
+    
     const gcsname = Date.now() + req.file.originalname
     //console.log(req.file, gcsname)
     const file = bucket.file(gcsname)

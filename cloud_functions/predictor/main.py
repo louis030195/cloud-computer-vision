@@ -3,10 +3,7 @@
 import os
 import json
 import base64
-from datetime import datetime
-
-# Requests
-import requests
+import time
 
 # Vectors
 import numpy as np
@@ -15,7 +12,7 @@ import numpy as np
 from google.cloud import datastore
 from google.cloud import storage
 
-from utils import create_subscription, synchronous_pull, acknowledge_messages, make_batch_job_body, batch_predict, online_predict
+from utils import create_subscription, synchronous_pull, acknowledge_messages, make_batch_job_body, batch_predict, online_predict, get_no_response
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 PROJECT_ID = os.environ['PROJECT_ID']
@@ -34,11 +31,9 @@ def predictor(request):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    #print(request.get_json(silent=True))
-    #pubsub_data = base64.b64decode(event['data']).decode('utf-8')
-    #pubsub_json = json.loads(pubsub_data)
-
+    start_time = time.time()
     frames_to_process, ack_ids = synchronous_pull(PROJECT_ID, TOPIC_INPUT, SUBSCRIPTION_INPUT, TRESHOLD)
+    print('ack_ids', ack_ids)
     if len(frames_to_process) == 0:
         print("No frames to process")
         return
@@ -98,60 +93,74 @@ def predictor(request):
 
     else:
         # Iterate through the frames to process
-        #for index, frame in enumerate(frames_to_process):
-        json_frame = json.loads(frames_to_process[0].replace("'", "\""))
-        instances = [json_frame]
+        for index, frame in enumerate(frames_to_process):
 
-        # Query AI Platform with the input
-        result = online_predict(PROJECT_ID, MODEL_NAME, instances, VERSION_NAME)
+            elapsed_time = time.time() - start_time
+            print('Elapsed time {0:.2f}'.format(elapsed_time))
 
-        # Put the prediction in Datastore
-        key_prediction = client_datastore.key('Prediction')
-        entity_prediction = datastore.Entity(key=key_prediction)
+            # Avoid timeout (40s)
+            if elapsed_time > 40:
+                #print('Frames left to process {}'.format(len(frames_to_process) - index + 1))
+                # Recursive call until everything is in the queue
+                get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
+                print('Recursive call, {} frames left to process'.format(len(frames_to_process) - index + 1))
+                break
 
-        keys_object = list()
+            json_frame = json.loads(frame.replace("'", "\""))
+            instances = [json_frame]
 
-        # For each object detected ...
-        # Assuming there is only one prediction possible even though there is a 's' at predictions ?
-        for i in range(int(result['predictions'][0]['num_detections'])):
-            object_detected = dict()
-            object_detected['detection_classes'] = int(
-                result['predictions'][0]['detection_classes'][i])
-            object_detected['detection_boxes'] = result['predictions'][0]['detection_boxes'][i]
-            object_detected['detection_scores'] = result['predictions'][0]['detection_scores'][i]
+            # Query AI Platform with the input
+            result = online_predict(PROJECT_ID, MODEL_NAME, instances, VERSION_NAME)
 
-            # Put the information about the object into a new table row ...
-            key_object = client_datastore.key('Object')
-            entity_object = datastore.Entity(key=key_object)
-            entity_object.update(object_detected)
-            client_datastore.put(entity_object)
+            # Put the prediction in Datastore
+            key_prediction = client_datastore.key('Prediction')
+            entity_prediction = datastore.Entity(key=key_prediction)
 
-            # Store the id generated for reference in Prediction table
-            keys_object.append(entity_object.id)
+            keys_object = list()
 
-        # Put a list of objects detected in prediction row
-        entity_prediction.update({'objects': keys_object})
-        client_datastore.put(entity_prediction)
+            # For each object detected ...
+            # Assuming there is only one prediction possible even though there is a 's' at predictions ?
+            for i in range(int(result['predictions'][0]['num_detections'])):
+                object_detected = dict()
+                object_detected['detection_classes'] = int(
+                    result['predictions'][0]['detection_classes'][i])
+                object_detected['detection_boxes'] = result['predictions'][0]['detection_boxes'][i]
+                object_detected['detection_scores'] = result['predictions'][0]['detection_scores'][i]
 
-        # Get the frame key in Datastore
-        query = client_datastore.query(kind='Frame')
-        key_frame = client_datastore.key('Frame', int(json_frame['input_keys']))
-        query.key_filter(key_frame, '=')
-        query_result = list(query.fetch())
+                # Put the information about the object into a new table row ...
+                key_object = client_datastore.key('Object')
+                entity_object = datastore.Entity(key=key_object)
+                entity_object.update(object_detected)
+                client_datastore.put(entity_object)
 
-        # Happens when debugging and removing while predicting ...
-        # Just to avoid having irrelevant errors in logs
-        if len(query_result) == 0:
-            print("It appears that frame {} isn't in datastore, probably deleted".format(json_frame['input_keys']))
-            return
-            
-        frame = query_result[0]
+                # Store the id generated for reference in Prediction table
+                keys_object.append(entity_object.id)
 
-        # Update the predictions properties of the Frame row
-        frame['predictions'] = entity_prediction.id
+            # Put a list of objects detected in prediction row
+            entity_prediction.update({'objects': keys_object})
+            client_datastore.put(entity_prediction)
 
-        # Push into datastore
-        client_datastore.put(frame)
+            # Get the frame key in Datastore
+            query = client_datastore.query(kind='Frame')
+            key_frame = client_datastore.key('Frame', int(json_frame['input_keys']))
+            query.key_filter(key_frame, '=')
+            query_result = list(query.fetch())
 
-        # Dismiss processed messages from the  queue
-        acknowledge_messages(PROJECT_ID, SUBSCRIPTION_INPUT, [ack_ids[0]])
+            # Happens when debugging and removing while predicting ...
+            # Just to avoid having irrelevant errors in logs
+            if len(query_result) == 0:
+                print("It appears that frame {} isn't in datastore, probably deleted".format(json_frame['input_keys']))
+                return
+                
+            frame = query_result[0]
+
+            # Update the predictions properties of the Frame row
+            frame['predictions'] = entity_prediction.id
+
+            # Push into datastore
+            client_datastore.put(frame)
+
+            # Dismiss processed messages from the  queue
+            acknowledge_messages(PROJECT_ID, SUBSCRIPTION_INPUT, [ack_ids[index]])
+
+    return 'Success'

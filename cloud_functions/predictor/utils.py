@@ -1,6 +1,7 @@
 
 import time
 import re
+import requests
 import googleapiclient.discovery
 from google.cloud import pubsub_v1
 
@@ -51,7 +52,7 @@ def acknowledge_messages(project_id, subscription_name, ack_ids):
     # Acknowledges the received messages so they will not be sent again.
     if ack_ids: # If it's not empty
         subscriber.acknowledge(subscription_path, ack_ids)
-        print('Acknowledged {} message(s). Done.'.format(len(ack_ids)))
+        print('Acknowledged {} message(s): \n{}'.format(len(ack_ids), ack_ids))
         return True
     else:
         return False
@@ -159,3 +160,13 @@ def online_predict(project, model, instances, version=None):
         raise RuntimeError(response['error']) # https://cloud.google.com/ml-engine/docs/troubleshooting#troubleshooting_prediction
     print('Online response', response)
     return response
+
+def get_no_response(url):
+    """
+    Get request without waiting any response (not really need any and it causes timeout)
+    # https://stackoverflow.com/questions/27021440/python-requests-dont-wait-for-request-to-finish
+    """
+    try:
+        requests.get(url, timeout = 1)
+    except requests.exceptions.ReadTimeout: 
+        pass

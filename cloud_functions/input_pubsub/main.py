@@ -6,14 +6,11 @@ import time
 # Vectors
 import numpy as np
 
-# Requests
-import requests
-
 # Google Cloud client libraries
 from google.cloud import datastore
 from google.cloud import pubsub_v1
 
-from utils import download_Image, Image_to_b64
+from utils import download_Image, Image_to_b64, get_no_response
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 PROJECT_ID = os.environ['PROJECT_ID']
@@ -42,16 +39,20 @@ def input_pubsub(request):
     Args:
          request
     """
-    #print(request.get_json(silent=True))
     start_time = time.time()
-    print('Start at', start_time)
     
     # Configure the batch to publish as soon as X seconds / X bytes has passed.
+    """
+    # I don't think we need it since we handle timeout already manually
     batch_settings = pubsub_v1.types.BatchSettings(
         max_bytes = 5 * (10 ** 6), # 10**6 = 1 mb 
         max_latency = 3
     )
     publisher = pubsub_v1.PublisherClient(batch_settings)
+    """
+    publisher = pubsub_v1.PublisherClient()
+
+    # TODO: handle video
     """
     if any(ex in event['name'].lower() for ex in ['.avi', '.mp4']):
         # Checking if the pubsub topic exist, if it doesn't, create it
@@ -80,16 +81,20 @@ def input_pubsub(request):
     create_topic(publisher, PROJECT_ID, TOPIC_INPUT)
 
     published_messages = 0
-    for frame in frames_to_process:
+    for index, frame in enumerate(frames_to_process):
         elapsed_time = time.time() - start_time
-        print('Elapsed time', elapsed_time)
+        print('Elapsed time {0:.2f}'.format(elapsed_time))
 
         # Avoid timeout (40s)
-        if elapsed_time > 4:
+        if elapsed_time > 40:
+
+            # Recursive call until everything is in the queue
+            get_no_response('https://{}-{}.cloudfunctions.net/input_pubsub'.format(REGION, PROJECT_ID))
+            print('Recursive call, {} frames left to queue'.format(len(frames_to_process) - index + 1))
             break
 
         # Download
-        img = download_Image(frame['imageUrl'], resize_width=WIDTH)
+        img = download_Image(frame['imageUrl'], resize_width=WIDTH) # TODO: try again with rescale instead
 
         # Failed to read image
         if img is None:
@@ -133,6 +138,6 @@ def input_pubsub(request):
     
 
     print('Published {} messages'.format(published_messages))
-
-    response = requests.get('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
-    print('Predictor response', response.text)
+    get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
+    print('Predictor called')
+    return 'Success'

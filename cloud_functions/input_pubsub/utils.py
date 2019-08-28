@@ -27,3 +27,13 @@ def Image_to_b64(img):
     img.save(ret, "JPEG")
     ret.seek(0)
     return base64.b64encode(ret.getvalue())
+
+def get_no_response(url):
+    """
+    Get request without waiting any response (not really need any and it causes timeout)
+    # https://stackoverflow.com/questions/27021440/python-requests-dont-wait-for-request-to-finish
+    """
+    try:
+        requests.get(url, timeout = 1)
+    except requests.exceptions.ReadTimeout: 
+        pass
