@@ -2,21 +2,19 @@
 import os
 import time
 import requests
+from utils import get_no_response
 
 PROJECT_ID = os.environ['PROJECT_ID']
 REGION = os.environ['REGION']
 
 def call():
   start = time.time()
-  response = requests.get('https://{}-{}.cloudfunctions.net/input_pubsub'.format(REGION, PROJECT_ID))
+  response = requests.get('https://{}-{}.cloudfunctions.net/queue_input'.format(REGION, PROJECT_ID))
   return response.text, time.time() - start
   
 def call_without_waiting_response():
   start = time.time()
-  try:
-    requests.get('https://{}-{}.cloudfunctions.net/input_pubsub'.format(REGION, PROJECT_ID), timeout = 1)
-  except requests.exceptions.ReadTimeout: 
-    pass
+  get_no_response('https://{}-{}.cloudfunctions.net/queue_input'.format(REGION, PROJECT_ID))
   return 'Skipped response', time.time() - start
 
 # response, execution_time = call()

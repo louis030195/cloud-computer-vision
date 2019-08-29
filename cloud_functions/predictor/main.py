@@ -12,7 +12,7 @@ import numpy as np
 from google.cloud import datastore
 from google.cloud import storage
 
-from utils import  synchronous_pull, acknowledge_messages, make_batch_job_body, batch_predict, online_predict, get_no_response
+from utils import count_duplicates, get_entity, random_id, chunks, frame_to_input, make_batch_job_body, batch_predict, online_predict, get_no_response
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 PROJECT_ID = os.environ['PROJECT_ID']
@@ -20,32 +20,72 @@ MODEL_NAME = os.environ['MODEL_NAME']
 VERSION_NAME = os.environ['VERSION_NAME']
 REGION = os.environ['REGION']
 TRESHOLD = int(os.environ['TRESHOLD'])
-TOPIC_INPUT = os.environ['TOPIC_INPUT']
-SUBSCRIPTION_INPUT = os.environ['SUBSCRIPTION_INPUT']
+BATCH_CHUNK = int(os.environ['BATCH_CHUNK'])
 
-def count_duplicates(my_list):  
-    unique = set(my_list)  
-    count = 0
-    for each in unique:  
-        occurences = my_list.count(each)
-        count += occurences if occurences > 1 else 0
-    return count
+
 
 def predictor(_):
     """Triggered by HTTP.
     """
     start_time = time.time()
-    frames_to_process, ack_ids = synchronous_pull(PROJECT_ID, TOPIC_INPUT, SUBSCRIPTION_INPUT, TRESHOLD)
-    if len(frames_to_process) == 0:
+    client_datastore = datastore.Client()
+    # Then get by key for this entity
+    query_queue = client_datastore.query(kind='Queue')
+    queue = list(query_queue.fetch())
+
+    if len(queue) == 0:
         print("No frames to process")
         return
-    print("{} frames to process".format(len(frames_to_process)))
-    print('Number of duplicates ack_ids', count_duplicates(ack_ids))
-    client_datastore = datastore.Client()
-    # Above which amount of frames in the queue we pick batch instead of online predictions
-    if len(frames_to_process) >= TRESHOLD:
+    print("{} frames to process".format(len(queue)))
+
+    # test
+    print('Number of duplicates in the queue', count_duplicates(list(map(lambda x: dict(x)['frame'], queue))))
+    
+    # Above a certain amount of frames in the queue we pick batch instead of online predictions
+    # Or if there is currently a batch being prepared and other input files are waiting
+    # to be written (checking if any queued frame has the key 'batch')
+    if len(queue) >= TRESHOLD or any(map(lambda x: 'batch' in dict(x), queue)):
         # Instantiates a GCS client
         storage_client = storage.Client()
+
+        # Creating multiple small input files (better scalability)
+        for i, chunk in enumerate(chunks(queue, BATCH_CHUNK)):
+            print('Chunk n°{}'.format(i + 1))
+            elapsed_time = time.time() - start_time
+            print('Elapsed time {0:.2f}'.format(elapsed_time))
+            # Avoid timeout (40s)
+            if elapsed_time > 40:
+                # We want to signal that these frames have to be put into input files
+                # Starting the loop at queue[current chunk index * chunk size], for all frames in the queue
+                for j in range(i * BATCH_CHUNK, len(queue)):
+                    queue[j]['batch'] = 'batch'
+                    client_datastore.put(queue[j])
+                # Resursive until everything into input files
+                get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
+                print('{} frames left to write to input file'.format(len(queue) - i * BATCH_CHUNK))
+                return
+            random_file_id = random_id()
+            for i, q in enumerate(chunk):
+                elapsed_time = time.time() - start_time
+                print('Elapsed time {0:.2f}'.format(elapsed_time))
+                frame_entity = get_entity(client_datastore, 'Frame', dict(q)['frame'])
+
+                json_frame = frame_to_input(frame_entity)
+
+                # Random name, must be different from other input files
+                file_path = "/tmp/inputs-{}.json".format(random_file_id)
+
+                # Open file with "a" = append the file
+                with open(file_path, "a+") as json_file:
+                    json_file.write(json.dumps(json_frame) + "\n")
+
+                client_datastore.delete(q.key)
+
+            bucket = storage_client.get_bucket(BUCKET_NAME)
+            blob = bucket.blob('batches/inputs.json')
+            # Upload the input
+            blob.upload_from_filename(file_path)
+
         body = make_batch_job_body(PROJECT_ID,
                                    'gs://{}/batches/*'.format(BUCKET_NAME),
                                    'gs://{}/batch_results'.format(BUCKET_NAME),
@@ -53,64 +93,30 @@ def predictor(_):
                                    REGION,
                                    version_name=VERSION_NAME,
                                    max_worker_count=72)
-        # TODO: handle case where the batch is too big to be written to a single file
-        #def chunks(l, n):
-        #"""Yield successive n-sized chunks from l."""
-        #for i in range(0, len(l), n):
-        #    yield l[i:i + n]
-        # for frames_chunk in chunks(frames_to_process, TRESHOLD):
-        for frame in frames_to_process:
-            json_frame = json.loads(frame.replace("'", "\""))
-            file_path = "/tmp/inputs.json"
-
-            # Open file with "a" = append the file
-            with open(file_path, "a+") as json_file:
-                json_file.write(json.dumps(json_frame) + "\n")
-
-            # Get the frame key in Datastore
-            query = client_datastore.query(kind='Frame')
-            key_frame = client_datastore.key('Frame', int(json_frame['input_keys']))
-            query.key_filter(key_frame, '=')
-            frame = list(query.fetch())[0]
-
-            # Useless
-            # Update the predictions properties of the Frame row to stop launching jobs
-            # frame['predictions'] = 'processing' #TODO: handle case where multiple job ended => #
-            # frame['job'] = body['jobId']
-
-            # Push into datastore
-            client_datastore.put(frame)
-
-        bucket = storage_client.get_bucket(BUCKET_NAME)
-        blob = bucket.blob('batches/inputs.json')
-        # Upload the input
-        blob.upload_from_filename(file_path)
-
         # Launch the batch prediction job
         response = batch_predict(PROJECT_ID, body)
         # Dismiss processed messages from the  queue in case the job has been queued only
         if 'QUEUED' in response:
-            acknowledge_messages(PROJECT_ID, SUBSCRIPTION_INPUT, ack_ids)
-            _, x = synchronous_pull(PROJECT_ID, TOPIC_INPUT, SUBSCRIPTION_INPUT, TRESHOLD)
-            print('Number of messages in the queue after acknowledgement: {}'.format(len(x)))
+            pass
+            
         return
 
     else:
         # Iterate through the frames to process
-        for index, frame in enumerate(frames_to_process):
+        for i, q in enumerate(queue):
 
             elapsed_time = time.time() - start_time
             print('Elapsed time {0:.2f}'.format(elapsed_time))
 
             # Avoid timeout (40s)
             if elapsed_time > 40:
-                #print('Frames left to process {}'.format(len(frames_to_process) - index + 1))
-                # Recursive call until everything is in the queue
+                # Resursive until everything processed
                 get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
-                print('Recursive call, {} frames left to process'.format(len(frames_to_process) - index))
-                break
-
-            json_frame = json.loads(frame.replace("'", "\""))
+                print('{} frames left to process'.format(len(queue) - i))
+                return
+                
+            frame_entity = get_entity(client_datastore, 'Frame', dict(q)['frame'])
+            json_frame = frame_to_input(frame_entity)
             instances = [json_frame]
 
             # Query AI Platform with the input
@@ -144,27 +150,15 @@ def predictor(_):
             entity_prediction.update({'objects': keys_object})
             client_datastore.put(entity_prediction)
 
-            # Get the frame key in Datastore
-            query = client_datastore.query(kind='Frame')
-            key_frame = client_datastore.key('Frame', int(json_frame['input_keys']))
-            query.key_filter(key_frame, '=')
-            query_result = list(query.fetch())
-
-            # Happens when debugging and removing while predicting ...
-            # Just to avoid having irrelevant errors in logs
-            if len(query_result) == 0:
-                print("It appears that frame {} isn't in datastore, probably deleted".format(json_frame['input_keys']))
-                return
-                
-            frame = query_result[0]
-
             # Update the predictions properties of the Frame row
-            frame['predictions'] = entity_prediction.id
+            frame_entity['predictions'] = entity_prediction.id
 
             # Push into datastore
-            client_datastore.put(frame)
+            client_datastore.put(frame_entity)
 
             # Dismiss processed messages from the  queue
-            acknowledge_messages(PROJECT_ID, SUBSCRIPTION_INPUT, [ack_ids[index]])
+            # Remove from datastore
+            client_datastore.delete(q.key)
+
 
     return 'Success'

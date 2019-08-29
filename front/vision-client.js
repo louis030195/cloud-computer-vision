@@ -59,7 +59,6 @@ class VisionClient extends LitElement {
     <a href="/api/predictions">predictions</a>
     <a href="/api/objects">objects</a>
     <a href="/api/classes">classes</a>
-    <a href="/cron/input">manual predict</a>
       ${this.renderPage()}`
   }
 }

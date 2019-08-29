@@ -39,15 +39,7 @@ echo -e "
 BUCKET_NAME: $BUCKET_NAME
 PROJECT_ID: $PROJECT_ID
 TOPIC_EXTRACTOR: topic_extractor
-REGION: $REGION
-
-# Vector shape (-1, -1, -1, 3) = image_tensor
-# Base64 string shape (-1) = encoded_image_string_tensor
-TOPIC_INPUT: topic_input
-INPUT_TYPE: encoded_image_string_tensor
-
-WIDTH: '400'
-HEIGHT: '400' " > cloud_functions/input_pubsub/.env.yaml
+REGION: $REGION " > cloud_functions/queue_input/.env.yaml
 
 echo -e "
 BUCKET_NAME: $BUCKET_NAME
@@ -58,8 +50,14 @@ REGION: $REGION
 
 # Above which amount of frames we pick batch instead of online predictions
 TRESHOLD: '100'
-TOPIC_INPUT: topic_input
-SUBSCRIPTION_INPUT: subscription_input " > cloud_functions/predictor/.env.yaml
+
+# Vector shape (-1, -1, -1, 3) = image_tensor
+# Base64 string shape (-1) = encoded_image_string_tensor
+INPUT_TYPE: encoded_image_string_tensor
+
+WIDTH: '400'
+HEIGHT: '400' 
+BATCH_CHUNK: '100' " > cloud_functions/predictor/.env.yaml
 
 echo -e "
 BUCKET_NAME: $BUCKET_NAME " > cloud_functions/batch_result/.env.yaml

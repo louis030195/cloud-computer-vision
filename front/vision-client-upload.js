@@ -57,7 +57,7 @@ class VisionClientUpload extends LitElement {
       })
       resolve()
     }).then(setTimeout(() =>  { // TODO: settimeout shouldn't block backend
-        this.timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, { mode: 'no-cors' })
+        this.timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
         , 1000)
     }, 5000)) // Wait a bit before calling input, so the api have time to update datastore and don't wait request response
     this.incorrectFiles = incorrectFiles

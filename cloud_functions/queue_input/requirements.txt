@@ -4,4 +4,3 @@ google-cloud-pubsub
 google-api-python-client
 numpy
 requests
-Pillow

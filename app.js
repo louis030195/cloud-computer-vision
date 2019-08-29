@@ -65,13 +65,6 @@ function timeoutPromise(promise, timeout) {
   })
 }
 
-// Endpoint for calling input_pubsub cloud function
-app.use('/cron/input', (req, res) => {
-  timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/input_pubsub`, { mode: 'no-cors' })
-  , 1000).then(() => res.status(200).send('Cloud function input_pubsub called'))
-         .catch((failed) => res.status(500).send(failed))
-})
-
 var pathRoot = `${__dirname}/front/build`
 
 app.use('/', express.static(pathRoot))

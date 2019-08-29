@@ -98,7 +98,7 @@ def batch_result(event, context):
     bucket = storage_client.get_bucket(BUCKET_NAME)
     blob = bucket.blob("/".join(file_absolute_path.split('/')[3:]))
 
-    blob.delete() # TODO: FIX
+    blob.delete()
 
     print('Blob {} deleted.'.format("/".join(file_absolute_path.split('/')[3:])))
 

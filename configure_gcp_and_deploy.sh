@@ -30,13 +30,13 @@ gcloud ai-platform versions create $VERSION \
     --machine-type "mls1-c4-m2"
 
 # Functions
-gcloud functions deploy input_pubsub \
-    --source cloud_functions/input_pubsub \
+gcloud functions deploy queue_input \
+    --source cloud_functions/queue_input \
     --runtime python37 \
     --project $PROJECT_ID \
     --trigger-http \
     --region $REGION \
-    --env-vars-file cloud_functions/input_pubsub/.env.yaml \
+    --env-vars-file cloud_functions/queue_input/.env.yaml \
     --memory 2gb
 
 gcloud functions deploy predictor \
@@ -46,6 +46,7 @@ gcloud functions deploy predictor \
     --trigger-http \
     --region $REGION \
     --env-vars-file cloud_functions/predictor/.env.yaml \
+    --max-instances 1 \
     --memory 2gb
 
 gcloud functions deploy batch_result \
@@ -70,4 +71,4 @@ gcloud functions deploy extractPubSub \
     --memory 2gb
 
 gcloud app deploy
-gcloud app deploy cron.yaml
+gcloud scheduler jobs create http cron_input --schedule='every 30 mins' --uri="https://$REGION-$PROJECT_ID.cloudfunctions.net/queue_input" 

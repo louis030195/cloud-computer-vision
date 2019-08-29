@@ -1,67 +1,104 @@
 
+import os
 import time
 import re
 import requests
 import googleapiclient.discovery
-from google.cloud import pubsub_v1
+import random 
+import string 
+from PIL import Image
+from io import BytesIO
+import base64
+import numpy as np
 
+INPUT_TYPE = os.environ['INPUT_TYPE']
+WIDTH = int(os.environ['WIDTH'])
+HEIGHT = int(os.environ['HEIGHT'])
 
-def create_subscription(project_id, topic_name, subscription_name):
-    """Create a new pull subscription on the given topic."""
-    subscriber = pubsub_v1.SubscriberClient()
-    topic_path = subscriber.topic_path(project_id, topic_name)
-    subscription_path = subscriber.subscription_path(
-        project_id, subscription_name)
+def count_duplicates(my_list):  
+    unique = set(my_list)  
+    count = 0
+    for each in unique:  
+        occurences = my_list.count(each)
+        count += occurences if occurences > 1 else 0
+    return count / 2
 
-    subscription = subscriber.create_subscription(
-        subscription_path, topic_path, ack_deadline_seconds=600)
+def get_entity(client_datastore, kind, key):
+    # Get the entity in Datastore
+    query = client_datastore.query(kind=kind)
+    datastore_key = client_datastore.key(kind, key)
+    query.key_filter(datastore_key, '=')
+    query_result = list(query.fetch())
 
-    print('Subscription created: {}'.format(subscription))
+    # Happens when debugging and removing while predicting ...
+    # Just to avoid having irrelevant errors in logs
+    if len(query_result) == 0:
+        print("It appears that key {} isn't in datastore".format(key))
+        return
+        
+    return query_result[0]
 
-def synchronous_pull(project_id, topic_name, subscription_name, max_messages):
-    """Pulling messages synchronously."""
-    subscriber = pubsub_v1.SubscriberClient()
-    subscription_path = subscriber.subscription_path(
-        project_id, subscription_name)
-    
+def random_id(length=32):
+    """
+    Generate a random string of length length
+    """
+    return ''.join([random.choice(string.ascii_letters + string.digits) for n in range(length)]) 
+
+def chunks(array, length):
+  """Yield successive n-sized chunks from l.
+  """
+  for i in range(0, len(array), length):
+    #if i + length <= len(array): # uncomment for strict chunk length specified
+    yield array[i:i + length] 
+
+def frame_to_input(frame):
+    # Download
+    img = download_Image(frame['imageUrl'], resize_width = WIDTH) # TODO: try again with rescale instead
+
+    # Failed to read image
+    if img is None:
+        return
+
+    if 'encoded_image_string_tensor' in INPUT_TYPE:
+        # Model input is b64
+        # Compose a JSON Predict request (send JPEG image in base64).
+        img = {"b64":Image_to_b64(img).decode('utf-8')}
+    else: # image_tensor
+        # Cast into nparray
+        img = np.array(img)
+
+    # Create an object containing the data
+    return {"inputs": img, "input_keys": str(frame.id)}
+
+def download_Image(url, rescale_width=None, resize_width=None):
+    response = requests.get(url)
     try:
-        create_subscription(project_id, topic_name, subscription_name)
-    except Exception as ex:
-        print(ex)
+        img = Image.open(BytesIO(response.content))
+    except OSError:
+        print("Failed to read image")
+        return None
+    # If png cast to jpeg, i don't even know if that's required
+    if '.png' in url:
+        img = img.convert('RGB')
+    if rescale_width is not None:
+        wpercent = (rescale_width / float(img.size[0]))
+        hsize = int((float(img.size[1]) * float(wpercent)))
+        img = img.resize((rescale_width, hsize), Image.ANTIALIAS)
+    if resize_width is not None:
+        img = img.resize((resize_width, resize_width), Image.ANTIALIAS)
+    return img
 
-    # The subscriber pulls a specific number of messages.
-    response = subscriber.pull(subscription_path, max_messages=max_messages)
-
-    ack_ids = []
-    messages = []
-    for received_message in response.received_messages:
-        ack_ids.append(received_message.ack_id)
-        messages.append(received_message.message.data.decode('utf-8'))
-
-    print("Pulled: {} message(s)".format(len(messages)))
-
-
-    return messages, ack_ids
-
-def acknowledge_messages(project_id, subscription_name, ack_ids):
-    """Acknowledge messages."""
-    subscriber = pubsub_v1.SubscriberClient()
-    subscription_path = subscriber.subscription_path(
-        project_id, subscription_name)
-    
-    # Acknowledges the received messages so they will not be sent again.
-    if ack_ids: # If it's not empty
-        subscriber.acknowledge(subscription_path, ack_ids)
-        print('Acknowledged {} message(s)'.format(len(ack_ids)))
-        return True
-    else:
-        return False
+def Image_to_b64(img):
+    ret = BytesIO()
+    img.save(ret, "JPEG")
+    ret.seek(0)
+    return base64.b64encode(ret.getvalue())
 
 
 def make_batch_job_body(project_name, input_paths, output_path,
-                        model_name, region, data_format='TEXT',
+                        model_name, region, data_format='JSON',
                         version_name=None, max_worker_count=None,
-                        runtime_version=None):
+                        runtime_version=None, batch_size=32):
     """make_batch_job_body
     Args:
          images (nparray): Images
@@ -89,7 +126,8 @@ def make_batch_job_body(project_name, input_paths, output_path,
                 'dataFormat': data_format,
                 'inputPaths': input_paths,
                 'outputPath': '{}/{}'.format(output_path, job_id),
-                'region': region}}
+                'region': region,
+                'batchSize': str(batch_size)}}
 
     # Use the version if present, the model (its default version) if not.
     if version_name:
@@ -158,7 +196,6 @@ def online_predict(project, model, instances, version=None):
     ).execute()
     if 'error' in response:
         raise RuntimeError(response['error']) # https://cloud.google.com/ml-engine/docs/troubleshooting#troubleshooting_prediction
-    print('Online response', response)
     return response
 
 def get_no_response(url):

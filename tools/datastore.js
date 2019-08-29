@@ -21,3 +21,4 @@ async function clear(entity) {
 clear('Frame')
 clear('Object')
 clear('Prediction')
+clear('Queue')

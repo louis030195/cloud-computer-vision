@@ -33,7 +33,7 @@ or somewhere else (AI Platform deployable format: SavedModel)
 
 - [Push class mapping to datastore](https://colab.research.google.com/drive/1JLJt4tUXNgeuq3Y9PPvZitBS2B7J7Ker)
 
-```
+<!--
 gcloud -q ai-platform versions delete $VERSION --model $MODEL
 gcloud -q ai-platform models delete $MODEL
 gcloud ai-platform models create $MODEL \
@@ -44,18 +44,20 @@ gcloud ai-platform versions create $VERSION \
     --origin gs://$BUCKET_NAME/saved_model \
     --runtime-version 1.14 \
     --python-version 2.7
-```
+-->
+
+
 
 # Deploy Cloud Function
 
 ## Input Pub/Sub
-    gcloud functions deploy input_pubsub \
-    --source cloud_functions/input_pubsub \
+    gcloud functions deploy queue_input \
+    --source cloud_functions/queue_input \
     --runtime python37 \
     --project $PROJECT_ID \
     --trigger-http \
     --region $REGION \
-    --env-vars-file cloud_functions/input_pubsub/.env.yaml \
+    --env-vars-file cloud_functions/queue_input/.env.yaml \
     --memory 2gb
 ## Predictor
     gcloud functions deploy predictor \
@@ -113,4 +115,4 @@ Or
 
     gcloud config set project $PROJECT_ID
     gcloud app deploy
-    gcloud app deploy cron.yaml
+    gcloud scheduler jobs create http cron_input --schedule='every 30 mins' --uri="https://$REGION-$PROJECT_ID.cloudfunctions.net/queue_input" 

@@ -1,7 +1,0 @@
-google-cloud-datastore
-google-cloud-storage
-google-cloud-pubsub
-google-api-python-client
-opencv-python
-numpy
-requests
