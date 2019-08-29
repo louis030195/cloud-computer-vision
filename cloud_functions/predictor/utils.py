@@ -95,7 +95,7 @@ def Image_to_b64(img):
     return base64.b64encode(ret.getvalue())
 
 
-def make_batch_job_body(project_name, input_paths, output_path,
+def make_batch_job_body(project_name, bucket_name,
                         model_name, region, data_format='JSON',
                         version_name=None, max_worker_count=None,
                         runtime_version=None, batch_size=32):
@@ -124,8 +124,8 @@ def make_batch_job_body(project_name, input_paths, output_path,
     body = {'jobId': job_id,
             'predictionInput': {
                 'dataFormat': data_format,
-                'inputPaths': input_paths,
-                'outputPath': '{}/{}'.format(output_path, job_id),
+                'inputPaths': 'gs://{}/{}/batches/*'.format(bucket_name, job_id),
+                'outputPath': 'gs://{}/{}/batch_results'.format(bucket_name, job_id),
                 'region': region,
                 'batchSize': str(batch_size)}}
 

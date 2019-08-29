@@ -1,6 +1,8 @@
 # vision-client
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/louis030195/vision-client)
 
+
+- [See video](https://www.youtube.com/watch?v=b2P8ez4Q68I)
 # Front end
 Using [Lit-Element](https://lit-element.polymer-project.org/)
 

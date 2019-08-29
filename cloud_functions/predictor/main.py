@@ -47,7 +47,12 @@ def predictor(_):
     if len(queue) >= TRESHOLD or any(map(lambda x: 'batch' in dict(x), queue)):
         # Instantiates a GCS client
         storage_client = storage.Client()
-
+        body = make_batch_job_body(project_name=PROJECT_ID,
+                                   bucket_name=BUCKET_NAME,
+                                   model_name=MODEL_NAME,
+                                   region=REGION,
+                                   version_name=VERSION_NAME,
+                                   max_worker_count=72)
         # Creating multiple small input files (better scalability)
         for i, chunk in enumerate(chunks(queue, BATCH_CHUNK)):
             print('Chunk n°{}'.format(i + 1))
@@ -66,14 +71,13 @@ def predictor(_):
                 return
             random_file_id = random_id()
             for i, q in enumerate(chunk):
-                elapsed_time = time.time() - start_time
-                print('Elapsed time {0:.2f}'.format(elapsed_time))
                 frame_entity = get_entity(client_datastore, 'Frame', dict(q)['frame'])
 
                 json_frame = frame_to_input(frame_entity)
 
                 # Random name, must be different from other input files
-                file_path = "/tmp/inputs-{}.json".format(random_file_id)
+                file_name = "inputs-{}.json".format(random_file_id)
+                file_path = os.path.join("/tmp", file_name)
 
                 # Open file with "a" = append the file
                 with open(file_path, "a+") as json_file:
@@ -82,17 +86,10 @@ def predictor(_):
                 client_datastore.delete(q.key)
 
             bucket = storage_client.get_bucket(BUCKET_NAME)
-            blob = bucket.blob('batches/inputs.json')
+            blob = bucket.blob(os.path.join(body['jobId'], 'batches', file_name))
             # Upload the input
             blob.upload_from_filename(file_path)
 
-        body = make_batch_job_body(PROJECT_ID,
-                                   'gs://{}/batches/*'.format(BUCKET_NAME),
-                                   'gs://{}/batch_results'.format(BUCKET_NAME),
-                                   MODEL_NAME,
-                                   REGION,
-                                   version_name=VERSION_NAME,
-                                   max_worker_count=72)
         # Launch the batch prediction job
         response = batch_predict(PROJECT_ID, body)
         # Dismiss processed messages from the  queue in case the job has been queued only

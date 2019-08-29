@@ -20,7 +20,7 @@ def batch_result(event, context):
     # GCP doesn't handle trigger on folder level, so either change architecture
     # either multiple bucket (is that more expensive or ? ...)
     # https://googlecloud.tips/tips/018-trigger-cloud-functions-on-gcs-folders/
-    if 'batch_results/' not in event['name']:
+    if 'batch_results' not in event['name']:
         return
 
     if 'error' in event['name']:
@@ -34,10 +34,8 @@ def batch_result(event, context):
     datastore_client = datastore.Client()
     storage_client = storage.Client()
 
-    file_absolute_path = os.path.join('gs://{}'.format(BUCKET_NAME), event['name'])
-
     # Open the result file
-    bucket = storage_client.get_bucket('bucket03y')
+    bucket = storage_client.get_bucket(BUCKET_NAME)
     blob = bucket.get_blob(event['name'])
     result_file = blob.download_as_string().decode('utf-8')
 
@@ -88,17 +86,15 @@ def batch_result(event, context):
 
         # Update the predictions properties of the Frame row
         frame['predictions'] = entity_prediction.id
-        #obj['predictions'] = entity_prediction.id
 
         # Push into datastore
         datastore_client.put(frame)
 
-
-    # Erase file from bucket
-    bucket = storage_client.get_bucket(BUCKET_NAME)
-    blob = bucket.blob("/".join(file_absolute_path.split('/')[3:]))
-
-    blob.delete()
-
-    print('Blob {} deleted.'.format("/".join(file_absolute_path.split('/')[3:])))
-
+    # Delete input files, errors and this output file only
+    job_folder = event['name'].split('/')[0]
+    blobs = storage_client.list_blobs(BUCKET_NAME, prefix = job_folder)
+    for blob in blobs:
+        # Inputs, errors and THIS file only
+        if 'input' in blob.name or 'error' in blob.name or event['name'] in blob.name:
+            blob.delete()
+            print('Blob {} deleted'.format(blob.name))
