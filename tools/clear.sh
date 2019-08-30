@@ -1,10 +1,10 @@
 # Clear gcp storages
-gsutil -m rm gs://$BUCKET_NAME/*.png
-gsutil -m rm gs://$BUCKET_NAME/*.jpg
-gsutil -m rm gs://$BUCKET_NAME/*.mp4
+gsutil -m rm "gs://$BUCKET_NAME/*.png"
+gsutil -m rm "gs://$BUCKET_NAME/*.jpg"
+gsutil -m rm "gs://$BUCKET_NAME/*.mp4"
 
 # Clearing all inputs / outputs
-gsutil -m rm -rf gs://$BUCKET_NAME/$PROJECT_ID_*
+gsutil -m rm -rf "gs://$BUCKET_NAME/$PROJECT_ID"*
 
 # Clear functions
 #gcloud functions delete --region $REGION --project $PROJECT_ID queue_input

@@ -2,6 +2,7 @@
 
 import { LitElement, html, css } from 'lit-element'
 import '@vaadin/vaadin-upload/vaadin-upload.js'
+import '@granite-elements/granite-spinner/granite-spinner.js'
 
 class VisionClientUpload extends LitElement {
   static get properties () {
@@ -19,7 +20,7 @@ class VisionClientUpload extends LitElement {
   }
 
   firstUpdated () {
-
+    
   }
 
   updated () {
@@ -27,12 +28,16 @@ class VisionClientUpload extends LitElement {
   }
 
   render () {
-    return html`
-      <vaadin-upload accept="video/*,image/*" @files-changed=${(e) => console.log('lol')}>
+    return html`<!--
+      <vaadin-upload accept="video/*,image/*" @files-changed=${(e) => console.log('vaadin-upload changed')}>
         <span slot="drop-label">Drop your images / videos here</span>
       </vaadin-upload>
-      <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>
+      <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>-->
+      <granite-spinner id="loading"
+      color="#ff4081" 
+      line-width="2em"></granite-spinner>
       Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) => {
+        this.shadowRoot.getElementById('loading').active = true
     // object for allowed media types
     const accept = {
       video: ['video/mp4'],
@@ -47,19 +52,25 @@ class VisionClientUpload extends LitElement {
         // if file type could be detected
         if (file !== null) {
           if (accept.image.indexOf(file.type) > -1) {
-            this.visionClientService.createFrame(file)
-          } else if (accept.video.indexOf(file.type) > -1) { // Video is not implemented yet
-            // this.visionClientService.createVideo(file)
+            console.log('image')
+            this.visionClientService.createFrame(file).then(console.log('uploaded'))
+          } else if (accept.video.indexOf(file.type) > -1) {
+            console.log('video')
+            this.visionClientService.createVideo(file).then(console.log('uploaded'))
           } else {
             incorrectFiles.push(file.name)
           }
         }
       })
       resolve()
-    }).then(setTimeout(() =>  { // TODO: settimeout shouldn't block backend
+    })
+    //.then(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' }))
+    .then(setTimeout(() =>  { // TODO: settimeout shouldn't block backend
+        this.shadowRoot.getElementById('loading').active = false
+        
         this.timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
         , 1000)
-    }, 5000)) // Wait a bit before calling input, so the api have time to update datastore and don't wait request response
+    }, 50000)) // Wait a bit before calling input, so the api have time to update datastore and don't wait request response
     this.incorrectFiles = incorrectFiles
   }}>
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}

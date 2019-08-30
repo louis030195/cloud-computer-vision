@@ -63,7 +63,9 @@ echo -e "
 BUCKET_NAME: $BUCKET_NAME " > cloud_functions/batch_result/.env.yaml
 
 echo -e "
-BUCKET_NAME: $BUCKET_NAME " > cloud_functions/frame_extractor/.env.yaml
+PROJECT_ID: $PROJECT_ID
+BUCKET_NAME: $BUCKET_NAME 
+REGION: $REGION " > cloud_functions/frame_extractor/.env.yaml
 
 echo -e "
 PROJECT_ID: $PROJECT_ID " > cloud_functions/dont_take_all_my_money/.env.yaml

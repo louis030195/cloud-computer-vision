@@ -20,11 +20,7 @@ def batch_result(event, context):
     # GCP doesn't handle trigger on folder level, so either change architecture
     # either multiple bucket (is that more expensive or ? ...)
     # https://googlecloud.tips/tips/018-trigger-cloud-functions-on-gcs-folders/
-    if 'batch_results' not in event['name']:
-        return
-
-    if 'error' in event['name']:
-        print('Batch predictions failed')
+    if 'prediction.results' not in event['name']:
         return
 
     # TODO: why there is "beam" thing here ?

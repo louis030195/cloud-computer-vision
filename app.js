@@ -6,7 +6,6 @@ const passport = require('passport')
 const { Datastore } = require('@google-cloud/datastore')
 const DatastoreStore = require('@google-cloud/connect-datastore')(session)
 const oauth2 = require('./utils/oauth2')
-const fetch = require('node-fetch')
 const app = express()
 
 app.disable('etag')

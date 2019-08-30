@@ -12,13 +12,14 @@ async function clear(entity) {
     // That's why the limit()
     const query = datastore
         .createQuery(entity).limit(10000)
-    const [tasks] = await datastore.runQuery(query)
+    const [tasks] = await datastore.runQuery(query).catch(error => console.log(error))
     tasks.forEach(async task => {
-        await datastore.delete(task[datastore.KEY])
+        await datastore.delete(task[datastore.KEY]).catch(error => console.log(error))
     })
 }
 
 clear('Frame')
+clear('Video')
 clear('Object')
 clear('Prediction')
 clear('Queue')

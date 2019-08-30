@@ -89,7 +89,8 @@ class VisionClientFrame extends LitElement {
     ctx.drawImage(image, 0, 0, this.width, this.height)
 
     this.objects.forEach(async object => {
-      if (object['detection_scores'] < 0.6) {
+      // Only display above 60% probability, if there is no object above 60%, then, show
+      if (this.objects.some(o => o['detection_scores'] > 0.6) && object['detection_scores'] < 0.6) {
         return
       }
       let boxText
@@ -159,8 +160,8 @@ class VisionClientFrame extends LitElement {
   static get styles () {
     return css`
     .outsideWrapper{ 
-        width:${this.width !== undefined ? this.width : 300}px;
-        height:${this.height !== undefined ? this.height : 300}px;
+        width:${this.width !== undefined ? parseInt(this.width * window.screen.width / 1000, 10) : 300}px;
+        height:${this.height !== undefined ? parseInt(this.height * window.screen.height / 1000, 10) : 300}px;
         border:1px solid blue;}
     .insideWrapper{ 
         width:100%; height:100%; 

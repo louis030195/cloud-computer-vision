@@ -34,10 +34,12 @@
     "prepare": "npm run build"
   },
   "dependencies": {
+    "@google-cloud/bigquery": "^4.1.8",
     "@google-cloud/connect-datastore": "^3.0.0",
     "@google-cloud/datastore": "^4.0.0",
     "@google-cloud/storage": "^1.7.0",
     "@google-web-components/google-chart": "^3.0.6",
+    "@granite-elements/granite-spinner": "^3.0.0",
     "@vaadin/vaadin-progress-bar": "^1.1.2",
     "@vaadin/vaadin-upload": "^4.2.2",
     "@webcomponents/webcomponentsjs": "^2.2.10",

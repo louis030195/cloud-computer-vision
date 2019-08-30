@@ -14,3 +14,7 @@
 
 # Some tools
 - [tools](tools/README.md)
+
+# Export billing to  BigQuery
+
+https://cloud.google.com/billing/docs/how-to/export-data-bigquery

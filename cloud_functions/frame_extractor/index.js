@@ -27,6 +27,7 @@ const BUCKET_NAME = process.env.BUCKET_NAME
  * @param {object} context The event metadata.
  */
 exports.extractPubSub = async (pubSubEvent, context) => {
+  const startTime = performance.now()
     // The message is a unicode string encoded in base64.
   const message = Buffer.from(pubSubEvent.data, 'base64').toString(
     'utf-8'
@@ -72,7 +73,9 @@ exports.extractPubSub = async (pubSubEvent, context) => {
       })
     })
   })
-};
+  fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
+  console.log(`Elapsed time ${performance.now() - t0} milliseconds.`)
+}
 
 async function asyncFunction(file, cb, video) {
   // We need to make unique name (e.g. path/127167261-1.jpg)
@@ -80,9 +83,9 @@ async function asyncFunction(file, cb, video) {
   await fs.rename(file, newFileName, (err) => {
       if ( err ) console.log('ERROR: ' + err)
   })
-  console.log(newFileName)
+  // console.log(newFileName)
   // Uploads a local file to the bucket
-  await bucket.upload(newFileName, {
+  await storage.bucket(BUCKET_NAME).upload(newFileName, {
     // Support for HTTP requests made with `Accept-Encoding: gzip`
     // gzip: true,
     // By setting the option `destination`, you can change the name of the
@@ -103,7 +106,7 @@ async function asyncFunction(file, cb, video) {
   }
   const keyFrame = datastore.key('Frame')
   const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${newFileName.split('/').pop()}`
-  bucket.file(publicUrl.split('/').pop()).makePublic((err) => { if (err) console.error(err) })
+  storage.bucket(BUCKET_NAME).file(publicUrl.split('/').pop()).makePublic((err) => { if (err) console.error(err) })
   let entity = {
     key: keyFrame,
     data: { imageUrl: publicUrl, predictions: null}
@@ -112,11 +115,11 @@ async function asyncFunction(file, cb, video) {
   datastore.save(entity,
   (err) => {
     if (!err) {
-      console.log('Frame saved successfully.')
+      // console.log('Frame saved successfully.')
       // console.log(entity['key'].id)
       // Push the reference of the frame as a property of video
       video['frames'].push(entity['key'].id)
-      console.log(video['frames'])
+      // console.log(video['frames'])
     }
   })
   cb(video)
