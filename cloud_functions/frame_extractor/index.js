@@ -11,12 +11,13 @@ const { Datastore } = require('@google-cloud/datastore')
 const datastore = new Datastore()
 
 const {PubSub} = require('@google-cloud/pubsub')
+const { performance } = require('perf_hooks')
+const fetch = require('node-fetch')
 
 // Instantiate a pubsub client
 const pubsub = new PubSub()
 
 const BUCKET_NAME = process.env.BUCKET_NAME
-// process.env.FOO
 
 /**
  * Background Cloud Function to be triggered by Pub/Sub.
@@ -74,7 +75,7 @@ exports.extractPubSub = async (pubSubEvent, context) => {
     })
   })
   fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
-  console.log(`Elapsed time ${performance.now() - t0} milliseconds.`)
+  console.log(`Elapsed time ${performance.now() - startTime} milliseconds.`)
 }
 
 async function asyncFunction(file, cb, video) {
