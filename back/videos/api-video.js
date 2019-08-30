@@ -38,7 +38,7 @@ router.post(
   multer.single('file'),
   sendUploadToGCS,
   async (req, res, next) => {
-    const data = { imageUrl: req.file.cloudStoragePublicUrl, predictions: null } // Predictions represents the object detected in the media
+    const data = { imageUrl: req.file.cloudStoragePublicUrl, predictions: null, frames: null } // Predictions represents the object detected in the media
     model.create(data, (err, entity) => {
       if (err) {
         next(err)

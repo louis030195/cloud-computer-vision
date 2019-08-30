@@ -28,7 +28,7 @@ class VisionClientUpload extends LitElement {
 
   render () {
     return html`
-      <vaadin-upload accept="video/*,image/*">
+      <vaadin-upload accept="video/*,image/*" @files-changed=${(e) => console.log('lol')}>
         <span slot="drop-label">Drop your images / videos here</span>
       </vaadin-upload>
       <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>

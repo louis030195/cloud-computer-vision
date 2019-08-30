@@ -2,8 +2,9 @@
 gsutil -m rm gs://$BUCKET_NAME/*.png
 gsutil -m rm gs://$BUCKET_NAME/*.jpg
 gsutil -m rm gs://$BUCKET_NAME/*.mp4
-gsutil -m rm -rf gs://$BUCKET_NAME/batches
-gsutil -m rm -rf gs://$BUCKET_NAME/batch_results
+
+# Clearing all inputs / outputs
+gsutil -m rm -rf gs://$BUCKET_NAME/$PROJECT_ID_*
 
 # Clear functions
 #gcloud functions delete --region $REGION --project $PROJECT_ID queue_input
@@ -17,5 +18,5 @@ gsutil -m rm -rf gs://$BUCKET_NAME/batch_results
 # https://cloud.google.com/appengine/docs/standard/python/console (no CLI for this ...)
 
 # Full stop billing by deleting your project
-# Beware, can break all your GCP config
+# Beware, can break all your GCP projects
 # gcloud projects delete $PROJECT_ID

@@ -78,7 +78,8 @@ def batch_result(event, context):
 
         # Update the prediction in datastore
         datastore_client.put(entity_prediction)
-
+        # TODO: in case of a video, should we put the prediction of each frame into it's predictions properties ?
+        # or it's dirty and we should keep it like SQL 3FN rule
         query = datastore_client.query(kind='Frame')
         first_key = datastore_client.key('Frame', int(pred['output_keys']))
         query.key_filter(first_key, '=')

@@ -19,7 +19,14 @@ REGION = os.environ['REGION']
 
 
 
-
+def create_topic(publisher, project_id, topic_name):
+    """Create a new Pub/Sub topic if it doesn't exist"""
+    topic_path = publisher.topic_path(project_id, topic_name)
+    try:
+        publisher.create_topic(topic_path)
+        print('This topic doesn\'t exist {}, created it'.format(t.name))
+    except: # Means already exist
+        pass
 
 # TODO: https://cloud.google.com/functions/docs/bestpractices/networking
 def queue_input(request):
@@ -29,9 +36,14 @@ def queue_input(request):
     """
     start_time = time.time()
     
-    # TODO: handle video
-    """
-    if any(ex in event['name'].lower() for ex in ['.avi', '.mp4']):
+    client = datastore.Client()
+
+    # Checking if there is any video that haven't been extracted
+    query_video = client.query(kind='Video')
+    query_video.add_filter('frames', '=', None)
+    videos_to_process = list(query_video.fetch())
+    for video in videos_to_process:
+        publisher = pubsub_v1.PublisherClient()
         # Checking if the pubsub topic exist, if it doesn't, create it
         create_topic(publisher, PROJECT_ID, TOPIC_EXTRACTOR)
 
@@ -39,12 +51,10 @@ def queue_input(request):
         topic_path = publisher.topic_path(PROJECT_ID, TOPIC_EXTRACTOR)
         publisher.publish(
             topic_path,
-            data=os.path.join('gs://{}'.format(BUCKET_NAME),
-                              event['name']).encode('utf-8')  # data must be a bytestring.
+            data=os.path.join(video['imageUrl']).encode('utf-8')  # data must be a bytestring.
         )
-    """
-    
-    client = datastore.Client()
+
+
     # Then get by key for this entity
     query_frame = client.query(kind='Frame')
     query_frame.add_filter('predictions', '=', None)
@@ -58,15 +68,15 @@ def queue_input(request):
     published_messages = 0
     for index, frame in enumerate(frames_to_process):
         elapsed_time = time.time() - start_time
-        print('Elapsed time {0:.2f}'.format(elapsed_time))
+        
 
         # Avoid timeout (40s)
         if elapsed_time > 40:
-
+            print('Timeout, elapsed time {0:.2f}'.format(elapsed_time))
             # Recursive call until everything is in the queue
             get_no_response('https://{}-{}.cloudfunctions.net/queue_input'.format(REGION, PROJECT_ID))
             print('Recursive call, {} frames left to queue'.format(len(frames_to_process) - index))
-            break
+            return
 
         
 
@@ -95,4 +105,4 @@ def queue_input(request):
 
     print('Published {} messages'.format(published_messages))
     get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
-    return 'Success'
+    return

@@ -32,7 +32,7 @@ def get_entity(client_datastore, kind, key):
 
     # Happens when debugging and removing while predicting ...
     # Just to avoid having irrelevant errors in logs
-    if len(query_result) == 0:
+    if len(query_result) == 0: # TODO maybe should throw an exception so see it clearly in logs
         print("It appears that key {} isn't in datastore".format(key))
         return
         

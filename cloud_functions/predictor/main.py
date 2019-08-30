@@ -53,6 +53,30 @@ def predictor(_):
                                    region=REGION,
                                    version_name=VERSION_NAME,
                                    max_worker_count=72)
+
+
+        # Required in case building an input takes multiple predictor execution,
+        # We want to keep the same jobId than previous execution because
+        # jobId is used for the input / output folder (we want all inputs in the same folder)
+        jobIds = list(filter(lambda x: 'batch' in dict(x), queue))
+        if len(jobIds) > 0:
+            body['jobId'] =  jobIds[0]['batch']
+
+            # Also need to update paths
+            body['predictionInput']['inputPaths'] = 'gs://{}/{}/batches/*'.format(BUCKET_NAME, body['jobId'])
+            body['predictionInput']['outputPath'] = 'gs://{}/{}/batch_results'.format(BUCKET_NAME, body['jobId'])
+        else: # Optimization, so we do it only once
+            # We want to signal that all these frames have to be put into input files
+            # Doing it first right away because it takes some execution time
+            """
+            for j in queue:
+                j['batch'] = body['jobId']
+                client_datastore.put(j)
+            """
+            # Actually we just need to tag the last element of the batch
+            queue[-1]['batch'] = body['jobId']
+            client_datastore.put(queue[-1])
+
         # Creating multiple small input files (better scalability)
         for i, chunk in enumerate(chunks(queue, BATCH_CHUNK)):
             print('Chunk n°{}'.format(i + 1))
@@ -60,14 +84,9 @@ def predictor(_):
             print('Elapsed time {0:.2f}'.format(elapsed_time))
             # Avoid timeout (40s)
             if elapsed_time > 40:
-                # We want to signal that these frames have to be put into input files
-                # Starting the loop at queue[current chunk index * chunk size], for all frames in the queue
-                for j in range(i * BATCH_CHUNK, len(queue)):
-                    queue[j]['batch'] = 'batch'
-                    client_datastore.put(queue[j])
                 # Resursive until everything into input files
                 get_no_response('https://{}-{}.cloudfunctions.net/predictor'.format(REGION, PROJECT_ID))
-                print('{} frames left to write to input file'.format(len(queue) - i * BATCH_CHUNK))
+                print('{} frames left to write to input file'.format(len(queue) - (1 + i) * BATCH_CHUNK))
                 return
             random_file_id = random_id()
             for i, q in enumerate(chunk):
