@@ -10,68 +10,79 @@ const storage = new Storage()
 const { Datastore } = require('@google-cloud/datastore')
 const datastore = new Datastore()
 
-const {PubSub} = require('@google-cloud/pubsub')
 const { performance } = require('perf_hooks')
 const fetch = require('node-fetch')
 
-// Instantiate a pubsub client
-const pubsub = new PubSub()
 
+const PROJECT_ID = process.env.PROJECT_ID
 const BUCKET_NAME = process.env.BUCKET_NAME
+const REGION = process.env.REGION
+const FPS = process.env.FPS
 
-async function getEntity(kind, key) {
-  const dskey = datastore.key([kind, key])
-  entity = await datastore.get(dskey)
-  return entity
-}
+
 
 async function extract(message) {
-  // Get video key
-  // TODO: maybe request with video id instead ...
-  // TODO: in dev mode u have to put a video in datastore
-  /*
-  const query = datastore.createQuery('Video').filter('id', '=', message)
-  let video
-  await datastore
-    .runQuery(query)
-    .then(results => {
-      video = results[0][0]
+  return new Promise(async (resolve, reject) => {
+    // Get video key
+    const query = datastore.createQuery('Video').filter('imageUrl', '=', message)
+    let video
+    await datastore.runQuery(query)
+                   .then(results => {
+                     video = results[0][0]
+                   })
+                   .catch(err => {
+                     console.error('ERROR:', err)
+                     reject()
+                   })
+    
+    //console.log(video)
+    video['frames'] = []
+    const root = '/tmp'
+    const pattern = `${root}/frame-*`
+
+    await extractFrames({
+      input: video['imageUrl'],
+      output: `${root}/frame-%d.jpg`,
+      fps: FPS
+    }).catch(err => {
+      console.error('ERROR:', err)
+      reject()
     })
-    .catch(err => {console.error('ERROR:', err)})*/
-  let video = await getEntity('Video', message)
-  console.log(video)
-  video['frames'] = []
-  const root = '/tmp'
-  const pattern = `${root}/frame-*`
-
-  await extractFrames({
-    input: message,
-    output: `${root}/frame-%d.jpg`,
-    fps: 1
-  })
-  glob(pattern, (er, files) => {
-    // console.log(files)
-    // https://stackoverflow.com/questions/18983138/callback-after-all-asynchronous-foreach-callbacks-are-completed
-    files.reduce((promiseChain, item) => {
-      return promiseChain.then(() => new Promise((resolve) => {
-        asyncFunction(item, resolve, video)
-      }))
-    }, Promise.resolve()).then(video => {
-      // console.log('done', video)
-      const entityVideo = {
-        key: video[Datastore.KEY],
-        data: video
-      }
-
-      datastore.save(entityVideo,
-      (err) => {
-        if (!err) {
-          console.log('Video updated successfully.')
+    glob(pattern, (er, files) => {
+      // console.log(files)
+      // https://stackoverflow.com/questions/18983138/callback-after-all-asynchronous-foreach-callbacks-are-completed
+      files.reduce((promiseChain, item) => {
+        return promiseChain.then(() => new Promise((resolve) => {
+          asyncFunction(item, resolve, video)
+        }))
+      }, Promise.resolve()).then(video => {
+        // console.log('done', video)
+        const entityVideo = {
+          key: video[Datastore.KEY],
+          data: video
         }
+
+        datastore.save(entityVideo,
+        (err) => {
+          if (!err) {
+            console.log('Video updated successfully.')
+            timeoutPromise(fetch(`https://${REGION}-${PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
+            , 1000).then(resolve())
+          }
+        })
       })
     })
   })
-  fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
+}
+
+// https://stackoverflow.com/questions/46946380/fetch-api-request-timeout
+function timeoutPromise(promise, timeout) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve()
+    }, timeout)
+    promise.then(resolve, reject)
+  })
 }
 
 /**
@@ -80,16 +91,14 @@ async function extract(message) {
  * @param {object} data The event payload.
  * @param {object} context The event metadata.
  */
-exports.extractGcs = (data, context) => {
+exports.extractGcs = async (data, context) => {
   if (!data.name.includes('.mp4')) {
-    console.log('Not a video: ', data.name)
+    // console.log('Not a video: ', data.name)
     return
   }
-  
   const startTime = performance.now()
-  const idSplit = data.id.split('/')
-  extract(idSplit[idSplit.length - 1])
-  console.log(`Elapsed time ${(performance.now() - startTime).toFixed(2)} milliseconds.`)
+  await extract(`https://storage.googleapis.com/${BUCKET_NAME}/${data.id.split('/')[1]}`)
+  .then(console.log(`Elapsed time ${(performance.now() - startTime).toFixed(2)} milliseconds.`))
 }
 
 async function asyncFunction(file, cb, video) {

@@ -5,6 +5,11 @@ import page from 'page'
 import './vision-client-display'
 import './vision-client-upload'
 import VisionClientService from './services/vision-client-service'
+// TODO: webpack break with bigquery ?
+// https://github.com/request/request/issues/1529
+// https://github.com/jsoma/tabletop/issues/158
+// https://github.com/mysqljs/mysql/issues/1563
+// import { totalInvoice } from '../utils/billing'
 
 class VisionClient extends LitElement {
   constructor () {
@@ -28,6 +33,7 @@ class VisionClient extends LitElement {
   }
 
   firstUpdated () {
+    // this.billing = totalInvoice()
     page('/', () => {
       this.page = 'display'
     })
@@ -52,6 +58,7 @@ class VisionClient extends LitElement {
 
   render () {
     return html`
+    Total billing: ${this.billing}
     <a href="/">display</a>
     <a href="/upload">upload</a>
     <a href="/api/frames">frames</a>

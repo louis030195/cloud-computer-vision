@@ -7,7 +7,6 @@
     "node": ">=8.0.0"
   },
   "dependencies": {
-    "@google-cloud/pubsub": "^0.28.1",
     "@google-cloud/storage": "^3.0.4",
     "@google-cloud/datastore": "^3.0.4",
     "ffmpeg-extract-frames": "^2.0.2",
