@@ -19,31 +19,27 @@ const pubsub = new PubSub()
 
 const BUCKET_NAME = process.env.BUCKET_NAME
 
-/**
- * Background Cloud Function to be triggered by Pub/Sub.
- * This function is exported by index.js, and executed when
- * the trigger topic receives a message.
- *
- * @param {object} pubSubEvent The event payload.
- * @param {object} context The event metadata.
- */
-exports.extractPubSub = async (pubSubEvent, context) => {
-  const startTime = performance.now()
-    // The message is a unicode string encoded in base64.
-  const message = Buffer.from(pubSubEvent.data, 'base64').toString(
-    'utf-8'
-  );
+async function getEntity(kind, key) {
+  const dskey = datastore.key([kind, key])
+  entity = await datastore.get(dskey)
+  return entity
+}
+
+async function extract(message) {
   // Get video key
   // TODO: maybe request with video id instead ...
   // TODO: in dev mode u have to put a video in datastore
-  const query = datastore.createQuery('Video').filter('imageUrl', '=', message)
+  /*
+  const query = datastore.createQuery('Video').filter('id', '=', message)
   let video
   await datastore
     .runQuery(query)
     .then(results => {
       video = results[0][0]
     })
-    .catch(err => {console.error('ERROR:', err)})
+    .catch(err => {console.error('ERROR:', err)})*/
+  let video = await getEntity('Video', message)
+  console.log(video)
   video['frames'] = []
   const root = '/tmp'
   const pattern = `${root}/frame-*`
@@ -54,6 +50,7 @@ exports.extractPubSub = async (pubSubEvent, context) => {
     fps: 1
   })
   glob(pattern, (er, files) => {
+    // console.log(files)
     // https://stackoverflow.com/questions/18983138/callback-after-all-asynchronous-foreach-callbacks-are-completed
     files.reduce((promiseChain, item) => {
       return promiseChain.then(() => new Promise((resolve) => {
@@ -75,7 +72,24 @@ exports.extractPubSub = async (pubSubEvent, context) => {
     })
   })
   fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
-  console.log(`Elapsed time ${performance.now() - startTime} milliseconds.`)
+}
+
+/**
+ * Generic background Cloud Function to be triggered by Cloud Storage.
+ *
+ * @param {object} data The event payload.
+ * @param {object} context The event metadata.
+ */
+exports.extractGcs = (data, context) => {
+  if (!data.name.includes('.mp4')) {
+    console.log('Not a video: ', data.name)
+    return
+  }
+  
+  const startTime = performance.now()
+  const idSplit = data.id.split('/')
+  extract(idSplit[idSplit.length - 1])
+  console.log(`Elapsed time ${(performance.now() - startTime).toFixed(2)} milliseconds.`)
 }
 
 async function asyncFunction(file, cb, video) {
@@ -98,13 +112,15 @@ async function asyncFunction(file, cb, video) {
       cacheControl: 'public, max-age=31536000',
     },
   })
-
+  /*
   try {
-    fs.unlinkSync(newFileName)
+    await fs.unlink(newFileName, () => {
+
+    })
     //file removed
   } catch(err) {
     console.error(err)
-  }
+  }*/
   const keyFrame = datastore.key('Frame')
   const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${newFileName.split('/').pop()}`
   storage.bucket(BUCKET_NAME).file(publicUrl.split('/').pop()).makePublic((err) => { if (err) console.error(err) })
@@ -125,20 +141,3 @@ async function asyncFunction(file, cb, video) {
   })
   cb(video)
 }
-
-/**
- * Generic background Cloud Function to be triggered by Cloud Storage.
- *
- * @param {object} data The event payload.
- * @param {object} context The event metadata.
- */
-exports.helloGCSGeneric = (data, context) => {
-  const file = data;
-  console.log(`  Event ${context.eventId}`);
-  console.log(`  Event Type: ${context.eventType}`);
-  console.log(`  Bucket: ${file.bucket}`);
-  console.log(`  File: ${file.name}`);
-  console.log(`  Metageneration: ${file.metageneration}`);
-  console.log(`  Created: ${file.timeCreated}`);
-  console.log(`  Updated: ${file.updated}`);
-};

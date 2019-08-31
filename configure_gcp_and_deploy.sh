@@ -60,11 +60,12 @@ gcloud functions deploy batch_result \
     --max-instances 1 \
     --memory 2gb
 
-gcloud functions deploy extractPubSub \
+gcloud functions deploy extractGcs \
     --source cloud_functions/frame_extractor \
     --runtime nodejs10 \
     --project $PROJECT_ID \
-    --trigger-topic topic_extractor \
+    --trigger-resource $BUCKET_NAME \
+    --trigger-event google.storage.object.finalize \
     --region $REGION \
     --env-vars-file cloud_functions/frame_extractor/.env.yaml \
     --max-instances 1 \

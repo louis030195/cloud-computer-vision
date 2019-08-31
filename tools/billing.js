@@ -35,9 +35,15 @@ async function randomDatasetBigQuery() {
 
 
 async function queryBillingAccount() {
+  // Lists all datasets in the specified project
+  const [datasets] = await bigquery.getDatasets()
+  const [table] = await datasets[0].getTables()
 
+  console.log('Table:');
+  console.log(table[0].metadata)
+  
   const query = `SELECT *
-    FROM \`${process.env.PROJECT_ID}:billing\`
+    FROM \`${table[0].metadata.id.replace(':', '.')}\`
     LIMIT 10`
 
   // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query

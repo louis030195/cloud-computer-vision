@@ -6,16 +6,16 @@ import os
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 
-PROJECT_ID = os.environ.get('PROJECT_ID')
+PROJECT_ID = os.environ['PROJECT_ID']
+REGION = os.environ['REGION']
 PROJECT_NAME = f'projects/{PROJECT_ID}'
-# ZONE = os.getenv('ZONE')
-ZONE = 'us-west1-b' # TODO: ??
 
 #TODO: test everything
 
 def stop_billing(data, context):
     pubsub_data = base64.b64decode(data['data']).decode('utf-8')
     pubsub_json = json.loads(pubsub_data)
+    print(pubsub_json)
     cost_amount = pubsub_json['costAmount']
     budget_amount = pubsub_json['budgetAmount']
     if cost_amount <= budget_amount:
@@ -75,8 +75,8 @@ def limit_use(data, context):
     )
     instances = compute.instances()
 
-    instance_names = __list_running_instances(PROJECT_ID, ZONE, instances)
-    __stop_instances(PROJECT_ID, ZONE, instance_names, instances)
+    instance_names = __list_running_instances(PROJECT_ID, REGION, instances)
+    __stop_instances(PROJECT_ID, REGION, instance_names, instances)
 
 
 def __list_running_instances(project_id, zone, instances):

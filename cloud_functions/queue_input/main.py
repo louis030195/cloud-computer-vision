@@ -39,11 +39,13 @@ def queue_input(request):
     client = datastore.Client()
 
     # Checking if there is any video that haven't been extracted
+    """
     query_video = client.query(kind='Video')
     query_video.add_filter('frames', '=', None)
     videos_to_process = list(query_video.fetch())
     for video in videos_to_process:
         print('Video {} frames will be extracted'.format(video['imageUrl']))
+
         publisher = pubsub_v1.PublisherClient()
         # Checking if the pubsub topic exist, if it doesn't, create it
         create_topic(publisher, PROJECT_ID, TOPIC_EXTRACTOR)
@@ -54,6 +56,7 @@ def queue_input(request):
             topic_path,
             data=os.path.join(video['imageUrl']).encode('utf-8')  # data must be a bytestring.
         )
+    """
 
 
     # Then get by key for this entity

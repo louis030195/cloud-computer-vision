@@ -68,4 +68,5 @@ BUCKET_NAME: $BUCKET_NAME
 REGION: $REGION " > cloud_functions/frame_extractor/.env.yaml
 
 echo -e "
-PROJECT_ID: $PROJECT_ID " > cloud_functions/dont_take_all_my_money/.env.yaml
+PROJECT_ID: $PROJECT_ID 
+REGION: $REGION " > cloud_functions/dont_take_all_my_money/.env.yaml
