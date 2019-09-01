@@ -23,3 +23,7 @@ clear('Video')
 clear('Object')
 clear('Prediction')
 clear('Queue')
+
+module.exports = {
+    clear
+}

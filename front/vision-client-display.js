@@ -2,6 +2,7 @@
 
 import { LitElement, html, css } from 'lit-element'
 import './vision-client-frame'
+import './vision-client-video'
 import '@vaadin/vaadin-progress-bar/vaadin-progress-bar.js'
 import '@google-web-components/google-chart/google-chart.js'
 
@@ -15,7 +16,8 @@ class VisionClientDisplay extends LitElement {
       objects: { type: Array },
       pagination: { type: Number },
       progress: { type: Number},
-      countDetectionClasses: { type: Array }
+      countDetectionClasses: { type: Array },
+      fps: { type: Number }
     }
   }
 
@@ -29,6 +31,7 @@ class VisionClientDisplay extends LitElement {
     this.pagination = 0
     this.progress = 0
     this.countDetectionClasses = []
+    this.fps = 0
   }
 
   static get styles () {
@@ -82,23 +85,29 @@ class VisionClientDisplay extends LitElement {
   }
 
   firstUpdated() {
-
-    this.visionClientService.getVideos().then(videos => { this.videos = videos['items'] })
-    this.visionClientService.getFramesPredictionsObjects()
-                            .then(frames => { this.frames = frames['items'] })
-                            .then(() => this.updateGraphics())
-    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
+    this.setIntervalAndExecute(() => {
+      this.requestBack()
+      const v = 100 - (this.frames !== undefined ? 
+        (this.frames.length / this.frames.filter(f => f.predictions['objects'].length > 0).length) - 1 :
+        0)
+      this.progress = v === undefined ? 0 : v
+    }, 10000)
   }
   
-  updated () {
-    const v = this.frames !== undefined ? (this.frames.length / this.frames.filter(f => f.predictions === null).length) : 0
-    this.progress = v //100 - isNaN(v) ? 0 : v
+  updated (changedProperties) {
+    changedProperties.forEach((oldValue, propName) => {
+      if(oldValue !== undefined) console.log(`${propName} changed.`)
+      if (propName.includes('frames')) {
+        this.updateGraphics()
+      }
+    })
+
   }
 
   render () {
     return html`
     <br />
-    frames being processed ${this.frames !== undefined ? this.frames.filter(f => f.predictions === null).length : 0}
+    frames being processed ${this.frames !== undefined ? this.frames.filter(f => f.predictions['objects'].length === 0).length : 0}
     <vaadin-progress-bar min="0" max="100" value="${this.progress}"></vaadin-progress-bar>
     Content processed: <span>${this.progress}</span> %
     <google-chart
@@ -117,20 +126,52 @@ class VisionClientDisplay extends LitElement {
     </div>
     <div id="content">
       <div class="wrapper">
-      ${this.frames !== undefined /*&& this.classes !== undefined && this.predictions !== undefined*/ ? this.frames.slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
+      <!--
+      ${this.videos !== undefined ? this.videos.slice(this.pagination * 10, this.pagination * 10 + 10).map((v, i) =>
+        html`<vision-client-video
+        .width=${300}
+        .height=${300}
+        .visionClientService=${this.visionClientService}
+        .url=${v.imageUrl}
+        </vision-client-video>`) : ''}
+      -->
+      ${this.frames !== undefined ? this.frames.slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
         html`<vision-client-frame
         .width=${300}
         .height=${300}
         .visionClientService=${this.visionClientService}
         .objects=${f.predictions.objects}
         .id=${f.id}
-        .imageUrl=${f.imageUrl}
+        .url=${f.imageUrl}
         .classes=${this.classes}
         </vision-client-frame>`) : ''}
       </div>
     </div>
       
     `
+  }
+
+  setIntervalAndExecute(fn, t) {
+    fn();
+    return(setInterval(fn, t));
+  }
+
+  requestBack() {
+    this.visionClientService.getFramesPredictionsObjects().then(frames => { 
+      // Only update prop if number of frames changed or there is more predictions
+      if (frames['items'].length !== this.frames.length ||
+          frames['items'].filter(f => f.predictions !== null).length > this.frames.filter(f => f.predictions !== null).length) {
+        this.frames = frames['items']
+      }
+    })
+    this.visionClientService.getVideos().then(videos => { 
+      // Only update prop if number of videos changed or there is more predictions
+      if (videos['items'].length !== this.videos.length || 
+          videos['items'].filter(f => f.predictions !== null).length > this.videos.filter(f => f.predictions !== null).length) {
+        this.videos = videos['items'] 
+      }
+    })
+    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
   }
 
   uniq(arr) {
@@ -181,12 +222,12 @@ class VisionClientDisplay extends LitElement {
   }
 
   updateGraphics() {
-    //console.log(this.frames)
+    let t0 = performance.now()
     this.countDetectionClasses = this.countElements(this.frames.map(frame => frame.predictions.objects)
                                                               .flat()
                                                               .filter(object => object.detection_scores > 0.6)
                                                               .map(object => object.detection_classes), true)
-    //console.log(this.countDetectionClasses)
+    console.log(`Call to countElements took ${(performance.now() - t0).toFixed(2)} milliseconds.`)
   }
 
   goTo(e) {

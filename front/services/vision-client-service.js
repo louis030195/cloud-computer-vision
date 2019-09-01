@@ -28,8 +28,7 @@ export default class VisionClientService {
       method: 'POST',
       cache: 'no-cache',
       body: formData
-    })
-      .then(response => response.json())
+    }).then(response => response.json())
   }
 
   getVideos () {
@@ -43,8 +42,7 @@ export default class VisionClientService {
       method: 'POST',
       cache: 'no-cache',
       body: formData
-    })
-      .then(response => response.json())
+    }).then(response => response.json())
   }
 
   getPredictions () {

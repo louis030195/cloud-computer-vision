@@ -9,7 +9,7 @@ class VisionClientFrame extends LitElement {
       visionClientService: { type: Object },
       objects: { type: Array }, // A frame can have multiple objects detected
       id: { type: Object }, // Id in datastore
-      imageUrl: { type: String },
+      url: { type: String },
       width: { type: Number },
       height: { type: Number },
       classes: { type: Array }
@@ -182,7 +182,7 @@ class VisionClientFrame extends LitElement {
     return html`
     <div class="outsideWrapper">
         <div class="insideWrapper">
-            <img id="img" src=${this.imageUrl} class="coveredImage">
+            <img id="img" src=${this.url} class="coveredImage">
             <canvas id="myCanvas" class="coveringCanvas"></canvas>
         </div>
     </div>

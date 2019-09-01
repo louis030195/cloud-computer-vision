@@ -58,7 +58,13 @@ const commonConfig = merge([
           ]
         }
       ]
-    }
+    }/*,
+    node: { // https://github.com/webpack-contrib/css-loader/issues/447
+      fs: 'empty',
+      child_process: 'empty',
+      net: 'empty',
+      tls: 'empty'
+    }*/
   }
 ])
 

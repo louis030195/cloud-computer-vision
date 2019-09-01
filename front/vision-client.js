@@ -4,12 +4,12 @@ import { LitElement, html } from 'lit-element'
 import page from 'page'
 import './vision-client-display'
 import './vision-client-upload'
+import { timeoutPromise } from '../utils/promiseExtension'
+// import { clear } from '../tools/datastore'
 import VisionClientService from './services/vision-client-service'
-// TODO: webpack break with bigquery ?
-// https://github.com/request/request/issues/1529
-// https://github.com/jsoma/tabletop/issues/158
-// https://github.com/mysqljs/mysql/issues/1563
+// import '@polymer/paper-dialog/paper-dialog.js'
 // import { totalInvoice } from '../utils/billing'
+import '@polymer/paper-button/paper-button.js'
 
 class VisionClient extends LitElement {
   constructor () {
@@ -22,13 +22,15 @@ class VisionClient extends LitElement {
     }
 
     this.visionClientService = new VisionClientService(this.backendHost)
+    this.debug = false
   }
 
   static get properties () {
     return {
       page: { type: String },
       backendHost: { type: String },
-      visionClientService: { type: Object }
+      visionClientService: { type: Object },
+      debug: { type: Boolean }
     }
   }
 
@@ -58,14 +60,52 @@ class VisionClient extends LitElement {
 
   render () {
     return html`
-    Total billing: ${this.billing}
-    <a href="/">display</a>
-    <a href="/upload">upload</a>
-    <a href="/api/frames">frames</a>
-    <a href="/api/videos">videos</a>
-    <a href="/api/predictions">predictions</a>
-    <a href="/api/objects">objects</a>
-    <a href="/api/classes">classes</a>
+    <a href="/"><paper-button raised>Main Page</paper-button></a>
+    <a href="/upload"><paper-button raised>upload</paper-button></a>
+    <paper-button raised toggles @click=${() => this.debug = !this.debug}>Debug</paper-button>
+    ${this.debug ? 
+      html`
+      Total billing: ${this.billing}
+      <a href="/api/frames"><paper-button raised>frames</paper-button></a>
+      <a href="/api/videos"><paper-button raised>videos</paper-button></a>
+      <a href="/api/predictions"><paper-button raised>predictions</paper-button></a>
+      <a href="/api/objects"><paper-button raised>objects</paper-button></a>
+      <a href="/api/classes"><paper-button raised>classes</paper-button></a>
+      <paper-button raised class="indigo" 
+      @click=${() => {
+        console.log('fetch')
+        timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
+        , 1000)
+      }
+      }>
+      Manual Predictions
+      </paper-button>
+      <a href="/" 
+      @click=${() => {
+        /*
+        return html`
+        <paper-dialog>
+          <h2>Header</h2>
+          <paper-dialog-scrollable>
+            Lorem ipsum...
+          </paper-dialog-scrollable>
+          <div class="buttons">
+            <paper-button dialog-dismiss>Cancel</paper-button>
+            <paper-button dialog-confirm autofocus>Accept</paper-button>
+          </div>
+        </paper-dialog>`
+        clear('Frame')
+        clear('Video')
+        clear('Object')
+        clear('Prediction')
+        clear('Queue')*/
+      }}>
+      clear database
+      </a>
+      ` : html``}
+    
+    
+    
       ${this.renderPage()}`
   }
 }
