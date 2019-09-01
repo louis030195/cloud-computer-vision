@@ -123,19 +123,49 @@ router.put('/:frame', (req, res, next) => {
   })
 })
 
+const deleteObject = (id) => new Promise((resolve,reject) => modelObject.delete(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
+const deletePrediction = (id) => new Promise((resolve,reject) => modelPrediction.delete(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
+const deleteFrame = (id) => new Promise((resolve,reject) => model.delete(id, (err, entity) => {
+  if(err) {
+    reject(err)
+    return;
+  }
+  resolve(entity)
+}))
+
 /**
  * DELETE /api/frames/:id
  *
  * Delete a frame.
  */
 router.delete('/:frame', (req, res, next) => { // TODO: should delete predictions associated + objects
-  model.delete(req.params.frame, err => {
-    if (err) {
-      next(err)
-      return
-    }
-    res.status(200).send('OK')
-  })
+  if (req.params.frame !== null) {
+    model.read(req.params.frame, async (err, entity) => {
+      if (err) {
+        next(err)
+        return
+      }
+      const pred = await readPrediction(entity.predictions)
+      Promise.all(pred.objects.map(async o => {
+        await deleteObject(o)
+      }), await deletePrediction(pred.id), await deleteFrame(req.params.frame))
+         .then(res.status(200).send('OK'))
+    })
+  }
 })
 
 /**

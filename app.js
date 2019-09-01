@@ -54,6 +54,9 @@ app.use('/api/objects', require('./back/objects/api-object'))
 // Classes
 app.use('/api/classes', require('./back/classes/api-class'))
 
+// Billing
+app.use('/api/billings', require('./back/billings/api-billing'))
+
 var pathRoot = `${__dirname}/front/build`
 
 app.use('/', express.static(pathRoot))

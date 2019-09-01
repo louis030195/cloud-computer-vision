@@ -53,8 +53,9 @@ def chunks(array, length):
 
 def frame_to_input(frame):
     # Download
-    img = download_Image(frame['imageUrl'], resize_width = WIDTH) # TODO: try again with rescale instead
-
+    #img = download_Image(frame['imageUrl'], resize_width = WIDTH) # TODO: try again with rescale instead
+    img = download_Image(frame['imageUrl'], rescale_width= = WIDTH)
+    
     # Failed to read image
     if img is None:
         return

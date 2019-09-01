@@ -17,7 +17,8 @@ class VisionClientDisplay extends LitElement {
       pagination: { type: Number },
       progress: { type: Number},
       countDetectionClasses: { type: Array },
-      fps: { type: Number }
+      fps: { type: Number },
+      filteredClass: { type: Array }
     }
   }
 
@@ -32,6 +33,7 @@ class VisionClientDisplay extends LitElement {
     this.progress = 0
     this.countDetectionClasses = []
     this.fps = 0
+    this.filteredClass = []
   }
 
   static get styles () {
@@ -81,10 +83,17 @@ class VisionClientDisplay extends LitElement {
     }
     
     .pagination a:hover:not(.active) {background-color: #ddd;}
+
+    paper-button {
+      width: 10px;
+      height: 5px
+    }
     `
   }
 
   firstUpdated() {
+    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
+                                         .then(() => this.resetFilter())
     this.setIntervalAndExecute(() => {
       this.requestBack()
       const v = 100 - (this.frames !== undefined ? 
@@ -111,11 +120,18 @@ class VisionClientDisplay extends LitElement {
     <vaadin-progress-bar min="0" max="100" value="${this.progress}"></vaadin-progress-bar>
     Content processed: <span>${this.progress}</span> %
     <google-chart
+    id="gchart"
     options='{"title": "Class occurences"}'
     cols='[{"label":"Class", "type":"string"}, {"label":"Occurences", "type":"number"}]'
+    @google-chart-select=${(e) => {
+      const chart = this.shadowRoot.getElementById("gchart")
+      this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).id, 10)]
+      console.log(this.filteredClass)
+    }}
     rows='${JSON.stringify(this.countDetectionClasses.map(f => [f.element - 1 < this.classes.length ? this.classes[f.element - 1].name : 'unknown', f.occurences]))}''>
     </google-chart>
     <div class="center">
+      <paper-button raised @click=${this.resetFilter}>Reset filters</paper-button>
       <div class="pagination">
         <a @click="${this.previousPage}">&laquo;</a>
         ${this.frames !== undefined ? new Array(Math.floor(this.frames.length / 10)).fill().map((f, i) =>
@@ -135,8 +151,11 @@ class VisionClientDisplay extends LitElement {
         .url=${v.imageUrl}
         </vision-client-video>`) : ''}
       -->
-      ${this.frames !== undefined ? this.frames.slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
-        html`<vision-client-frame
+      ${this.frames !== undefined ? 
+        this.frames.filter(f => f.predictions['objects'].some(o => this.filteredClass.some(c => c === o['detection_classes']), 10))
+                   .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
+        html`
+        <vision-client-frame
         .width=${300}
         .height=${300}
         .visionClientService=${this.visionClientService}
@@ -144,6 +163,11 @@ class VisionClientDisplay extends LitElement {
         .id=${f.id}
         .url=${f.imageUrl}
         .classes=${this.classes}
+        .deleteAction=${() => 
+          {
+            this.visionClientService.deleteFrame(this.id)
+            this.requestBack()
+          }}
         </vision-client-frame>`) : ''}
       </div>
     </div>
@@ -171,7 +195,10 @@ class VisionClientDisplay extends LitElement {
         this.videos = videos['items'] 
       }
     })
-    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
+  }
+
+  resetFilter() {
+    this.filteredClass = this.classes.map(c => parseInt(c.id, 10))
   }
 
   uniq(arr) {

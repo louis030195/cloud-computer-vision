@@ -3,7 +3,7 @@
 import { LitElement, html, css } from 'lit-element'
 import { timeoutPromise } from '../utils/promiseExtension'
 import '@vaadin/vaadin-upload/vaadin-upload.js'
-import '@granite-elements/granite-spinner/granite-spinner.js'
+import '@polymer/paper-spinner/paper-spinner.js'
 
 class VisionClientUpload extends LitElement {
   static get properties () {
@@ -29,16 +29,34 @@ class VisionClientUpload extends LitElement {
   }
 
   render () {
-    return html`<!--
+    return html`
+      <!--
       <vaadin-upload accept="video/*,image/*" @files-changed=${(e) => console.log('vaadin-upload changed')}>
         <span slot="drop-label">Drop your images / videos here</span>
       </vaadin-upload>
-      <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>-->
-      <granite-spinner id="loading"
-      color="#ff4081" 
-      line-width="2em"></granite-spinner>
-      Select a file: <input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${(e) => {
-        this.shadowRoot.getElementById('loading').active = true
+      -->
+      <div class="centered">
+        <paper-spinner id="loading"></paper-spinner>
+        Upload some images or videos<input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${this.fileHandler}>
+      </div>
+      ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
+    `
+  }
+
+  static get styles () {
+    return css`
+    .centered {
+      background-color:pink;
+      position: fixed; /* or absolute */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    `
+  }
+
+  fileHandler(e) {
+    this.shadowRoot.getElementById('loading').active = true
     // object for allowed media types
     const accept = {
       video: ['video/mp4'],
@@ -67,14 +85,6 @@ class VisionClientUpload extends LitElement {
         , 1000)
     })
     this.incorrectFiles = incorrectFiles
-  }}>
-      ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
-    `
-  }
-
-  static get styles () {
-    return css`
-    `
   }
 }
 

@@ -90,7 +90,7 @@ async function totalInvoice() {
   ORDER BY 1 ASC`
 
   rows = await sqlQuery(query)
-  rows.forEach(row => console.log(row))
+  return rows
 }
 
 async function totalInvoice2() {

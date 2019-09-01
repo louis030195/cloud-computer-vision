@@ -68,4 +68,12 @@ export default class VisionClientService {
   getClass (id) {
     return fetch(`${this.backendHost}/api/classes/${id}`).then(r => r.json())
   }
+
+  getBilling () {
+    return fetch(`${this.backendHost}/api/billings`).then(r => r.json())
+  }
+
+  getBilling (id) {
+    return fetch(`${this.backendHost}/api/billings/${id}`).then(r => r.json())
+  }
 }

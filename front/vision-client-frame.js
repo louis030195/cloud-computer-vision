@@ -12,7 +12,8 @@ class VisionClientFrame extends LitElement {
       url: { type: String },
       width: { type: Number },
       height: { type: Number },
-      classes: { type: Array }
+      classes: { type: Array },
+      deleteAction: { type: Function }
     }
   }
 
@@ -117,6 +118,7 @@ class VisionClientFrame extends LitElement {
       ctx.fillStyle = '#000000'
       ctx.fillText(boxText, xmin, ymin)
 
+      
       // Draw circle
       ctx.beginPath()
       ctx.arc(circle.x, circle.y, circle.radius, 0, 2 * Math.PI, false)
@@ -132,9 +134,11 @@ class VisionClientFrame extends LitElement {
       ctx.lineTo(cross.x - cross.size, cross.y + cross.size)
       ctx.strokeStyle = cross.color
       ctx.stroke();
+      
     })
-
+    
     canvas.addEventListener('click', (e) => {
+      //this.deleteAction()
       // TODO: delete objects & predictions 
       // OR make a trigger / callback in datastore that delete p/o of frame postdelete
       this.visionClientService.deleteFrame(this.id) // Then update somehow

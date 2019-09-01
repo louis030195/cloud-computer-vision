@@ -8,34 +8,35 @@ import { timeoutPromise } from '../utils/promiseExtension'
 // import { clear } from '../tools/datastore'
 import VisionClientService from './services/vision-client-service'
 // import '@polymer/paper-dialog/paper-dialog.js'
-// import { totalInvoice } from '../utils/billing'
 import '@polymer/paper-button/paper-button.js'
 
 class VisionClient extends LitElement {
+  static get properties () {
+    return {
+      page: { type: String },
+      backendHost: { type: String },
+      visionClientService: { type: Object },
+      debug: { type: Boolean },
+      billing: { type: String }
+    }
+  }
+
   constructor () {
     super()
     this.page = 'upload'
 
     this.backendHost = window.location.origin
     if(window.location.hostname === 'localhost' && window.location.port === '3000') {
-      this.backendHost = 'http://localhost:9090/https://vision-client-dot-wildlife-247309.appspot.com'
+      this.backendHost = `http://localhost:9090/https://vision-client-dot-${env.process.PROJECT_ID}.appspot.com`
     }
 
     this.visionClientService = new VisionClientService(this.backendHost)
     this.debug = false
-  }
-
-  static get properties () {
-    return {
-      page: { type: String },
-      backendHost: { type: String },
-      visionClientService: { type: Object },
-      debug: { type: Boolean }
-    }
+    this.billing = ''
   }
 
   firstUpdated () {
-    // this.billing = totalInvoice()
+    this.visionClientService.getBilling(new Date().getMonth()).then(billing => this.billing = billing)
     page('/', () => {
       this.page = 'display'
     })
@@ -65,7 +66,7 @@ class VisionClient extends LitElement {
     <paper-button raised toggles @click=${() => this.debug = !this.debug}>Debug</paper-button>
     ${this.debug ? 
       html`
-      Total billing: ${this.billing}
+      Total billing: ${JSON.stringify(this.billing)}
       <a href="/api/frames"><paper-button raised>frames</paper-button></a>
       <a href="/api/videos"><paper-button raised>videos</paper-button></a>
       <a href="/api/predictions"><paper-button raised>predictions</paper-button></a>
@@ -73,7 +74,6 @@ class VisionClient extends LitElement {
       <a href="/api/classes"><paper-button raised>classes</paper-button></a>
       <paper-button raised class="indigo" 
       @click=${() => {
-        console.log('fetch')
         timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
         , 1000)
       }
