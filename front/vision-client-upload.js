@@ -32,51 +32,33 @@ class VisionClientUpload extends LitElement {
 
   render () {
     return html`
-      <!--
-      <vaadin-upload accept="video/*,image/*" @files-changed=${(e) => console.log('vaadin-upload changed')}>
-        <span slot="drop-label">Drop your images / videos here</span>
-      </vaadin-upload>
-      -->
-      <div class="centered">
+        
         <paper-spinner id="uploadLoading"></paper-spinner>
         
+        <label for="file">
+        <paper-icon-button icon="file-upload"></paper-icon-button>
+        <!-- Choose a file -->
+        </label>
         <input id="file" class="inputfile" type="file" multiple accept="video/*,image/*" 
         data-multiple-caption="${this.count} files selected"
         @change=${this.fileHandler}>
-      </div>
+        
+        </input>
+        
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
     `
   }
 
   static get styles () {
     return css`
-
-
-    .inputfile::-webkit-file-upload-button {
-      visibility: hidden;
-    }
-    .inputfile::before {
-      content: 'Upload images or videos';
-      display: inline-block;
-      background: linear-gradient(top, #f9f9f9, #e3e3e3);
-      border: 1px solid #999;
-      border-radius: 3px;
-      padding: 5px 8px;
-      outline: none;
-      white-space: nowrap;
-      -webkit-user-select: none;
-      cursor: pointer;
-      text-shadow: 1px 1px #fff;
-      font-weight: 700;
-      font-size: 10pt;
-      margin: 20px;
-    }
-    .inputfile:hover::before {
-      border-color: black;
-    }
-    .inputfile:active::before {
-      background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
-    }
+      .inputfile {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+      }
     `
   }
 

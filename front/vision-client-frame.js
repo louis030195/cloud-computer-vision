@@ -21,9 +21,60 @@ class VisionClientFrame extends LitElement {
     this.objects = []
   }
 
+  updated() {
+    if (this.objects === null || this.objects.constructor !== Array) return
+    this.renderPredictions()
+  }
+
+  static get styles () {
+    return css`
+    .outsideWrapper{ 
+        width:300px;
+        height:300px;
+        border:1px solid blue;
+      }
+    .insideWrapper{ 
+        width:100%; height:100%; 
+        position:relative;
+      }
+    .coveredImage{ 
+        width:100%; height:100%; 
+        position:absolute; top:0px; left:0px;
+    }
+    .coveringCanvas{ 
+        width:100%; height:100%; 
+        position:absolute; top:0px; left:0px;
+        background-color: rgba(255,0,0,.1);
+    }
+    @media (max-width: 400px) {
+      .outsideWrapper{ 
+        width:100px;
+        height:100px;
+      }
+    }
+    @media (max-width: 600px) {
+      .outsideWrapper{ 
+        width:150px;
+        height:150px;
+      }
+    }
+    `
+  }
+
+  render () {
+    return html`
+    <div class="outsideWrapper">
+        <div class="insideWrapper">
+            <img id="img" src=${this.url} class="coveredImage">
+            <canvas id="myCanvas" class="coveringCanvas"></canvas>
+        </div>
+    </div>
+    `
+  }
+
   rainbow(n, maxLength) {
-      n = n * 240 / maxLength;
-      return 'hsl(' + n + ',100%,50%)';
+    n = n * 240 / maxLength;
+    return 'hsl(' + n + ',100%,50%)';
   }
 
   perc2color(perc, min, max) {
@@ -44,11 +95,6 @@ class VisionClientFrame extends LitElement {
       }
       let h = r * 0x10000 + g * 0x100 + b * 0x1;
       return '#' + ('000000' + h.toString(16)).slice(-6);
-  }
-
-  updated() {
-    if (this.objects === null || this.objects.constructor !== Array) return
-    this.renderPredictions()
   }
 
   // Based on https://github.com/eisbilen/TFJS-ObjectDetection/blob/06324d6a4673d2933695bd6644fa2a7bc5e81326/src/app/app.component.ts
@@ -83,7 +129,7 @@ class VisionClientFrame extends LitElement {
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     // Font options.
-    const font = '16px sans-serif'
+    const font = `${window.screen.width > 600 ? 16 : 32}px sans-serif`
     ctx.font = font
     ctx.textBaseline = 'top'
     ctx.drawImage(image, 0, 0, this.width, this.height)
@@ -143,39 +189,6 @@ class VisionClientFrame extends LitElement {
 
   isIntersect(point, circle) {
     return Math.sqrt((point.x-circle.x) ** 2 + (point.y - circle.y) ** 2) < circle.radius;
-  }
-
-
-  static get styles () {
-    return css`
-    .outsideWrapper{ 
-        width:${this.width !== undefined ? parseInt(this.width * window.screen.width / 1000, 10) : 300}px;
-        height:${this.height !== undefined ? parseInt(this.height * window.screen.height / 1000, 10) : 300}px;
-        border:1px solid blue;}
-    .insideWrapper{ 
-        width:100%; height:100%; 
-        position:relative;}
-    .coveredImage{ 
-        width:100%; height:100%; 
-        position:absolute; top:0px; left:0px;
-    }
-    .coveringCanvas{ 
-        width:100%; height:100%; 
-        position:absolute; top:0px; left:0px;
-        background-color: rgba(255,0,0,.1);
-    }
-    `
-  }
-
-  render () {
-    return html`
-    <div class="outsideWrapper">
-        <div class="insideWrapper">
-            <img id="img" src=${this.url} class="coveredImage">
-            <canvas id="myCanvas" class="coveringCanvas"></canvas>
-        </div>
-    </div>
-    `
   }
 }
 

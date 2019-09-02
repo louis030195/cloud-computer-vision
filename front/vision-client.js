@@ -5,10 +5,9 @@ import page from 'page'
 import './vision-client-display'
 import './vision-client-upload'
 import { timeoutPromise } from '../utils/promiseExtension'
-// import { clear } from '../tools/datastore'
 import VisionClientService from './services/vision-client-service'
-// import '@polymer/paper-dialog/paper-dialog.js'
 import '@polymer/paper-button/paper-button.js'
+import '@polymer/app-layout/app-layout.js';
 
 class VisionClient extends LitElement {
   static get properties () {
@@ -23,7 +22,7 @@ class VisionClient extends LitElement {
 
   constructor () {
     super()
-    this.page = 'upload'
+    this.page = 'display'
 
     this.backendHost = window.location.origin
     if(window.location.hostname === 'localhost' && window.location.port === '3000') {
@@ -72,11 +71,7 @@ class VisionClient extends LitElement {
       }>
       Manual Predictions
       </paper-button>
-      <a href="/" 
-      @click=${() => {
-        /*
-        return html`
-        <paper-dialog>
+      <paper-dialog>
           <h2>Header</h2>
           <paper-dialog-scrollable>
             Lorem ipsum...
@@ -85,15 +80,7 @@ class VisionClient extends LitElement {
             <paper-button dialog-dismiss>Cancel</paper-button>
             <paper-button dialog-confirm autofocus>Accept</paper-button>
           </div>
-        </paper-dialog>`
-        clear('Frame')
-        clear('Video')
-        clear('Object')
-        clear('Prediction')
-        clear('Queue')*/
-      }}>
-      clear database
-      </a>
+        </paper-dialog>
       ` : html``}
     
     
