@@ -10,7 +10,8 @@ class VisionClientUpload extends LitElement {
     return {
       visionClientService: { type: Object },
       videos: { type: Array },
-      incorrectFiles: { type: Array }
+      incorrectFiles: { type: Array },
+      count: { type: Number }
     }
   }
 
@@ -18,6 +19,7 @@ class VisionClientUpload extends LitElement {
     super()
     this.videos = []
     this.incorrectFiles = []
+    this.count = 0
   }
 
   firstUpdated () {
@@ -36,8 +38,11 @@ class VisionClientUpload extends LitElement {
       </vaadin-upload>
       -->
       <div class="centered">
-        <paper-spinner id="loading"></paper-spinner>
-        Upload some images or videos<input id="file" type="file" name="myFile" multiple accept="video/*,image/*" @change=${this.fileHandler}>
+        <paper-spinner id="uploadLoading"></paper-spinner>
+        
+        <input id="file" class="inputfile" type="file" multiple accept="video/*,image/*" 
+        data-multiple-caption="${this.count} files selected"
+        @change=${this.fileHandler}>
       </div>
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
     `
@@ -45,18 +50,38 @@ class VisionClientUpload extends LitElement {
 
   static get styles () {
     return css`
-    .centered {
-      background-color:pink;
-      position: fixed; /* or absolute */
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+
+
+    .inputfile::-webkit-file-upload-button {
+      visibility: hidden;
+    }
+    .inputfile::before {
+      content: 'Upload images or videos';
+      display: inline-block;
+      background: linear-gradient(top, #f9f9f9, #e3e3e3);
+      border: 1px solid #999;
+      border-radius: 3px;
+      padding: 5px 8px;
+      outline: none;
+      white-space: nowrap;
+      -webkit-user-select: none;
+      cursor: pointer;
+      text-shadow: 1px 1px #fff;
+      font-weight: 700;
+      font-size: 10pt;
+      margin: 20px;
+    }
+    .inputfile:hover::before {
+      border-color: black;
+    }
+    .inputfile:active::before {
+      background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
     }
     `
   }
 
   fileHandler(e) {
-    this.shadowRoot.getElementById('loading').active = true
+    this.shadowRoot.getElementById('uploadLoading').active = true
     // object for allowed media types
     const accept = {
       video: ['video/mp4'],
@@ -65,7 +90,7 @@ class VisionClientUpload extends LitElement {
 
     const incorrectFiles = []
     const files = Array.from(e.target.files)
-
+    this.count = files.length
     Promise.all(files.map(async (file) => {
       // if file type could be detected
       if (file !== null) {
@@ -79,8 +104,7 @@ class VisionClientUpload extends LitElement {
       }
     }))
     .then(() => {
-        this.shadowRoot.getElementById('loading').active = false
-        console.log('fetch')
+        this.shadowRoot.getElementById('uploadLoading').active = false
         timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
         , 1000)
     })

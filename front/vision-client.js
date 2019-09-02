@@ -27,7 +27,7 @@ class VisionClient extends LitElement {
 
     this.backendHost = window.location.origin
     if(window.location.hostname === 'localhost' && window.location.port === '3000') {
-      this.backendHost = `http://localhost:9090/https://vision-client-dot-${env.process.PROJECT_ID}.appspot.com`
+      this.backendHost = `http://localhost:9090/https://vision-client-dot-${process.env.PROJECT_ID}.appspot.com`
     }
 
     this.visionClientService = new VisionClientService(this.backendHost)
@@ -40,9 +40,6 @@ class VisionClient extends LitElement {
     page('/', () => {
       this.page = 'display'
     })
-    page('/upload', () => {
-      this.page = 'upload'
-    })
     page()
   }
 
@@ -52,17 +49,12 @@ class VisionClient extends LitElement {
         return html`<vision-client-display
                         .visionClientService=${this.visionClientService}
                         ></vision-client-display>`
-      case 'upload':
-        return html`<vision-client-upload
-                        .visionClientService=${this.visionClientService}
-                        ></vision-client-upload>`
     }
   }
 
   render () {
     return html`
     <a href="/"><paper-button raised>Main Page</paper-button></a>
-    <a href="/upload"><paper-button raised>upload</paper-button></a>
     <paper-button raised toggles @click=${() => this.debug = !this.debug}>Debug</paper-button>
     ${this.debug ? 
       html`

@@ -76,4 +76,8 @@ export default class VisionClientService {
   getBilling (id) {
     return fetch(`${this.backendHost}/api/billings/${id}`).then(r => r.json())
   }
+
+  getQueueLength () {
+    return fetch(`${this.backendHost}/api/queues/length`).then(r => r.json())
+  }
 }

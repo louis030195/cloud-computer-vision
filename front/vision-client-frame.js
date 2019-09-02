@@ -8,7 +8,6 @@ class VisionClientFrame extends LitElement {
     return {
       visionClientService: { type: Object },
       objects: { type: Array }, // A frame can have multiple objects detected
-      id: { type: Object }, // Id in datastore
       url: { type: String },
       width: { type: Number },
       height: { type: Number },
@@ -138,21 +137,7 @@ class VisionClientFrame extends LitElement {
     })
     
     canvas.addEventListener('click', (e) => {
-      //this.deleteAction()
-      // TODO: delete objects & predictions 
-      // OR make a trigger / callback in datastore that delete p/o of frame postdelete
-      this.visionClientService.deleteFrame(this.id) // Then update somehow
-      // .then(name => boxText = `${name['name']} ${object['detection_scores'].toFixed(2)}`)
-      /*
-      const pos = {
-        x: e.clientX - e.srcElement.offsetParent.offsetLeft,
-        y: e.clientY - e.srcElement.offsetParent.offsetTop
-      }
-      console.log('click ', e)
-      if (this.isIntersect(pos, circle)) {
-        console.log('click on circle: ')
-      }
-      */
+      this.deleteAction()
     })
   }
 

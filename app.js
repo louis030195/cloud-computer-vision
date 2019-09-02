@@ -57,6 +57,9 @@ app.use('/api/classes', require('./back/classes/api-class'))
 // Billing
 app.use('/api/billings', require('./back/billings/api-billing'))
 
+// Queue
+app.use('/api/queues', require('./back/queues/api-queue'))
+
 var pathRoot = `${__dirname}/front/build`
 
 app.use('/', express.static(pathRoot))

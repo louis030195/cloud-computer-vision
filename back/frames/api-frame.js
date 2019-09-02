@@ -163,6 +163,7 @@ router.delete('/:frame', (req, res, next) => { // TODO: should delete prediction
       Promise.all(pred.objects.map(async o => {
         await deleteObject(o)
       }), await deletePrediction(pred.id), await deleteFrame(req.params.frame))
+         .catch(() => {})
          .then(res.status(200).send('OK'))
     })
   }

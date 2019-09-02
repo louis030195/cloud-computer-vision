@@ -40,7 +40,6 @@
     "@google-cloud/nodejs-repo-tools": "^3.2.0",
     "@google-cloud/storage": "^1.7.0",
     "@google-web-components/google-chart": "^3.0.6",
-    "@ividjs/ivid": "^1.0.7",
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-dialog": "^3.0.1",
     "@polymer/paper-spinner": "^3.0.2",

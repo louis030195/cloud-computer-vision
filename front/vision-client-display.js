@@ -3,8 +3,8 @@
 import { LitElement, html, css } from 'lit-element'
 import './vision-client-frame'
 import './vision-client-video'
-import '@vaadin/vaadin-progress-bar/vaadin-progress-bar.js'
 import '@google-web-components/google-chart/google-chart.js'
+import '@polymer/paper-spinner/paper-spinner.js'
 
 class VisionClientDisplay extends LitElement {
   static get properties () {
@@ -15,9 +15,8 @@ class VisionClientDisplay extends LitElement {
       predictions: { type: Array },
       objects: { type: Array },
       pagination: { type: Number },
-      progress: { type: Number},
+      queueLength: { type: Number},
       countDetectionClasses: { type: Array },
-      fps: { type: Number },
       filteredClass: { type: Array }
     }
   }
@@ -30,9 +29,8 @@ class VisionClientDisplay extends LitElement {
     this.predictions = []
     this.objects = []
     this.pagination = 0
-    this.progress = 0
+    this.queueLength = 0
     this.countDetectionClasses = []
-    this.fps = 0
     this.filteredClass = []
   }
 
@@ -61,6 +59,12 @@ class VisionClientDisplay extends LitElement {
     .center {
       text-align: center;
     }
+
+    .center paper-button {
+      float: left;
+      padding: 8px 16px;
+      margin: 0 4px;
+    }
     
     .pagination {
       display: inline-block;
@@ -84,9 +88,20 @@ class VisionClientDisplay extends LitElement {
     
     .pagination a:hover:not(.active) {background-color: #ddd;}
 
-    paper-button {
-      width: 10px;
-      height: 5px
+    .queue {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      border: 1px solid #ddd;
+      margin: 30px;
+      padding: 10px
+    }
+
+    vision-client-upload {
+      position: fixed; /* or absolute */
+      top: 10%;
+      left: 50%;
+      transform: translate(-50%, -50%)
     }
     `
   }
@@ -95,17 +110,12 @@ class VisionClientDisplay extends LitElement {
     this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
                                          .then(() => this.resetFilter())
     this.setIntervalAndExecute(() => {
-      this.requestBack()
-      const v = 100 - (this.frames !== undefined ? 
-        (this.frames.length / this.frames.filter(f => f.predictions['objects'].length > 0).length) - 1 :
-        0)
-      this.progress = v === undefined ? 0 : v
+      this.refresh()
     }, 10000)
   }
   
   updated (changedProperties) {
     changedProperties.forEach((oldValue, propName) => {
-      if(oldValue !== undefined) console.log(`${propName} changed.`)
       if (propName.includes('frames')) {
         this.updateGraphics()
       }
@@ -115,10 +125,17 @@ class VisionClientDisplay extends LitElement {
 
   render () {
     return html`
-    <br />
-    frames being processed ${this.frames !== undefined ? this.frames.filter(f => f.predictions['objects'].length === 0).length : 0}
-    <vaadin-progress-bar min="0" max="100" value="${this.progress}"></vaadin-progress-bar>
-    Content processed: <span>${this.progress}</span> %
+    <!-- Upload part -->
+    <vision-client-upload .visionClientService=${this.visionClientService}>
+    </vision-client-upload>
+
+    <!-- Display information about the current queue of processes content -->
+    <div class="queue">
+      <paper-spinner id="queueLoading"></paper-spinner>
+      ${this.queueLength} elements being processed 
+    </div>
+
+    <!-- Statistics & vizualisation part -->
     <google-chart
     id="gchart"
     options='{"title": "Class occurences"}'
@@ -126,15 +143,20 @@ class VisionClientDisplay extends LitElement {
     @google-chart-select=${(e) => {
       const chart = this.shadowRoot.getElementById("gchart")
       this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).id, 10)]
-      console.log(this.filteredClass)
+      this.pagination = 0
     }}
     rows='${JSON.stringify(this.countDetectionClasses.map(f => [f.element - 1 < this.classes.length ? this.classes[f.element - 1].name : 'unknown', f.occurences]))}''>
     </google-chart>
+
+    <!-- Main part, pagination, tools, content -->
     <div class="center">
+      <paper-button raised @click=${this.refresh}>Refresh</paper-button>
       <paper-button raised @click=${this.resetFilter}>Reset filters</paper-button>
       <div class="pagination">
         <a @click="${this.previousPage}">&laquo;</a>
-        ${this.frames !== undefined ? new Array(Math.floor(this.frames.length / 10)).fill().map((f, i) =>
+        ${this.frames !== undefined ? 
+          new Array(Math.floor(this.frames.filter(f => f.predictions['objects']
+            .some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)).length / 10)).fill().map((f, i) =>
           html`<a class="${this.pagination == i ? `active` : ``}" @click="${this.goTo}">${i}</a>`
         ) : ''}
         <a @click="${this.nextPage}">&raquo;</a>
@@ -142,7 +164,6 @@ class VisionClientDisplay extends LitElement {
     </div>
     <div id="content">
       <div class="wrapper">
-      <!--
       ${this.videos !== undefined ? this.videos.slice(this.pagination * 10, this.pagination * 10 + 10).map((v, i) =>
         html`<vision-client-video
         .width=${300}
@@ -150,7 +171,6 @@ class VisionClientDisplay extends LitElement {
         .visionClientService=${this.visionClientService}
         .url=${v.imageUrl}
         </vision-client-video>`) : ''}
-      -->
       ${this.frames !== undefined ? 
         this.frames.filter(f => f.predictions['objects'].some(o => this.filteredClass.some(c => c === o['detection_classes']), 10))
                    .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
@@ -160,18 +180,15 @@ class VisionClientDisplay extends LitElement {
         .height=${300}
         .visionClientService=${this.visionClientService}
         .objects=${f.predictions.objects}
-        .id=${f.id}
         .url=${f.imageUrl}
         .classes=${this.classes}
         .deleteAction=${() => 
           {
-            this.visionClientService.deleteFrame(this.id)
-            this.requestBack()
+            this.visionClientService.deleteFrame(f.id).then(() => this.requestBack())
           }}
         </vision-client-frame>`) : ''}
       </div>
     </div>
-      
     `
   }
 
@@ -180,7 +197,7 @@ class VisionClientDisplay extends LitElement {
     return(setInterval(fn, t));
   }
 
-  requestBack() {
+  refresh() {
     this.visionClientService.getFramesPredictionsObjects().then(frames => { 
       // Only update prop if number of frames changed or there is more predictions
       if (frames['items'].length !== this.frames.length ||
@@ -195,10 +212,13 @@ class VisionClientDisplay extends LitElement {
         this.videos = videos['items'] 
       }
     })
+    this.visionClientService.getQueueLength().then(queueLength => this.queueLength = queueLength)
+                                             .then(() => this.shadowRoot.getElementById('queueLoading').active = !(this.queueLength === 0))
   }
 
   resetFilter() {
     this.filteredClass = this.classes.map(c => parseInt(c.id, 10))
+    this.pagination = 0
   }
 
   uniq(arr) {
@@ -249,12 +269,10 @@ class VisionClientDisplay extends LitElement {
   }
 
   updateGraphics() {
-    let t0 = performance.now()
     this.countDetectionClasses = this.countElements(this.frames.map(frame => frame.predictions.objects)
                                                               .flat()
                                                               .filter(object => object.detection_scores > 0.6)
                                                               .map(object => object.detection_classes), true)
-    console.log(`Call to countElements took ${(performance.now() - t0).toFixed(2)} milliseconds.`)
   }
 
   goTo(e) {

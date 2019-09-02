@@ -1,7 +1,6 @@
 /* globals customElements */
 
 import { LitElement, html, css } from 'lit-element'
-import '@ividjs/ivid/dist/ivid.min.js'
 
 class VisionClientVideo extends LitElement {
   static get properties () {
@@ -28,14 +27,7 @@ class VisionClientVideo extends LitElement {
 
 
   firstUpdated() {
-    console.log(this.url)
-    this.model = {
-      'video_A': {
-        uid: 'video_A',
-        src: this.url
-      }
-    }
-    this.shadowRoot.getElementById("sample").setAttribute("model", JSON.stringify(model));
+
   }
 
 
@@ -46,7 +38,10 @@ class VisionClientVideo extends LitElement {
 
   render () {
     return html`
-    <i-video id="sample" controls autoplay playsinline></i-video>
+    <video width="${this.width}" height="${this.height}" controls>
+      <source src="${this.url}" type="video/${this.url.substring(this.url.length - 3, this.url.length)}">
+    Your browser does not support the video tag.
+    </video>
     `
   }
 }
