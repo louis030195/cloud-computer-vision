@@ -62,7 +62,7 @@ class VisionClientDisplay extends LitElement {
     this.countDetectionClasses = []
     this.filteredClass = []
   }
-
+  
   static get styles () {
     return css`
     body {
@@ -72,9 +72,9 @@ class VisionClientDisplay extends LitElement {
 
     app-toolbar {
       /* Toolbar is the main header, so give it some color */
-      background-color: #1E88E5;
+      background-color: #dcc48e;
       font-family: 'Roboto', Helvetica, sans-serif;
-      color: white;
+      color: #505168;
       --app-toolbar-font-size: 24px;
     }
 
@@ -256,7 +256,7 @@ class VisionClientDisplay extends LitElement {
     return html`
       <app-header fixed reveals>
         <app-toolbar class="toolbar">
-          <div id="main-title" main-title>Cloud Computer Vision</div>
+          <div id="main-title" main-title><strong>Cloud Computer Vision</strong></div>
             <!-- Display information about the current queue of processes content -->
             <div class="queue">
               <paper-spinner id="queueLoading"></paper-spinner>

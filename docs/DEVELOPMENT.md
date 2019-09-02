@@ -16,24 +16,26 @@ npm install
 ```
 
 # TODO
-Most important things to do:
-1. Handle videos
-2. Make front end less ugly and give more use feedback
 ## BACK
-- Second endpoint /api/frames/predictions/objects excluding frames from video
+- Second endpoint /api/frames/predictions/objects excluding frames from video ?
 - Endpoint /api/videos/predictions/objects ?
 
 ## FRONT
 - Reset / remake new predictions (new model ...)
-- Time / price estimator / simulator (before launching the task and after also) more user feedback (use pubsub ?)
+- Time / price estimator / simulator (before launching the task and after also) more user feedback
 - Stuff with dates, count, stats ...
 - More vizualisation / stats / graphics, make graphics resizable by drag & drop
-- Group images by class
+- Modify environment variables of every component from interface
 
 ## MISC
-- Script that configure all the repo + gcp automatically
+- Script that configure all the repo + gcp automatically (that is 100% working)
 - Split back / front
-- LOGS LOGS LOGS
-- Datastore callbacks (E.g delete frame => delete its predictions+objects see [doc](https://cloud.google.com/appengine/docs/standard/java/datastore/callbacks#top_of_page))
+- More logs
+- Datastore callbacks ([doc](https://cloud.google.com/appengine/docs/standard/java/datastore/callbacks#top_of_page))
 - Handle multiple models, choosing on front
 - Other tasks (segmentation, action classification, captioning ...)
+
+
+# Design
+## Color scheme
+https://coolors.co/export/pdf/dcc48e-eaefd3-b3c0a4-505168-27233a

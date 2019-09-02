@@ -27,7 +27,6 @@ env_variables:
   GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
   
 automatic_scaling:
-  cool_down_period: 120s
   min_num_instances: 1
   max_num_instances: 20" > app.yaml
 
