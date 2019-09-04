@@ -50,10 +50,10 @@ def batch_result(event, context):
 
         # Create a keys list that will be used to reference each object detected
         keys_object = list()
-
+        print('num_detections',pred['num_detections'])
         # For every object detected
         for i in range(int(pred['num_detections'])):
-
+            #if pred['detection_scores'][i] > 10:
             # Create a new dict that will be put in datastore in a clean format
             object_detected = dict()
             object_detected['detection_classes'] = int(pred['detection_classes'][i])
@@ -71,8 +71,8 @@ def batch_result(event, context):
 
         # Put a list of objects detected in prediction row
         model_name = event['name'].split('/')[0].split('_')[2]
-        print('model name', model_name)
-        entity_prediction.update({'objects': keys_object, 'model': model_name})
+        print('modelname', model_name)
+        entity_prediction.update({'model': model_name, 'objects': keys_object})
 
         # Update the prediction in datastore
         datastore_client.put(entity_prediction)
@@ -84,7 +84,7 @@ def batch_result(event, context):
         frame = list(query.fetch())[0]
 
         # Update the predictions properties of the Frame row
-        frame['predictions'] = entity_prediction.id
+        frame['predictions'].append(entity_prediction.id)
 
         # Push into datastore
         datastore_client.put(frame)

@@ -7,7 +7,7 @@ import './vision-client-upload'
 import './vision-client-frame'
 import './vision-client-video'
 import { timeoutPromise } from '../utils/promiseExtension'
-import { rainbow } from '../utils/miscFront'
+import { rainbow, uniq, countElements } from '../utils/miscFront'
 import VisionClientService from './services/vision-client-service'
 
 import '@google-web-components/google-chart/google-chart.js'
@@ -16,8 +16,10 @@ import '@polymer/paper-button/paper-button.js'
 import '@polymer/paper-icon-button/paper-icon-button.js'
 import '@polymer/iron-icons/iron-icons.js'
 import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js'
-import '@polymer/paper-input/paper-input.js';
-import '@polymer/paper-toast/paper-toast.js';
+import '@polymer/paper-input/paper-input.js'
+import '@polymer/paper-toast/paper-toast.js'
+import '@polymer/paper-checkbox/paper-checkbox.js'
+
 import "side-drawer"
 
 
@@ -37,7 +39,8 @@ class VisionClientDisplay extends LitElement {
       pagination: { type: Number },
       queueLength: { type: Number},
       countDetectionClasses: { type: Array },
-      filteredClass: { type: Array }
+      filteredClass: { type: Array },
+      models: { type: Object }
     }
   }
 
@@ -65,6 +68,7 @@ class VisionClientDisplay extends LitElement {
     this.queueLength = 0
     this.countDetectionClasses = []
     this.filteredClass = []
+    this.models = []
   }
   
   static get styles () {
@@ -197,7 +201,7 @@ class VisionClientDisplay extends LitElement {
     })
     page()
 
-    this.visionClientService.getClasses().then(classes => { this.classes = classes['items'] })
+    this.visionClientService.getClasses().then(classes => { this.classes = classes })
                                          .then(() => this.resetFilter())
     this.setIntervalAndExecute(() => {
       this.refresh()
@@ -236,6 +240,7 @@ class VisionClientDisplay extends LitElement {
       ${this.renderPage()}
       
       <!-- Statistics & vizualisation part -->
+      
       <google-chart
       id="gchart"
       type="column"
@@ -245,13 +250,13 @@ class VisionClientDisplay extends LitElement {
       cols='[{"label":"Class", "type":"string"}, {"label":"Occurences", "type":"number"}]'
       @google-chart-select=${(e) => {
         const chart = this.shadowRoot.getElementById("gchart")
-        this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).id, 10)]
+        this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).index, 10)]
         this.pagination = 0
       }}
       rows='${JSON.stringify(this.countDetectionClasses.map(f => [f.element - 1 < this.classes.length ? this.classes[f.element - 1].name : 'unknown',
-                                                                  f.occurences],
-                                                                  "color: #76A7FA").slice(0, 10))}''>
+                                                                  f.occurences]).slice(0, 10))}''>
       </google-chart>
+      
       <!--
       <google-chart
       type="gauge"
@@ -272,8 +277,11 @@ class VisionClientDisplay extends LitElement {
           </paper-button>
           <a @click="${this.previousPage}">&laquo;</a>
           ${this.frames !== undefined ? 
-            new Array(Math.floor(this.frames.filter(f => f.predictions['objects']
-              .some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)).length / 10))
+            new Array(Math.floor(this.frames.length / 10
+              /*.map(f => f.predictions)
+              .filter(p => p.objects !== undefined && p.objects.length > 0) // Some predictions may have no objects
+              .filter(p => p.objects
+              .some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)).length / 10*/))
               .fill()
               .slice(0, 3)
               .map((f, i) =>
@@ -292,19 +300,21 @@ class VisionClientDisplay extends LitElement {
           .url=${v.imageUrl}
           </vision-client-video>`) : ''}
         ${this.frames !== undefined ? 
-          this.frames.filter(f => f.predictions['objects'].some(o => this.filteredClass.some(c => c === o['detection_classes']), 10))
+          this.frames
+                    //.filter(f => f.predictions.objects !== undefined && f.predictions.objects.length > 0) // Some predictions may have no objects
+                    //.filter(f => f.predictions.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10))
                     .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
           html`
           <vision-client-frame
           .width=${300}
           .height=${300}
           .visionClientService=${this.visionClientService}
-          .objects=${f.predictions.objects}
+          .predictions=${f.predictions}
           .url=${f.imageUrl}
           .classes=${this.classes}
           .deleteAction=${() => 
             {
-              this.visionClientService.deleteFrame(f.id).then(() => this.requestBack())
+              this.visionClientService.deleteFrame(f.id).then(() => this.refresh())
             }}
           </vision-client-frame>`) : ''}
         </div>
@@ -328,7 +338,20 @@ class VisionClientDisplay extends LitElement {
             <label>Refresh</label>
             <paper-icon-button icon="refresh" @click=${this.refresh}></paper-icon-button>
             <label>Settings</label>
-            <paper-icon-button icon="settings" toggles @click=${() => this.shadowRoot.getElementById("side").open = true}></paper-icon-button>
+            <paper-icon-button icon="settings" toggles @click=${() => {
+              this.shadowRoot.getElementById("side").open = true
+
+              // TODO: destroy this
+              this.visionClientService.getModelVersions('m1').then(res => { 
+                let models = res.split('\n')
+                models.shift()
+                this.models = []
+                for (const c of models) {
+                  this.models.push(c.split(' ')[0])
+                }
+              })
+            }
+            }></paper-icon-button>
         </app-toolbar>
       </app-header>
       <side-drawer id="side">
@@ -336,6 +359,7 @@ class VisionClientDisplay extends LitElement {
       <paper-input id="height" label="Height" value="400"></paper-input>
       <paper-input id="batch_chunk" label="Batch chunk" value="100"></paper-input>
       <paper-input id="treshold" label="Treshold" value="100"></paper-input>
+      ${this.models.map(m => { return html`<paper-checkbox>${m}</paper-checkbox>` })}
       <paper-button raised @click=${() => {
         //this.shadowRoot.getElementById("side").open = false
         const params = { width: this.shadowRoot.getElementById('width').value, 
@@ -386,61 +410,19 @@ class VisionClientDisplay extends LitElement {
   }
 
   resetFilter() {
-    this.filteredClass = this.classes.map(c => parseInt(c.id, 10))
+    this.filteredClass = []
+    for (const model of uniq(this.classes.map(o => o['dataset']))) {
+      this.filteredClass.push(this.classes.filter(dataset => dataset['dataset'].includes(model)).map(c => parseInt(c.index, 10)))
+    }
+    this.filteredClass = this.filteredClass.flat()
     this.pagination = 0
   }
-
-  uniq(arr) {
-    var seen = {}
-    return a.filter(function(item) {
-        return seen.hasOwnProperty(item) ? false : (seen[item] = true)
-    })
-  }
-
-  mode(arr) {
-    return arr.sort((a,b) =>
-          arr.filter(v => v===a).length
-        - arr.filter(v => v===b).length
-    ).pop()
-  }
   
-  /*
-  * Return the number of occurences of an element in an array
-  * Optionally, it can be returned sorted in descending order
-  * And also be limited to a number of elements
-  */
-  countElements(arr, sortByOccurences = true, limit = undefined) {
-    let a = [], b = [], prev
-    
-    arr.sort();
-    for ( let i = 0; i < arr.length; i++ ) {
-        if ( arr[i] !== prev ) {
-            a.push(arr[i])
-            b.push(1)
-        } else {
-            b[b.length-1]++;
-        }
-        prev = arr[i]
-    }
-    
-    let result = a.map((e, i) => { return { element: e, occurences: b[i] }})
-    
-    if (sortByOccurences) {
-      result.sort((a, b) => {
-        return ((a.occurences > b.occurences) ? -1 : ((a.occurences == b.occurences) ? 0 : 1))
-      })
-      // I don't see any point in taking limit of unsorted elements
-      if (limit !== undefined) {
-        result = result.slice(0, limit)
-      }
-    }
-    return result
-  }
 
   updateGraphics() {
-    this.countDetectionClasses = this.countElements(this.frames.map(frame => frame.predictions.objects)
+    this.countDetectionClasses = countElements(this.frames.map(frame => frame.predictions[0].objects) // TODO: handle multiple pred
                                                               .flat()
-                                                              .filter(object => object.detection_scores > 0.6)
+                                                              .filter(object => object !== undefined && object.detection_scores > 0.6)
                                                               .map(object => object.detection_classes), true)
   }
 

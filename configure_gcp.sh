@@ -5,8 +5,9 @@ export REGION=
 export BUCKET_NAME=
 # AI Platform model name
 export MODEL=
-# AI Platform version name
-export VERSION=
+# Append your model versions like that "v1;v2;v3" or if you prefer "object_detection_v1;face_recognition_v1;action_classification_v57"
+# WARNING: BE SURE TO SET THE SAME NAME THAN YOUR MAPPING CLASS (E.g. VERSIONS_NAME="coco", "coco" in class entity ...)
+export VERSIONS_NAME=""
 export OAUTH2_CLIENT_ID=
 export OAUTH2_CLIENT_SECRET=
 export OAUTH2_CALLBACK=
@@ -46,14 +47,14 @@ GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" > .env
 echo -e "
 BUCKET_NAME: $BUCKET_NAME
 PROJECT_ID: $PROJECT_ID
-TOPIC_EXTRACTOR: topic_extractor
-REGION: $REGION " > cloud_functions/queue_input/.env.yaml
+REGION: $REGION
+VERSIONS_NAME: $VERSIONS_NAME " > cloud_functions/queue_input/.env.yaml
 
 echo -e "
 BUCKET_NAME: $BUCKET_NAME
 PROJECT_ID: $PROJECT_ID
 MODEL_NAME: $MODEL
-VERSION_NAME: $VERSION
+VERSIONS_NAME: $VERSIONS_NAME
 REGION: $REGION
 
 # Above which amount of frames we pick batch instead of online predictions

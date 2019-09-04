@@ -16,6 +16,9 @@ gsutil mb gs://$BUCKET_NAME/ \
 gsutil defacl set public-read gs://$BUCKET_NAME
 
 # AI Platform
+"""
+# PREFER TO USE THE COLAB NOTEBOOK ITS BETTER EXPLAINED
+# SEE USAGE.md / Deploy an object detection model to AI Platform
 gcloud -q ai-platform versions delete $VERSION --model $MODEL
 gcloud -q ai-platform models delete $MODEL
 gcloud ai-platform models create $MODEL \
@@ -28,6 +31,7 @@ gcloud ai-platform versions create $VERSION \
     --runtime-version 1.14 \
     --python-version 2.7 \
     --machine-type "mls1-c4-m2"
+"""
 
 # Functions
 gcloud functions deploy queue_input \
@@ -47,7 +51,9 @@ gcloud functions deploy predictor \
     --region $REGION \
     --env-vars-file cloud_functions/predictor/.env.yaml \
     --max-instances 1 \
-    --memory 2gb
+    --memory 2gb \
+    --timeout 240 #\
+    #--retry
 
 gcloud functions deploy batch_result \
     --source cloud_functions/batch_result \

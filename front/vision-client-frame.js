@@ -1,13 +1,13 @@
 /* globals customElements */
 
 import { LitElement, html, css } from 'lit-element'
-import { rainbow } from '../utils/miscFront'
+import { rainbow, uniq } from '../utils/miscFront'
 
 class VisionClientFrame extends LitElement {
   static get properties () {
     return {
       visionClientService: { type: Object },
-      objects: { type: Array }, // A frame can have multiple objects detected
+      predictions: { type: Object },
       url: { type: String },
       width: { type: Number },
       height: { type: Number },
@@ -18,12 +18,22 @@ class VisionClientFrame extends LitElement {
 
   constructor () {
     super()
-    this.objects = []
   }
 
   updated() {
-    if (this.objects === null || this.objects.constructor !== Array) return
-    this.renderPredictions()
+    if (this.predictions === undefined) return
+    // TODO: for each models we display the prediction
+    // so later we could image a filter, "i don't want to display this model predictions ...""
+    for (const model of uniq(this.classes.map(o => o['dataset']))) { // TODO: split render and prediction so we can see image before prediction
+      //this.predictions.map(p => console.log(p))
+      const filteredPredictions = this.predictions.filter(prediction => prediction.objects !== undefined && 
+                                                          prediction.objects.length > 0 && 
+                                                          prediction.model.includes(model)) 
+      if (filteredPredictions.length > 0) {
+        const filteredClasses = this.classes.filter(c => c.dataset.includes(filteredPredictions[0].model))
+        this.renderPredictions(filteredPredictions[0], filteredClasses)
+       } // wtf this that '0' ?
+    }
   }
 
   static get styles () {
@@ -74,7 +84,7 @@ class VisionClientFrame extends LitElement {
 
   // Based on https://github.com/eisbilen/TFJS-ObjectDetection/blob/06324d6a4673d2933695bd6644fa2a7bc5e81326/src/app/app.component.ts
   // See also https://github.com/tensorflow/models/blob/8c7a0e752f9605d284b2f08a346fdc1d51935d75/research/object_detection/utils/visualization_utils.py#L165
-  renderPredictions () {
+  renderPredictions (prediction, classes) {
     const canvas = this.shadowRoot.getElementById('myCanvas')
     const image = this.shadowRoot.getElementById('img')
     const ctx = canvas.getContext('2d')
@@ -108,17 +118,20 @@ class VisionClientFrame extends LitElement {
     ctx.font = font
     ctx.textBaseline = 'top'
     ctx.drawImage(image, 0, 0, this.width, this.height)
-
-    this.objects.forEach(async object => {
+    console.log(prediction, Object.keys(prediction))
+    prediction.objects.forEach(async object => {
       // Only display above 60% probability, if there is no object above 60%, then, show
-      if (this.objects.some(o => o['detection_scores'] > 0.6) && object['detection_scores'] < 0.6) {
+      // TODO: maybe optimize double loop everytime?
+      if (prediction.objects.some(o => o['detection_scores'] > 0.6) && object['detection_scores'] < 0.6) {
         return
       }
       let boxText
       const id = object['detection_classes']-1
-      const name =  this.classes[id] === undefined ? 'unknown' : this.classes[id].name
-      boxText = `${name} ${object['detection_scores'].toFixed(2)}`
-      //boxText = `${id}-${name} ${object['detection_scores'].toFixed(2)}`
+      
+      const name = classes.find(c => parseInt(c.index, 10) === parseInt(id, 10))
+      
+      //boxText = `${name === undefined ? 'unknown' : name.name} ${object['detection_scores'].toFixed(2)}`
+      boxText = `${id}-${name === undefined ? 'unknown' : name.name} ${object['detection_scores'].toFixed(2)}`
       
       const ymin = object['detection_boxes'][0] * this.height
       const xmin = object['detection_boxes'][1] * this.width

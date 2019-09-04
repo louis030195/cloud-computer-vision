@@ -14,19 +14,8 @@ from utils import get_no_response
 
 BUCKET_NAME = os.environ['BUCKET_NAME']
 PROJECT_ID = os.environ['PROJECT_ID']
-TOPIC_EXTRACTOR = os.environ['TOPIC_EXTRACTOR']
 REGION = os.environ['REGION']
-
-
-
-def create_topic(publisher, project_id, topic_name):
-    """Create a new Pub/Sub topic if it doesn't exist"""
-    topic_path = publisher.topic_path(project_id, topic_name)
-    try:
-        publisher.create_topic(topic_path)
-        print('This topic doesn\'t exist {}, created it'.format(t.name))
-    except: # Means already exist
-        pass
+VERSIONS_NAME = os.environ['VERSIONS_NAME']
 
 # TODO: https://cloud.google.com/functions/docs/bestpractices/networking
 def queue_input(request):
@@ -37,27 +26,6 @@ def queue_input(request):
     start_time = time.time()
     
     client = datastore.Client()
-
-    # Checking if there is any video that haven't been extracted
-    """
-    query_video = client.query(kind='Video')
-    query_video.add_filter('frames', '=', None)
-    videos_to_process = list(query_video.fetch())
-    for video in videos_to_process:
-        print('Video {} frames will be extracted'.format(video['imageUrl']))
-
-        publisher = pubsub_v1.PublisherClient()
-        # Checking if the pubsub topic exist, if it doesn't, create it
-        create_topic(publisher, PROJECT_ID, TOPIC_EXTRACTOR)
-
-        # Publish the video url to extract
-        topic_path = publisher.topic_path(PROJECT_ID, TOPIC_EXTRACTOR)
-        publisher.publish(
-            topic_path,
-            data=os.path.join(video['imageUrl']).encode('utf-8')  # data must be a bytestring.
-        )
-    """
-
 
     # Then get by key for this entity
     query_frame = client.query(kind='Frame')
@@ -82,15 +50,17 @@ def queue_input(request):
             print('Recursive call, {} frames left to queue'.format(len(frames_to_process) - index))
             return
 
-        
+        # TODO: check if version_name is an existing version ?
+        # Do we need to do smthing with model names ? or all models are gonna be put under version?
+        for version_name in VERSIONS_NAME.split(';'):
+            key_queue = client.key('Queue')
+            entity_queue = datastore.Entity(key=key_queue)
+            entity_queue['frame'] = frame.id
+            # We want this frame processed by version_name model
+            entity_queue['model'] = version_name
+            client.put(entity_queue)
 
-        key_queue = client.key('Queue')
-        entity_queue = datastore.Entity(key=key_queue)
-        #entity_queue['input'] = image_byte_dict
-        entity_queue['frame'] = frame.id
-        client.put(entity_queue)
-
-        published_messages += 1
+            published_messages += 1
 
         # Get the frame key in Datastore
         key_frame = client.key('Frame', frame.id)

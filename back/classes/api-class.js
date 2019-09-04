@@ -3,7 +3,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const model = require('./model-datastore-class')
-const { sendUploadToGCS, multer } = require('../../utils/images')
 
 const router = express.Router()
 
@@ -13,87 +12,35 @@ router.use(bodyParser.json())
 router.use(require('../../utils/oauth2').router)
 
 /**
- * GET /api/classs
+ * GET /api/class
  *
- * Retrieve a page of classs (up to ten at a time).
+ * Retrieve all datasets
  */
 router.get('/', (req, res, next) => {
-  model.list(10, req.query.pageToken, (err, entities, cursor) => {
+  model.list((err, entities) => {
     if (err) {
       next(err)
       return
     }
-    res.json({
-      items: entities,
-      nextPageToken: cursor
-    })
+    res.json(entities)
   })
 })
 
 /**
- * POST /api/classs
+ * GET /api/class/:dataset
  *
- * Create a new class.
+ * Retrieve a dataset mapping
  */
-router.post(
-  '/',
-  multer.single('file'),
-  sendUploadToGCS,
-  (req, res, next) => {
-    const data = { imageUrl: req.file.cloudStoragePublicUrl, predictions: null } // Predictions represents the object detected in the media
-    model.create(data, (err, entity) => {
-      if (err) {
-        next(err)
-        return
-      }
-      res.json(entity)
-    })
-  })
-
-/**
- * GET /api/classs/:id
- *
- * Retrieve a class.
- */
-router.get('/:class', (req, res, next) => {
-  model.read(req.params.class, (err, entity) => {
+router.get('/:dataset', (req, res, next) => {
+  model.listBy(req.params.dataset, (err, entities, cursor) => {
     if (err) {
       next(err)
       return
     }
-    res.json(entity)
+    res.json(entities)
   })
 })
 
-/**
- * PUT /api/classs/:id
- *
- * Update a class.
- */
-router.put('/:class', (req, res, next) => {
-  model.update(req.params.class, req.body, (err, entity) => {
-    if (err) {
-      next(err)
-      return
-    }
-    res.json(entity)
-  })
-})
-
-/**
- * DELETE /api/classs/:id
- *
- * Delete a class.
- */
-router.delete('/:class', (req, res, next) => {
-  model.delete(req.params.class, err => {
-    if (err) {
-      next(err)
-      return
-    }
-    res.status(200).send('OK')
-  })
-})
 
 /**
  * Errors on "/api/classs/*" routes.

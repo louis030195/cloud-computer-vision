@@ -65,8 +65,8 @@ export default class VisionClientService {
     return fetch(`${this.backendHost}/api/classes`).then(r => r.json())
   }
 
-  getClass (id) {
-    return fetch(`${this.backendHost}/api/classes/${id}`).then(r => r.json())
+  getClass (dataset) {
+    return fetch(`${this.backendHost}/api/classes/${dataset}`).then(r => r.json())
   }
 
   getBilling () {
@@ -90,5 +90,9 @@ export default class VisionClientService {
       },
       body: JSON.stringify(params)
     }).then(response => response.json())
+  }
+
+  getModelVersions (model) {
+    return fetch(`${this.backendHost}/api/misc/ai/models/${model}`).then(r => r.json())
   }
 }

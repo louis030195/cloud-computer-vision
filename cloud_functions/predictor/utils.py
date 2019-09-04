@@ -53,8 +53,10 @@ def chunks(array, length):
 
 def frame_to_input(frame):
     # Download
-    #img = download_Image(frame['imageUrl'], resize_width = WIDTH) # TODO: try again with rescale instead
-    img = download_Image(frame['imageUrl'], rescale_width = WIDTH)
+    img = download_Image(frame['imageUrl'], resize_width = WIDTH) 
+    # TODO: fix TensorArray map/TensorArray_1_0: Could not write to TensorArray index 2 because the value shape is [228,400,3]
+    #  which is incompatible with the TensorArray's inferred element shape: [300,400,3] (consider setting infer_shape=False)
+    #img = download_Image(frame['imageUrl'], rescale_width = WIDTH)
     
     # Failed to read image
     if img is None:
@@ -199,6 +201,21 @@ def online_predict(project, model, instances, version=None):
     if 'error' in response:
         raise RuntimeError(response['error']) # https://cloud.google.com/ml-engine/docs/troubleshooting#troubleshooting_prediction
     return response
+
+def any_job_running(project):
+    """Return True if there is a running job for this project
+    Args:
+        project (str): project where the Cloud ML Engine Model is deployed.
+    Returns:
+        Result[bool]: True if there is a running job for this project
+    """
+    service = googleapiclient.discovery.build('ml', 'v1')
+    name = 'projects/{}'.format(project)
+
+    response = service.projects().jobs().list(parent=name).execute()
+    if 'error' in response:
+        raise RuntimeError(response['error'])
+    return any(map(lambda x: 'RUNNING' in x['state'], response['jobs']))
 
 def get_no_response(url):
     """

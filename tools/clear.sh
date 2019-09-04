@@ -1,6 +1,7 @@
 # Clear gcp storages
 gsutil -m rm "gs://$BUCKET_NAME/*.png"
 gsutil -m rm "gs://$BUCKET_NAME/*.jpg"
+gsutil -m rm "gs://$BUCKET_NAME/*.jpeg"
 gsutil -m rm "gs://$BUCKET_NAME/*.mp4"
 
 # Clearing all inputs / outputs

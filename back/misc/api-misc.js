@@ -80,19 +80,19 @@ router.put('/functions/predictor', async (req, res, next) => {
  *
  * Get a list of ai platform models
  */
-router.put('/ai/models', async (req, res, next) => {
+router.get('/ai/models', async (req, res, next) => {
   const command = `gcloud ai-platform models list`
-  bash(command).then(() => res.status(200).send('OK'))
+  bash(command).then(entities => res.json(entities))
 })
 
 /**
- * GET /api/misc/ai/models/name
+ * GET /api/misc/ai/models/:name
  *
  * Get a list of a ai platform model's versions
  */
-router.put('/ai/models/:name', async (req, res, next) => {
-  const command = `gcloud ai-platform versions list --model=${req.body.model}`
-  bash(command).then(() => res.status(200).send('OK'))
+router.get('/ai/models/:name', async (req, res, next) => {
+  const command = `gcloud ai-platform versions list --model=${req.params.name}`
+  bash(command).then(entities => res.json(entities))
 })
 
 /**
