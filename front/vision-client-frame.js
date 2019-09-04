@@ -1,7 +1,7 @@
 /* globals customElements */
 
 import { LitElement, html, css } from 'lit-element'
-import { join } from 'path'
+import { rainbow } from '../utils/miscFront'
 
 class VisionClientFrame extends LitElement {
   static get properties () {
@@ -72,31 +72,6 @@ class VisionClientFrame extends LitElement {
     `
   }
 
-  rainbow(n, maxLength) {
-    n = n * 240 / maxLength;
-    return 'hsl(' + n + ',100%,50%)';
-  }
-
-  perc2color(perc, min, max) {
-      let base = (max - min);
-
-      if (base == 0) { perc = 100; }
-      else {
-          perc = (perc - min) / base * 100;
-      }
-      let r, g, b = 0;
-      if (perc < 50) {
-          r = 255;
-          g = Math.round(5.1 * perc);
-      }
-      else {
-          g = 255;
-          r = Math.round(510 - 5.10 * perc);
-      }
-      let h = r * 0x10000 + g * 0x100 + b * 0x1;
-      return '#' + ('000000' + h.toString(16)).slice(-6);
-  }
-
   // Based on https://github.com/eisbilen/TFJS-ObjectDetection/blob/06324d6a4673d2933695bd6644fa2a7bc5e81326/src/app/app.component.ts
   // See also https://github.com/tensorflow/models/blob/8c7a0e752f9605d284b2f08a346fdc1d51935d75/research/object_detection/utils/visualization_utils.py#L165
   renderPredictions () {
@@ -149,7 +124,7 @@ class VisionClientFrame extends LitElement {
       const xmin = object['detection_boxes'][1] * this.width
       const ymax = object['detection_boxes'][2] * this.height
       const xmax = object['detection_boxes'][3] * this.width
-      const boxColor = this.rainbow(object['detection_classes'], 100) // this.perc2color(object['detection_classes'], 0, 100)
+      const boxColor = rainbow(object['detection_classes'], 100) // this.perc2color(object['detection_classes'], 0, 100)
       // Draw the bounding box.
       ctx.strokeStyle = boxColor
       ctx.lineWidth = 2
@@ -185,10 +160,6 @@ class VisionClientFrame extends LitElement {
     canvas.addEventListener('click', (e) => {
       this.deleteAction()
     })
-  }
-
-  isIntersect(point, circle) {
-    return Math.sqrt((point.x-circle.x) ** 2 + (point.y - circle.y) ** 2) < circle.radius;
   }
 }
 

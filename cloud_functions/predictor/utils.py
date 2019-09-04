@@ -54,7 +54,7 @@ def chunks(array, length):
 def frame_to_input(frame):
     # Download
     #img = download_Image(frame['imageUrl'], resize_width = WIDTH) # TODO: try again with rescale instead
-    img = download_Image(frame['imageUrl'], rescale_width= = WIDTH)
+    img = download_Image(frame['imageUrl'], rescale_width = WIDTH)
     
     # Failed to read image
     if img is None:
@@ -118,6 +118,7 @@ def make_batch_job_body(project_name, bucket_name,
     # of a valid job name.
     clean_project_name = re.sub(r'\W+', '_', project_name)
 
+    # If the formatting is changed here, don't forget to adapt for results
     job_id = '{}_{}_{}'.format(clean_project_name, model_name,
                                timestamp)
 

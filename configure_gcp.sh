@@ -3,12 +3,16 @@
 export PROJECT_ID=
 export REGION=
 export BUCKET_NAME=
+# AI Platform model name
 export MODEL=
+# AI Platform version name
 export VERSION=
 export OAUTH2_CLIENT_ID=
 export OAUTH2_CLIENT_SECRET=
 export OAUTH2_CALLBACK=
 export GOOGLE_APPLICATION_CREDENTIALS=
+# API key to request cloud functions, see https://cloud.google.com/docs/authentication/api-keys
+export FUNCTIONS_KEY=
 
 echo -e "
 service: vision-client

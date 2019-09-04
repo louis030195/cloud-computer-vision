@@ -54,8 +54,8 @@ app.use('/api/objects', require('./back/objects/api-object'))
 // Classes
 app.use('/api/classes', require('./back/classes/api-class'))
 
-// Billing
-app.use('/api/billings', require('./back/billings/api-billing'))
+// Misc
+app.use('/api/misc', require('./back/misc/api-misc'))
 
 // Queue
 app.use('/api/queues', require('./back/queues/api-queue'))

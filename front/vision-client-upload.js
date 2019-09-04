@@ -36,8 +36,8 @@ class VisionClientUpload extends LitElement {
         <paper-spinner id="uploadLoading"></paper-spinner>
         
         <label for="file">
+        <label>${this.count > 0 ? `${this.count} files selected` : "Upload"}</label>
         <paper-icon-button icon="file-upload"></paper-icon-button>
-        <!-- Choose a file -->
         </label>
         <input id="file" class="inputfile" type="file" multiple accept="video/*,image/*" 
         data-multiple-caption="${this.count} files selected"
@@ -58,6 +58,18 @@ class VisionClientUpload extends LitElement {
         overflow: hidden;
         position: absolute;
         z-index: -1;
+      }
+
+      label {
+        -webkit-user-select: none; /* Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+/Edge */
+        user-select: none; /* Standard */
+      }
+      @media (max-width: 600px) {
+        label label {
+          display: none;
+        }
       }
     `
   }
@@ -87,6 +99,7 @@ class VisionClientUpload extends LitElement {
     }))
     .then(() => {
         this.shadowRoot.getElementById('uploadLoading').active = false
+        this.count = 0
         timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
         , 1000)
     })

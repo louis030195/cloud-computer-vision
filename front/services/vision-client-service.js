@@ -70,14 +70,25 @@ export default class VisionClientService {
   }
 
   getBilling () {
-    return fetch(`${this.backendHost}/api/billings`).then(r => r.json())
+    return fetch(`${this.backendHost}/api/misc/billings`).then(r => r.json())
   }
 
   getBilling (id) {
-    return fetch(`${this.backendHost}/api/billings/${id}`).then(r => r.json())
+    return fetch(`${this.backendHost}/api/misc/billings/${id}`).then(r => r.json())
   }
 
   getQueueLength () {
     return fetch(`${this.backendHost}/api/queues/length`).then(r => r.json())
+  }
+
+  updatePredictor (params) {
+    return fetch(`${this.backendHost}/api/misc/functions/predictor`, {
+      method: 'PUT',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(params)
+    }).then(response => response.json())
   }
 }

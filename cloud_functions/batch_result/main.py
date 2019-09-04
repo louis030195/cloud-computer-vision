@@ -70,7 +70,9 @@ def batch_result(event, context):
             keys_object.append(entity_object.id)
 
         # Put a list of objects detected in prediction row
-        entity_prediction.update({'objects': keys_object})
+        model_name = event['name'].split('/')[0].split('_')[2]
+        print('model name', model_name)
+        entity_prediction.update({'objects': keys_object, 'model': model_name})
 
         # Update the prediction in datastore
         datastore_client.put(entity_prediction)
