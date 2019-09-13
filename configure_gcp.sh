@@ -1,19 +1,17 @@
 #!/bin/bash
-# Complete env variable with your GCP config
-export PROJECT_ID=
-export REGION=
-export BUCKET_NAME=
-# AI Platform model name
-export MODEL=
-# Append your model versions like that "v1;v2;v3" or if you prefer "object_detection_v1;face_recognition_v1;action_classification_v57"
-# WARNING: BE SURE TO SET THE SAME NAME THAN YOUR MAPPING CLASS (E.g. VERSIONS_NAME="coco", "coco" in class entity ...)
-export VERSIONS_NAME=""
-export OAUTH2_CLIENT_ID=
-export OAUTH2_CLIENT_SECRET=
-export OAUTH2_CALLBACK=
-export GOOGLE_APPLICATION_CREDENTIALS=
-# API key to request cloud functions, see https://cloud.google.com/docs/authentication/api-keys
-export FUNCTIONS_KEY=
+export PROJECT_ID=wildlife-247309
+export SUBSCRIPTION_INPUT=subscription_input
+export BUCKET_NAME=bucket03y
+export REGION=europe-west1
+export MODEL=m1
+export VERSIONS_NAME="iwildcam"
+export OAUTH2_CLIENT_ID=607867440081-2v0agkktnu5v02cl912lmg46opibi76q.apps.googleusercontent.com
+export OAUTH2_CLIENT_SECRET=mqTfCGJVLjTp4ZJtFd0_4cvL
+export OAUTH2_CALLBACK=https://vision-client-dot-wildlife-247309.appspot.com/auth/google/callback
+export GOOGLE_APPLICATION_CREDENTIALS=./key_account/wildlife-d61cd2da89d3.json
+export PORT=8080
+export SECRET=keyboardcat
+export FUNCTIONS_KEY=AIzaSyCXoSKxvRSHW4_DXvWE1mh7Z3EgtwbYXxg
 
 echo -e "
 service: vision-client
@@ -30,7 +28,7 @@ env_variables:
   OAUTH2_CLIENT_SECRET: $OAUTH2_CLIENT_SECRET
   OAUTH2_CALLBACK: $OAUTH2_CALLBACK
   GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
-  
+
 automatic_scaling:
   min_num_instances: 1
   max_num_instances: 20" > app.yaml
@@ -65,17 +63,18 @@ TRESHOLD: '100'
 INPUT_TYPE: encoded_image_string_tensor
 
 WIDTH: '400'
-HEIGHT: '400' 
-BATCH_CHUNK: '100' " > cloud_functions/predictor/.env.yaml
+HEIGHT: '400'
+BATCH_CHUNK: '100'
+ONLINE_TIMEOUT: '200' " > cloud_functions/predictor/.env.yaml
 
 echo -e "
 BUCKET_NAME: $BUCKET_NAME " > cloud_functions/batch_result/.env.yaml
 
 echo -e "
 PROJECT_ID: $PROJECT_ID
-BUCKET_NAME: $BUCKET_NAME 
+BUCKET_NAME: $BUCKET_NAME
 REGION: $REGION " > cloud_functions/frame_extractor/.env.yaml
 
 echo -e "
-PROJECT_ID: $PROJECT_ID 
+PROJECT_ID: $PROJECT_ID
 REGION: $REGION " > cloud_functions/dont_take_all_my_money/.env.yaml
