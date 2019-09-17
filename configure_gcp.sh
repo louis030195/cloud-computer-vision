@@ -1,17 +1,19 @@
 #!/bin/bash
-export PROJECT_ID=wildlife-247309
-export SUBSCRIPTION_INPUT=subscription_input
-export BUCKET_NAME=bucket03y
-export REGION=europe-west1
-export MODEL=m1
-export VERSIONS_NAME="iwildcam"
-export OAUTH2_CLIENT_ID=607867440081-2v0agkktnu5v02cl912lmg46opibi76q.apps.googleusercontent.com
-export OAUTH2_CLIENT_SECRET=mqTfCGJVLjTp4ZJtFd0_4cvL
-export OAUTH2_CALLBACK=https://vision-client-dot-wildlife-247309.appspot.com/auth/google/callback
-export GOOGLE_APPLICATION_CREDENTIALS=./key_account/wildlife-d61cd2da89d3.json
-export PORT=8080
-export SECRET=keyboardcat
-export FUNCTIONS_KEY=AIzaSyCXoSKxvRSHW4_DXvWE1mh7Z3EgtwbYXxg
+# Complete env variable with your GCP config
+export PROJECT_ID=
+export REGION=
+export BUCKET_NAME=
+# AI Platform model name
+export MODEL=
+# Append your model versions like that "v1;v2;v3" or if you prefer "object_detection_v1;face_recognition_v1;action_classification_v57"
+# WARNING: BE SURE TO SET THE SAME NAME THAN YOUR MAPPING CLASS (E.g. VERSIONS_NAME="coco", "coco" in class entity ...)
+export VERSIONS_NAME=""
+export OAUTH2_CLIENT_ID=
+export OAUTH2_CLIENT_SECRET=
+export OAUTH2_CALLBACK=
+export GOOGLE_APPLICATION_CREDENTIALS=
+# API key to request cloud functions, see https://cloud.google.com/docs/authentication/api-keys
+export FUNCTIONS_KEY=
 
 echo -e "
 service: vision-client
