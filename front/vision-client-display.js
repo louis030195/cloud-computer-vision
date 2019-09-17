@@ -70,7 +70,7 @@ class VisionClientDisplay extends LitElement {
     this.filteredClass = []
     this.models = []
   }
-  
+
   static get styles () {
     return css`
 
@@ -136,11 +136,11 @@ class VisionClientDisplay extends LitElement {
       padding: 8px 16px;
       margin: 0 4px;
     }
-    
+
     .pagination {
       display: inline-block;
     }
-    
+
     .pagination a {
       color: black;
       float: left;
@@ -150,23 +150,23 @@ class VisionClientDisplay extends LitElement {
       border: 1px solid #ddd;
       margin: 0 4px;
     }
-    
+
     .pagination a.active {
       background-color: #4CAF50;
       color: white;
       border: 1px solid #4CAF50;
     }
-    
+
     .pagination a:hover:not(.active) {background-color: #ddd;}
 
     .queue {
-      display: inline-block; 
-      vertical-align: middle; 
+      display: inline-block;
+      vertical-align: middle;
       line-height: 200px;
-      text-align: center; 
+      text-align: center;
     }
     label {
-      -webkit-user-select: none; /* Safari */        
+      -webkit-user-select: none; /* Safari */
       -moz-user-select: none; /* Firefox */
       -ms-user-select: none; /* IE10+/Edge */
       user-select: none; /* Standard */
@@ -207,15 +207,6 @@ class VisionClientDisplay extends LitElement {
       this.refresh()
     }, 10000)
   }
-  
-  updated (changedProperties) {
-    changedProperties.forEach((oldValue, propName) => {
-      if (propName.includes('frames')) {
-        this.updateGraphics()
-      }
-    })
-
-  }
 
   render () { //TODO: https://stackoverflow.com/questions/19841859/full-page-drag-and-drop-files-website
     return html`
@@ -228,7 +219,7 @@ class VisionClientDisplay extends LitElement {
       <a href="/api/predictions"><paper-button raised>predictions</paper-button></a>
       <a href="/api/objects"><paper-button raised>objects</paper-button></a>
       <a href="/api/classes"><paper-button raised>classes</paper-button></a>
-      <paper-button raised class="indigo" 
+      <paper-button raised class="indigo"
       @click=${() => {
         timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
         , 1000)
@@ -238,25 +229,31 @@ class VisionClientDisplay extends LitElement {
       </paper-button>` : html``}
 
       ${this.renderPage()}
-      
+
       <!-- Statistics & vizualisation part -->
-      
-      <google-chart
-      id="gchart"
-      type="column"
-      options='{
-        "title": "Class occurences"
-      }'
-      cols='[{"label":"Class", "type":"string"}, {"label":"Occurences", "type":"number"}]'
-      @google-chart-select=${(e) => {
-        const chart = this.shadowRoot.getElementById("gchart")
-        this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).index, 10)]
-        this.pagination = 0
-      }}
-      rows='${JSON.stringify(this.countDetectionClasses.map(f => [f.element - 1 < this.classes.length ? this.classes[f.element - 1].name : 'unknown',
-                                                                  f.occurences]).slice(0, 10))}''>
-      </google-chart>
-      
+      ${this.classes !== undefined ?
+        Object.entries(this.countDetectionClasses).map((f, i) => {
+          console.log(f)
+          const classes = this.classes.filter(c => c.dataset.includes(f[0]))
+          const counts = this.countDetectionClasses[f[0]]
+          return html`
+          <google-chart
+          id="gchart"
+          type="column"
+          options='{
+            "title": "${f[0]} class occurences"
+          }'
+          cols='[{"label":"Class", "type":"string"}, {"label":"Occurences", "type":"number"}]'
+          @google-chart-select=${(e) => {
+            const chart = this.shadowRoot.getElementById("gchart")
+            this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).index, 10)]
+            this.pagination = 0
+          }}
+          rows='${JSON.stringify(counts.filter(f => f.element < classes.map(c => c.index).flat().reduce((a, b) => { return Math.max(a, b) }))
+                                                          .map(f => [classes.find(c => c.index === f.element).name,
+                                                                f.occurences]).slice(0, 10))}''>
+          </google-chart>
+      ` }) : ''}
       <!--
       <google-chart
       type="gauge"
@@ -276,14 +273,15 @@ class VisionClientDisplay extends LitElement {
           <paper-icon-button icon="undo"></paper-icon-button>
           </paper-button>
           <a @click="${this.previousPage}">&laquo;</a>
-          ${this.frames !== undefined ? 
-            new Array(Math.floor(this.frames.length / 10
-              /*.map(f => f.predictions)
+          ${this.frames !== undefined ?
+            new Array(Math.floor(this.frames
+              .map(f => f.predictions)
+              .flat()
               .filter(p => p.objects !== undefined && p.objects.length > 0) // Some predictions may have no objects
               .filter(p => p.objects
-              .some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)).length / 10*/))
+              .some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)).length / 10))
               .fill()
-              .slice(0, 3)
+              //.slice(0, 3)
               .map((f, i) =>
             html`<a class="${this.pagination === i + this.pagination ? `active` : ``}" @click="${this.goTo}">${i + this.pagination}</a>`
           ) : ''}
@@ -299,10 +297,10 @@ class VisionClientDisplay extends LitElement {
           .visionClientService=${this.visionClientService}
           .url=${v.imageUrl}
           </vision-client-video>`) : ''}
-        ${this.frames !== undefined ? 
+        ${this.frames !== undefined ?
           this.frames
                     //.filter(f => f.predictions.objects !== undefined && f.predictions.objects.length > 0) // Some predictions may have no objects
-                    //.filter(f => f.predictions.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10))
+                    .filter(f => f.predictions.some(p => p.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)))
                     .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
           html`
           <vision-client-frame
@@ -312,7 +310,7 @@ class VisionClientDisplay extends LitElement {
           .predictions=${f.predictions}
           .url=${f.imageUrl}
           .classes=${this.classes}
-          .deleteAction=${() => 
+          .deleteAction=${() =>
             {
               this.visionClientService.deleteFrame(f.id).then(() => this.refresh())
             }}
@@ -342,7 +340,7 @@ class VisionClientDisplay extends LitElement {
               this.shadowRoot.getElementById("side").open = true
 
               // TODO: destroy this
-              this.visionClientService.getModelVersions('m1').then(res => { 
+              this.visionClientService.getModelVersions('m1').then(res => {
                 let models = res.split('\n')
                 models.shift()
                 this.models = []
@@ -362,7 +360,7 @@ class VisionClientDisplay extends LitElement {
       ${this.models.map(m => { return html`<paper-checkbox>${m}</paper-checkbox>` })}
       <paper-button raised @click=${() => {
         //this.shadowRoot.getElementById("side").open = false
-        const params = { width: this.shadowRoot.getElementById('width').value, 
+        const params = { width: this.shadowRoot.getElementById('width').value,
                          height: this.shadowRoot.getElementById('height').value,
                          batch_chunk: this.shadowRoot.getElementById('batch_chunk').value,
                          treshold: this.shadowRoot.getElementById('treshold').value }
@@ -382,7 +380,7 @@ class VisionClientDisplay extends LitElement {
   }
 
   renderPage () {
-    
+
   }
 
   setIntervalAndExecute(fn, t) {
@@ -391,18 +389,20 @@ class VisionClientDisplay extends LitElement {
   }
 
   refresh() {
-    this.visionClientService.getFramesPredictionsObjects().then(frames => { 
+    this.visionClientService.getFramesPredictionsObjects().then(frames => {
       // Only update prop if number of frames changed or there is more predictions
       if (frames['items'].length !== this.frames.length ||
           frames['items'].filter(f => f.predictions !== null).length > this.frames.filter(f => f.predictions !== null).length) {
         this.frames = frames['items']
+
+        this.updateGraphics()
       }
     })
-    this.visionClientService.getVideos().then(videos => { 
+    this.visionClientService.getVideos().then(videos => {
       // Only update prop if number of videos changed or there is more predictions
-      if (videos['items'].length !== this.videos.length || 
+      if (videos['items'].length !== this.videos.length ||
           videos['items'].filter(f => f.predictions !== null).length > this.videos.filter(f => f.predictions !== null).length) {
-        this.videos = videos['items'] 
+        this.videos = videos['items']
       }
     })
     this.visionClientService.getQueueLength().then(queueLength => this.queueLength = queueLength)
@@ -417,13 +417,18 @@ class VisionClientDisplay extends LitElement {
     this.filteredClass = this.filteredClass.flat()
     this.pagination = 0
   }
-  
+
 
   updateGraphics() {
-    this.countDetectionClasses = countElements(this.frames.map(frame => frame.predictions[0].objects) // TODO: handle multiple pred
-                                                              .flat()
-                                                              .filter(object => object !== undefined && object.detection_scores > 0.6)
-                                                              .map(object => object.detection_classes), true)
+    for (const model of uniq(this.classes.map(o => o['dataset']))) {
+      this.countDetectionClasses[model] = countElements(this.frames.map(f => f.predictions)
+                                                          .flat()
+                                                          .filter(p => p.model.includes(model))
+                                                          .map(pp => pp.objects)
+                                                          .flat()
+                                                          .filter(o => o !== undefined && o.detection_scores > 0.6)
+                                                          .map(oo => oo.detection_classes), true)
+    }
   }
 
   goTo(e) {

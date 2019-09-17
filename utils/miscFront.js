@@ -44,7 +44,7 @@ function mode(arr) {
   */
 function countElements(arr, sortByOccurences = true, limit = undefined) {
   let a = [], b = [], prev
-  
+
   arr.sort();
   for ( let i = 0; i < arr.length; i++ ) {
       if ( arr[i] !== prev ) {
@@ -55,9 +55,9 @@ function countElements(arr, sortByOccurences = true, limit = undefined) {
       }
       prev = arr[i]
   }
-  
+
   let result = a.map((e, i) => { return { element: e, occurences: b[i] }})
-  
+
   if (sortByOccurences) {
     result.sort((a, b) => {
       return ((a.occurences > b.occurences) ? -1 : ((a.occurences == b.occurences) ? 0 : 1))

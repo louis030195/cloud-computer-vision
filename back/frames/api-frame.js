@@ -62,17 +62,15 @@ router.get('/predictions/objects', (req, res, next) => {
       return
     }
     const frames = entities.filter(f => f.predictions !== null && f.predictions !== 'processing')
-    
+
     for(let frame of frames) {
-      await Promise.all(frame.predictions.map(async p => {
+      frame.predictions = await Promise.all(frame.predictions.map(async p => {
         const predictionEntity = await readPrediction(p)
-        
-        frame.predictions.push(predictionEntity)
-        frame.predictions[frame.predictions.length - 1].objects = await Promise.all(predictionEntity.objects.map(o => readObject(o)))
+        predictionEntity.objects = await Promise.all(predictionEntity.objects.map(o => readObject(o)))
+        return predictionEntity
       }))
-      frame.predictions.shift() // IDK why we have to do this
     }
-    
+
     res.json({
       items: frames,
       nextPageToken: cursor
