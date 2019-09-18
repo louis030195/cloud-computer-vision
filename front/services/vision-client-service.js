@@ -13,6 +13,10 @@ export default class VisionClientService {
     return fetch(`${this.backendHost}/api/frames/predictions/objects`).then(r => r.json())
   }
 
+  resetPredictions () {
+    return fetch(`${this.backendHost}/api/frames/predictions/reset`).then(r => r.json())
+  }
+
   deleteFrame (id) {
     return fetch(`${this.backendHost}/api/frames/${id}`, {
       method: 'DELETE',

@@ -91,6 +91,20 @@ function list (limit, token, cb) {
   })
 }
 
+// Lists all frames in the Datastore.
+function listAll (cb) {
+  const q = ds
+    .createQuery([kind])
+
+  ds.runQuery(q, (err, entities, nextQuery) => {
+    if (err) {
+      cb(err)
+      return
+    }
+    cb(null, entities.map(fromDatastore))
+  })
+}
+
 // Similar to ``list``, but only lists the frames created by the specified
 // user.
 // [START listby]
@@ -167,5 +181,6 @@ module.exports = {
   update: update,
   delete: _delete,
   list: list,
+  listAll: listAll,
   listBy: listBy
 }

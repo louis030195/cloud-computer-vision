@@ -1,10 +1,7 @@
 # Development
 It is highly recommended to just use GitPod for development, there is less setup to do but you can also do locally
 
-You'll probably need these var env
-
-    export PORT=8080
-    export SECRET=keyboardcat
+You'll probably need the environment variable setup in configure_gcp.sh
 
 ## Local development
 - [Install NodeJS](https://www.google.com/search?ei=D3Q4XZGcM8OHjLsPs--n8AM&q=install+nodejs)
@@ -32,7 +29,6 @@ npm install
 - Split back / front
 - More logs
 - Datastore callbacks ([doc](https://cloud.google.com/appengine/docs/standard/java/datastore/callbacks#top_of_page))
-- Handle multiple models, choosing on front
 - Other tasks (segmentation, action classification, captioning ...)
 
 

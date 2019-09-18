@@ -22,6 +22,7 @@ router.use(require('../../utils/oauth2').router)
  */
 router.get('/', (req, res, next) => {
   model.list(100, req.query.pageToken, (err, entities, cursor) => {
+  //model.listAll((err, entities, cursor) => {
     if (err) {
       next(err)
       return
@@ -172,6 +173,37 @@ router.delete('/:frame', (req, res, next) => { // TODO: should delete prediction
          .then(res.status(200).send('OK'))
     })
   }
+})
+
+/**
+ * PUT /api/frames/predictions/reset
+ *
+ * Reset all predictions.
+ */
+router.get('/predictions/reset', (req, res, next) => {
+  model.listAll((err, entities) => {
+    if (err) {
+      next(err)
+      return
+    }
+    entities.forEach(async frame => {
+      const pred = await readPrediction(frame.predictions)
+      frame.predictions = null
+      model.update(frame.id, frame, async (err, entity) => {
+        if (err) {
+          next(err)
+          return
+        }
+        Promise.all(pred.objects.map(async o => {
+        await deleteObject(o)
+        }), await deletePrediction(pred.id))
+            .catch(() => {})
+            .then(res.status(200).send('OK'))
+      })
+    })
+  })
+
+
 })
 
 /**

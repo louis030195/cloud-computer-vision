@@ -12,7 +12,8 @@ class VisionClientFrame extends LitElement {
       width: { type: Number },
       height: { type: Number },
       classes: { type: Array },
-      deleteAction: { type: Function }
+      deleteAction: { type: Function },
+      scoreTreshold: { type: Number }
     }
   }
 
@@ -102,7 +103,7 @@ class VisionClientFrame extends LitElement {
         prediction.objects.forEach(async object => {
         // Only display above 60% probability, if there is no object above 60%, then, show
         // TODO: maybe optimize double loop everytime?
-        if (prediction.objects.some(o => o['detection_scores'] > 0.6) && object['detection_scores'] < 0.6) {
+        if (/*prediction.objects.some(o => o['detection_scores'] > this.scoreTreshold / 100) &&*/ object['detection_scores'] < this.scoreTreshold / 100) {
             return
         }
         let boxText

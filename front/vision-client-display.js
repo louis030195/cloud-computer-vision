@@ -19,6 +19,7 @@ import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js'
 import '@polymer/paper-input/paper-input.js'
 import '@polymer/paper-toast/paper-toast.js'
 import '@polymer/paper-checkbox/paper-checkbox.js'
+import '@polymer/paper-slider/paper-slider.js'
 
 import "side-drawer"
 
@@ -40,7 +41,9 @@ class VisionClientDisplay extends LitElement {
       queueLength: { type: Number},
       countDetectionClasses: { type: Array },
       filteredClass: { type: Array },
-      models: { type: Object }
+      models: { type: Object },
+      showNoPredictions: { type: Boolean }, // Whether to still show frames without predictions
+      scoreTreshold: { type: Number } // At which thresold we show boxes
     }
   }
 
@@ -69,6 +72,8 @@ class VisionClientDisplay extends LitElement {
     this.countDetectionClasses = []
     this.filteredClass = []
     this.models = []
+    this.showNoPredictions = true
+    this.scoreTreshold = 60
   }
 
   static get styles () {
@@ -98,6 +103,7 @@ class VisionClientDisplay extends LitElement {
     }
     #gchart {
       width: 40%;
+      display: inline-block;
     }
 
     .wrapper {
@@ -233,7 +239,6 @@ class VisionClientDisplay extends LitElement {
       <!-- Statistics & vizualisation part -->
       ${this.classes !== undefined ?
         Object.entries(this.countDetectionClasses).map((f, i) => {
-          console.log(f)
           const classes = this.classes.filter(c => c.dataset.includes(f[0]))
           const counts = this.countDetectionClasses[f[0]]
           return html`
@@ -300,7 +305,7 @@ class VisionClientDisplay extends LitElement {
         ${this.frames !== undefined ?
           this.frames
                     //.filter(f => f.predictions.objects !== undefined && f.predictions.objects.length > 0) // Some predictions may have no objects
-                    .filter(f => f.predictions.some(p => p.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)))
+                    .filter(f => this.showNoPredictions || f.predictions.some(p => p.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)))
                     .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
           html`
           <vision-client-frame
@@ -314,6 +319,7 @@ class VisionClientDisplay extends LitElement {
             {
               this.visionClientService.deleteFrame(f.id).then(() => this.refresh())
             }}
+          .scoreTreshold=${this.scoreTreshold}
           </vision-client-frame>`) : ''}
         </div>
       </div>
@@ -340,6 +346,7 @@ class VisionClientDisplay extends LitElement {
               this.shadowRoot.getElementById("side").open = true
 
               // TODO: destroy this
+              /*
               this.visionClientService.getModelVersions('m1').then(res => {
                 let models = res.split('\n')
                 models.shift()
@@ -347,12 +354,14 @@ class VisionClientDisplay extends LitElement {
                 for (const c of models) {
                   this.models.push(c.split(' ')[0])
                 }
-              })
+              })*/
             }
             }></paper-icon-button>
         </app-toolbar>
       </app-header>
       <side-drawer id="side">
+      <fieldset>
+      <legend>Cloud parameters</legend>
       <paper-input id="width" label="Width" value="400"></paper-input>
       <paper-input id="height" label="Height" value="400"></paper-input>
       <paper-input id="batch_chunk" label="Batch chunk" value="100"></paper-input>
@@ -374,7 +383,23 @@ class VisionClientDisplay extends LitElement {
       Save
       <paper-icon-button icon="settings"></paper-icon-button>
       </paper-button>
+      </fieldset>
       <paper-toast id="toastSave"></paper-toast>
+
+      <fieldset>
+        <legend>Interface parameters</legend>
+        <paper-slider
+          id="scoreTreshold"
+          @change=${() => this.scoreTreshold = this.shadowRoot.getElementById("scoreTreshold").value}
+          value="${this.scoreTreshold}"
+          max="100"
+          editable>
+        </paper-slider>
+        <paper-button raised class="indigo"
+        @click=${this.visionClientService.resetPredictions}>
+        Reset Predictions
+        </paper-button>
+      </fieldset>
       </side-drawer>
     `
   }
@@ -410,6 +435,7 @@ class VisionClientDisplay extends LitElement {
   }
 
   resetFilter() {
+    // TODO: unselect google chart
     this.filteredClass = []
     for (const model of uniq(this.classes.map(o => o['dataset']))) {
       this.filteredClass.push(this.classes.filter(dataset => dataset['dataset'].includes(model)).map(c => parseInt(c.index, 10)))
@@ -426,7 +452,7 @@ class VisionClientDisplay extends LitElement {
                                                           .filter(p => p.model.includes(model))
                                                           .map(pp => pp.objects)
                                                           .flat()
-                                                          .filter(o => o !== undefined && o.detection_scores > 0.6)
+                                                          .filter(o => o !== undefined && o.detection_scores > this.scoreTreshold / 100)
                                                           .map(oo => oo.detection_classes), true)
     }
   }
