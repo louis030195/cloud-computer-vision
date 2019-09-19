@@ -9,8 +9,6 @@ const router = express.Router()
 // Automatically parse request body as JSON
 router.use(bodyParser.json())
 
-router.use(require('../../utils/oauth2').router)
-
 /**
  * GET /api/class
  *

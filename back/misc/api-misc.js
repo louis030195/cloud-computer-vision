@@ -5,12 +5,17 @@ const bodyParser = require('body-parser')
 const { totalInvoice } = require('../../utils/billing')
 const { bash } = require('../../utils/miscBack')
 
+const oauth2 = require('../../utils/oauth2')
+
 const router = express.Router()
+
+// Expose login/logout URLs to templates.
+router.use(oauth2.template);
 
 // Automatically parse request body as JSON
 router.use(bodyParser.json())
 
-router.use(require('../../utils/oauth2').router)
+router.use(oauth2.router)
 
 /**
  * GET /api/misc/billings
@@ -47,7 +52,7 @@ router.get('/functions', async (req, res, next) => {
  *
  * Update predictor env vars
  */
-router.put('/functions/predictor', async (req, res, next) => {
+router.put('/functions/predictor', oauth2.required, async (req, res, next) => {
   const wantedProperties = ['width', 'height', 'batch_chunk', 'treshold']
   // TODO: improve this temporary thing
   if (wantedProperties.some(p => p === undefined) ||
@@ -61,7 +66,7 @@ router.put('/functions/predictor', async (req, res, next) => {
       req.body.treshold < 50) {
     return res.status(400).send({message: 'Incorrect body !'})
   }
-  
+
   const command = `gcloud functions deploy predictor \
   --source cloud_functions/predictor \
   --runtime python37 \

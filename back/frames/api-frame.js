@@ -7,20 +7,24 @@ const modelPrediction = require('../predictions/model-datastore-prediction')
 const modelObject = require('../objects/model-datastore-object')
 
 const { sendUploadToGCS, multer } = require('../../utils/images')
+const oauth2 = require('../../utils/oauth2')
 
 const router = express.Router()
+
+// Expose login/logout URLs to templates.
+router.use(oauth2.template);
 
 // Automatically parse request body as JSON
 router.use(bodyParser.json())
 
-router.use(require('../../utils/oauth2').router)
+router.use(oauth2.router)
 
 /**
  * GET /api/frames
  *
  * Retrieve a page of frames (up to ten at a time).
  */
-router.get('/', (req, res, next) => {
+router.get('/', oauth2.required, (req, res, next) => {
   model.list(100, req.query.pageToken, (err, entities, cursor) => {
   //model.listAll((err, entities, cursor) => {
     if (err) {
@@ -86,6 +90,7 @@ router.get('/predictions/objects', (req, res, next) => {
  */
 router.post(
   '/',
+  oauth2.required,
   multer.single('file'),
   sendUploadToGCS,
   (req, res, next) => {
@@ -119,7 +124,7 @@ router.get('/:frame', (req, res, next) => {
  *
  * Update a frame.
  */
-router.put('/:frame', (req, res, next) => {
+router.put('/:frame', oauth2.required, (req, res, next) => {
   model.update(req.params.frame, req.body, (err, entity) => {
     if (err) {
       next(err)
@@ -158,7 +163,7 @@ const deleteFrame = (id) => new Promise((resolve,reject) => model.delete(id, (er
  *
  * Delete a frame.
  */
-router.delete('/:frame', (req, res, next) => { // TODO: should delete predictions associated + objects
+router.delete('/:frame', oauth2.required, (req, res, next) => { // TODO: should delete predictions associated + objects
   if (req.params.frame !== null) {
     model.read(req.params.frame, async (err, entity) => {
       if (err) {
@@ -176,11 +181,11 @@ router.delete('/:frame', (req, res, next) => { // TODO: should delete prediction
 })
 
 /**
- * PUT /api/frames/predictions/reset
+ * POST /api/frames/predictions/reset
  *
  * Reset all predictions.
  */
-router.get('/predictions/reset', (req, res, next) => {
+router.post('/predictions/reset', oauth2.required, (req, res, next) => {
   model.listAll((err, entities) => {
     if (err) {
       next(err)

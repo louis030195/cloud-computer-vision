@@ -4,10 +4,17 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const model = require('./model-datastore-object')
 
+const oauth2 = require('../../utils/oauth2')
+
 const router = express.Router()
+
+// Expose login/logout URLs to templates.
+router.use(oauth2.template);
 
 // Automatically parse request body as JSON
 router.use(bodyParser.json())
+
+router.use(oauth2.router)
 
 /**
  * GET /api/objects
@@ -32,7 +39,7 @@ router.get('/', (req, res, next) => {
  *
  * Create a new object.
  */
-router.post('/', (req, res, next) => {
+router.post('/', oauth2.required, (req, res, next) => {
   model.create(req.body, (err, entity) => {
     if (err) {
       next(err)
@@ -62,7 +69,7 @@ router.get('/:object', (req, res, next) => {
  *
  * Update a object.
  */
-router.put('/:object', (req, res, next) => {
+router.put('/:object', oauth2.required, (req, res, next) => {
   model.update(req.params.object, req.body, (err, entity) => {
     if (err) {
       next(err)
@@ -77,7 +84,7 @@ router.put('/:object', (req, res, next) => {
  *
  * Delete a object.
  */
-router.delete('/:object', (req, res, next) => {
+router.delete('/:object', oauth2.required, (req, res, next) => {
   model.delete(req.params.object, err => {
     if (err) {
       next(err)

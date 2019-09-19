@@ -7,6 +7,6 @@ def get_no_response(url):
     # https://stackoverflow.com/questions/27021440/python-requests-dont-wait-for-request-to-finish
     """
     try:
-        requests.get(url, timeout = 1)
-    except requests.exceptions.ReadTimeout: 
+        requests.get(url, timeout = 2)
+    except requests.exceptions.ReadTimeout:
         pass

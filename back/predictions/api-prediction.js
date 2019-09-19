@@ -5,10 +5,17 @@ const bodyParser = require('body-parser')
 const model = require('./model-datastore-prediction')
 const modelObject = require('../objects/model-datastore-object')
 
+const oauth2 = require('../../utils/oauth2')
+
 const router = express.Router()
+
+// Expose login/logout URLs to templates.
+router.use(oauth2.template);
 
 // Automatically parse request body as JSON
 router.use(bodyParser.json())
+
+router.use(oauth2.router)
 
 /**
  * GET /api/predictions
@@ -33,7 +40,7 @@ router.get('/', (req, res, next) => {
  *
  * Create a new prediction.
  */
-router.post('/', (req, res, next) => {
+router.post('/', oauth2.required, (req, res, next) => {
   model.create(req.body, (err, entity) => {
     if (err) {
       next(err)
@@ -91,7 +98,7 @@ router.get('/:prediction/objects', (req, res, next) => {
  *
  * Update a prediction.
  */
-router.put('/:prediction', (req, res, next) => {
+router.put('/:prediction', oauth2.required, (req, res, next) => {
   model.update(req.params.prediction, req.body, (err, entity) => {
     if (err) {
       next(err)
@@ -106,7 +113,7 @@ router.put('/:prediction', (req, res, next) => {
  *
  * Delete a prediction.
  */
-router.delete('/:prediction', (req, res, next) => {
+router.delete('/:prediction', oauth2.required, (req, res, next) => {
   model.delete(req.params.prediction, err => {
     if (err) {
       next(err)

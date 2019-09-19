@@ -5,10 +5,17 @@ const bodyParser = require('body-parser')
 const model = require('./model-datastore-video')
 const { sendUploadToGCS, multer } = require('../../utils/images')
 
+const oauth2 = require('../../utils/oauth2')
+
 const router = express.Router()
+
+// Expose login/logout URLs to templates.
+router.use(oauth2.template);
 
 // Automatically parse request body as JSON
 router.use(bodyParser.json())
+
+router.use(oauth2.router)
 
 /**
  * GET /api/videos
@@ -35,6 +42,7 @@ router.get('/', (req, res, next) => {
  */
 router.post(
   '/',
+  oauth2.required,
   multer.single('file'),
   sendUploadToGCS,
   async (req, res, next) => {
@@ -68,7 +76,7 @@ router.get('/:video', (req, res, next) => {
  *
  * Update a video.
  */
-router.put('/:video', (req, res, next) => {
+router.put('/:video', oauth2.required, (req, res, next) => {
   model.update(req.params.video, req.body, (err, entity) => {
     if (err) {
       next(err)
@@ -83,7 +91,7 @@ router.put('/:video', (req, res, next) => {
  *
  * Delete a video.
  */
-router.delete('/:video', (req, res, next) => {
+router.delete('/:video', oauth2.required, (req, res, next) => {
   model.delete(req.params.video, err => {
     if (err) {
       next(err)
