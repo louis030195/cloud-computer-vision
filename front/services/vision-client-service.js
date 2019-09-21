@@ -96,7 +96,15 @@ export default class VisionClientService {
     }).then(response => response.json())
   }
 
-  getModelVersions (model) {
+  getModels () {
+    return fetch(`${this.backendHost}/api/misc/ai/models`).then(r => r.json())
+  }
+
+  getModel (model) {
     return fetch(`${this.backendHost}/api/misc/ai/models/${model}`).then(r => r.json())
+  }
+
+  getModelVersions (model) {
+    return fetch(`${this.backendHost}/api/misc/ai/models/${model}/versions`).then(r => r.json())
   }
 }

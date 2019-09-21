@@ -71,7 +71,7 @@ class VisionClientDisplay extends LitElement {
     this.countDetectionClasses = []
     this.filteredClass = []
     this.models = []
-    this.showNoPredictions = true
+    this.versions = []
     this.scoreTreshold = 60
   }
 
@@ -344,17 +344,17 @@ class VisionClientDisplay extends LitElement {
             <label>Settings</label>
             <paper-icon-button icon="settings" toggles @click=${() => {
               this.shadowRoot.getElementById("side").open = true
+              // TODO: maybe it shouldn't be called when opening settings
+              this.visionClientService.getModels().then(res => {
+                this.models = res.models.map(m => m.name.split('/').pop())
+                // TODO: { models : [ name: model1, versions: [ name: v1 ] ]}
+                this.models.forEach(async m => {
+                  await this.visionClientService.getModelVersions(m).then(res => {
+                    this.versions = res.versions.map(v => v.name.split('/').pop())
+                  }).then(() => console.log(this.versions))
+                })
+              })
 
-              // TODO: destroy this
-              /*
-              this.visionClientService.getModelVersions('m1').then(res => {
-                let models = res.split('\n')
-                models.shift()
-                this.models = []
-                for (const c of models) {
-                  this.models.push(c.split(' ')[0])
-                }
-              })*/
             }
             }></paper-icon-button>
         </app-toolbar>
@@ -366,7 +366,15 @@ class VisionClientDisplay extends LitElement {
       <paper-input id="height" label="Height" value="400"></paper-input>
       <paper-input id="batch_chunk" label="Batch chunk" value="100"></paper-input>
       <paper-input id="treshold" label="Treshold" value="100"></paper-input>
-      ${this.models.map(m => { return html`<paper-checkbox>${m}</paper-checkbox>` })}
+      <fieldset>
+        <legend>Models</legend>
+          ${this.models !== undefined ? this.models.map(m => html`<paper-checkbox>${m}</paper-checkbox>`) : ''}
+        <fieldset>
+          <legend>Versions</legend>
+          ${this.versions !== undefined ? this.versions.map(v => html`${v}`) : ''}
+        </fieldset>
+      </fieldset>
+      <!--
       <paper-button raised @click=${() => {
         //this.shadowRoot.getElementById("side").open = false
         const params = { width: this.shadowRoot.getElementById('width').value,
@@ -400,6 +408,7 @@ class VisionClientDisplay extends LitElement {
         Reset Predictions
         </paper-button>
       </fieldset>
+      -->
       </side-drawer>
     `
   }
