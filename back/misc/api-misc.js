@@ -4,7 +4,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const { totalInvoice } = require('../../utils/billing')
 const { bash } = require('../../utils/miscBack')
-
+const {google} = require('googleapis')
+const path = require('path')
 const oauth2 = require('../../utils/oauth2')
 
 const router = express.Router()
@@ -44,6 +45,7 @@ router.get('/billings/:month', async (req, res, next) => {
  * Retrieve a list of functions
  */
 router.get('/functions', async (req, res, next) => {
+  // TODO: Stop use dirty bash commands when googleapis exist
   bash('gcloud functions list').then(r => res.json(r))
 })
 
@@ -79,6 +81,25 @@ router.put('/functions/predictor', oauth2.required, async (req, res, next) => {
   bash(command).then(() => res.status(200).send('OK'))
 })
 
+async function mlAuth() {
+  const ml = google.ml({
+    version: 'v1',
+    projectId: process.env.PROJECT_ID,
+    keyFilename: path.join(__dirname, '..', '..', process.env.GOOGLE_APPLICATION_CREDENTIALS)
+  })
+  // This method looks for the GCLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS
+  // environment variables.
+  const auth = new google.auth.GoogleAuth({
+    // Scopes can be specified either as an array or as a single, space-delimited string.
+    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+  });
+  const authClient = await auth.getClient();
+
+  // obtain the current project Id
+  const projectId = await auth.getProjectId();
+
+  return { ml, authClient, projectId }
+}
 
 /**
  * GET /api/misc/ai/models
@@ -86,18 +107,49 @@ router.put('/functions/predictor', oauth2.required, async (req, res, next) => {
  * Get a list of ai platform models
  */
 router.get('/ai/models', async (req, res, next) => {
-  const command = `gcloud ai-platform models list`
-  bash(command).then(entities => res.json(entities))
+  const { ml, authClient, projectId } = await mlAuth()
+  let request = {
+    parent: `projects/${projectId}`,
+
+    // This is a "request-level" option
+    auth: authClient
+  }
+
+  await ml.projects.models.list(request).then(ok => res.json(ok.data)).catch(res.json)
 })
 
 /**
  * GET /api/misc/ai/models/:name
  *
- * Get a list of a ai platform model's versions
+ * Get a model of ai platform
  */
 router.get('/ai/models/:name', async (req, res, next) => {
-  const command = `gcloud ai-platform versions list --model=${req.params.name}`
-  bash(command).then(entities => res.json(entities))
+  const { ml, authClient, projectId } = await mlAuth()
+  let request = {
+    name: `projects/${projectId}/models/${req.params.name}`,
+
+    // This is a "request-level" option
+    auth: authClient
+  }
+
+  await ml.projects.models.get(request).then(ok => res.json(ok.data)).catch(res.json)
+})
+
+/**
+ * GET /api/misc/ai/models/:name/versions
+ *
+ * Get a list of a ai platform model's versions
+ */
+router.get('/ai/models/:name/versions', async (req, res, next) => {
+  const { ml, authClient, projectId } = await mlAuth()
+  let request = {
+    parent: `projects/${projectId}/models/${req.params.name}`,
+
+    // This is a "request-level" option
+    auth: authClient
+  }
+
+  await ml.projects.models.versions.list(request).then(ok => res.json(ok.data)).catch(res.json)
 })
 
 /**

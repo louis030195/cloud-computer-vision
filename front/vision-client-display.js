@@ -42,7 +42,6 @@ class VisionClientDisplay extends LitElement {
       countDetectionClasses: { type: Array },
       filteredClass: { type: Array },
       models: { type: Object },
-      showNoPredictions: { type: Boolean }, // Whether to still show frames without predictions
       scoreTreshold: { type: Number } // At which thresold we show boxes
     }
   }
@@ -253,6 +252,7 @@ class VisionClientDisplay extends LitElement {
             const chart = this.shadowRoot.getElementById("gchart")
             this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).index, 10)]
             this.pagination = 0
+            console.log(this.filteredClass)
           }}
           rows='${JSON.stringify(counts.filter(f => f.element < classes.map(c => c.index).flat().reduce((a, b) => { return Math.max(a, b) }))
                                                           .map(f => [classes.find(c => c.index === f.element).name,
@@ -305,7 +305,7 @@ class VisionClientDisplay extends LitElement {
         ${this.frames !== undefined ?
           this.frames
                     //.filter(f => f.predictions.objects !== undefined && f.predictions.objects.length > 0) // Some predictions may have no objects
-                    .filter(f => this.showNoPredictions || f.predictions.some(p => p.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)))
+                    .filter(f => f.predictions.some(p => p.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)))
                     .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
           html`
           <vision-client-frame
