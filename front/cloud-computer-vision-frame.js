@@ -3,10 +3,10 @@
 import { LitElement, html, css } from 'lit-element'
 import { rainbow, uniq } from '../utils/miscFront'
 
-class VisionClientFrame extends LitElement {
+class CloudComputerVisionFrame extends LitElement {
   static get properties () {
     return {
-      visionClientService: { type: Object },
+      service: { type: Object },
       predictions: { type: Object },
       url: { type: String },
       width: { type: Number },
@@ -141,4 +141,4 @@ class VisionClientFrame extends LitElement {
   }
 }
 
-customElements.define('vision-client-frame', VisionClientFrame)
+customElements.define('cloud-computer-vision-frame', CloudComputerVisionFrame)

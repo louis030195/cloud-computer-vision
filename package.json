@@ -1,5 +1,5 @@
 {
-  "name": "the-vision-client",
+  "name": "cloud-computer-vision",
   "description": "",
   "version": "1.0.0",
   "license": "Apache-2.0",
@@ -7,7 +7,7 @@
   "engines": {
     "node": ">=8"
   },
-  "repository": "https://github.com/louis030195/vision-client",
+  "repository": "https://github.com/louis030195/cloud-computer-vision",
   "main": "app.js",
   "cloud-repo-tools": {
     "requiresKeyFile": true,

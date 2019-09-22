@@ -1,16 +1,16 @@
 /* globals customElements */
 
 import { LitElement, html, css } from 'lit-element'
-import page from 'page'
-
-import './vision-client-upload'
-import './vision-client-frame'
-import './vision-client-video'
+import './cloud-computer-vision-upload'
+import './cloud-computer-vision-frame'
+import './cloud-computer-vision-video'
 import { timeoutPromise } from '../utils/promiseExtension'
 import { rainbow, uniq, countElements } from '../utils/miscFront'
-import VisionClientService from './services/vision-client-service'
+import Service from './services/service'
 
 import '@google-web-components/google-chart/google-chart.js'
+
+import '@polymer/app-layout/app-layout.js'
 import '@polymer/paper-spinner/paper-spinner.js'
 import '@polymer/paper-button/paper-button.js'
 import '@polymer/paper-icon-button/paper-icon-button.js'
@@ -24,15 +24,14 @@ import '@polymer/paper-slider/paper-slider.js'
 import "side-drawer"
 
 
-class VisionClientDisplay extends LitElement {
+class CloudComputerVisionDisplay extends LitElement {
   static get properties () {
     return {
-      page: { type: String },
       backendHost: { type: String },
-      visionClientService: { type: Object },
+      service: { type: Object },
       debug: { type: Boolean },
       billing: { type: String },
-      visionClientService: { type: Object },
+      service: { type: Object },
       videos: { type: Array },
       frames: { type: Array },
       predictions: { type: Array },
@@ -49,14 +48,15 @@ class VisionClientDisplay extends LitElement {
   constructor () {
     super()
 
-    this.page = 'display'
-
-    this.backendHost = window.location.origin
+    // You have to run cors-proxy-server (google it) if running front separately
+    this.backendHost = window.location.origin//'http://localhost:9090/http://localhost:8080'//window.location.origin
+    // TODO: if running back & front separately locally, check if reachable with fetch if yes use it ...
+    // fetch('http://localhost:8080/api/videos', { mode: 'no-cors' }).then(res => console.log(res))
     if(window.location.hostname === 'localhost' && window.location.port === '3000') {
-      this.backendHost = `http://localhost:9090/https://vision-client-dot-${process.env.PROJECT_ID}.appspot.com`
+      this.backendHost = `http://localhost:9090/https://cloud-computer-vision-dot-${process.env.PROJECT_ID}.appspot.com`
     }
 
-    this.visionClientService = new VisionClientService(this.backendHost)
+    this.service = new Service(this.backendHost)
     this.debug = false
     this.billing = ''
 
@@ -200,13 +200,9 @@ class VisionClientDisplay extends LitElement {
   }
 
   firstUpdated() {
-    this.visionClientService.getBilling(new Date().getMonth()).then(billing => this.billing = billing)
-    page('/', () => {
-      this.page = 'display'
-    })
-    page()
+    this.service.getBilling(new Date().getMonth()).then(billing => this.billing = billing)
 
-    this.visionClientService.getClasses().then(classes => { this.classes = classes })
+    this.service.getClasses().then(classes => { this.classes = classes })
                                          .then(() => this.resetFilter())
     this.setIntervalAndExecute(() => {
       this.refresh()
@@ -232,8 +228,6 @@ class VisionClientDisplay extends LitElement {
       }>
       Manual Predictions
       </paper-button>` : html``}
-
-      ${this.renderPage()}
 
       <!-- Statistics & vizualisation part -->
       ${this.classes !== undefined ?
@@ -296,31 +290,31 @@ class VisionClientDisplay extends LitElement {
       <div id="content">
         <div class="wrapper">
         ${this.videos !== undefined ? this.videos.slice(this.pagination * 10, this.pagination * 10 + 10).map((v, i) =>
-          html`<vision-client-video
+          html`<vision-video
           .width=${300}
           .height=${300}
-          .visionClientService=${this.visionClientService}
+          .service=${this.service}
           .url=${v.imageUrl}
-          </vision-client-video>`) : ''}
+          </vision-video>`) : ''}
         ${this.frames !== undefined ?
           this.frames
                     //.filter(f => f.predictions.objects !== undefined && f.predictions.objects.length > 0) // Some predictions may have no objects
                     .filter(f => f.predictions.some(p => p.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)))
                     .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
           html`
-          <vision-client-frame
+          <vision-frame
           .width=${300}
           .height=${300}
-          .visionClientService=${this.visionClientService}
+          .service=${this.service}
           .predictions=${f.predictions}
           .url=${f.imageUrl}
           .classes=${this.classes}
           .deleteAction=${() =>
             {
-              this.visionClientService.deleteFrame(f.id).then(() => this.refresh())
+              this.service.deleteFrame(f.id).then(() => this.refresh())
             }}
           .scoreTreshold=${this.scoreTreshold}
-          </vision-client-frame>`) : ''}
+          </vision-frame>`) : ''}
         </div>
       </div>
     `
@@ -337,19 +331,19 @@ class VisionClientDisplay extends LitElement {
               ${this.queueLength > 0 ? html`${this.queueLength} <label>elements being processed</label>` : ""}
             </div>
             <!-- File upload component -->
-            <vision-client-upload .visionClientService=${this.visionClientService}>
-            </vision-client-upload>
+            <cloud-computer-vision-upload .service=${this.service}>
+            </cloud-computer-vision-upload>
             <label>Refresh</label>
             <paper-icon-button icon="refresh" @click=${this.refresh}></paper-icon-button>
             <label>Settings</label>
             <paper-icon-button icon="settings" toggles @click=${() => {
               this.shadowRoot.getElementById("side").open = true
               // TODO: maybe it shouldn't be called when opening settings
-              this.visionClientService.getModels().then(res => {
+              this.service.getModels().then(res => {
                 this.models = res.models.map(m => m.name.split('/').pop())
                 // TODO: { models : [ name: model1, versions: [ name: v1 ] ]}
                 this.models.forEach(async m => {
-                  await this.visionClientService.getModelVersions(m).then(res => {
+                  await this.service.getModelVersions(m).then(res => {
                     this.versions = res.versions.map(v => v.name.split('/').pop())
                   }).then(() => console.log(this.versions))
                 })
@@ -360,61 +354,58 @@ class VisionClientDisplay extends LitElement {
         </app-toolbar>
       </app-header>
       <side-drawer id="side">
-      <fieldset>
-      <legend>Cloud parameters</legend>
-      <paper-input id="width" label="Width" value="400"></paper-input>
-      <paper-input id="height" label="Height" value="400"></paper-input>
-      <paper-input id="batch_chunk" label="Batch chunk" value="100"></paper-input>
-      <paper-input id="treshold" label="Treshold" value="100"></paper-input>
-      <fieldset>
-        <legend>Models</legend>
-          ${this.models !== undefined ? this.models.map(m => html`<paper-checkbox>${m}</paper-checkbox>`) : ''}
         <fieldset>
-          <legend>Versions</legend>
-          ${this.versions !== undefined ? this.versions.map(v => html`${v}`) : ''}
+          <legend>Cloud parameters</legend>
+          <paper-input id="width" label="Width" value="400"></paper-input>
+          <paper-input id="height" label="Height" value="400"></paper-input>
+          <paper-input id="batch_chunk" label="Batch chunk" value="100"></paper-input>
+          <paper-input id="treshold" label="Treshold" value="100"></paper-input>
+          <fieldset>
+            <legend>Models</legend>
+              ${this.models !== undefined ? this.models.map(m => html`<paper-checkbox>${m}</paper-checkbox>`) : ''}
+            <fieldset>
+              <legend>Versions</legend>
+              ${this.versions !== undefined ? this.versions.map(v => html`${v}`) : ''}
+            </fieldset>
+          </fieldset>
+          
+          <!-- TODO: disable this button while it's updating stuff -->
+          <paper-button raised @click=${() => {
+            //this.shadowRoot.getElementById("side").open = false
+            const params = { width: this.shadowRoot.getElementById('width').value,
+                            height: this.shadowRoot.getElementById('height').value,
+                            batch_chunk: this.shadowRoot.getElementById('batch_chunk').value,
+                            treshold: this.shadowRoot.getElementById('treshold').value }
+            const t = this.shadowRoot.getElementById('toastSave')
+            t.text = "Saved ! It may takes few minutes to update everything ..."
+            this.service.updatePredictor(params).then(res => {
+              if (res.message.includes('Incorrect')) t.text = res.message // TODO: fix this dirtiness
+            })
+            t.open()
+          }}>
+          Save
+          <paper-icon-button icon="settings"></paper-icon-button>
+          </paper-button>
         </fieldset>
-      </fieldset>
-      <!--
-      <paper-button raised @click=${() => {
-        //this.shadowRoot.getElementById("side").open = false
-        const params = { width: this.shadowRoot.getElementById('width').value,
-                         height: this.shadowRoot.getElementById('height').value,
-                         batch_chunk: this.shadowRoot.getElementById('batch_chunk').value,
-                         treshold: this.shadowRoot.getElementById('treshold').value }
-        const t = this.shadowRoot.getElementById('toastSave')
-        t.text = "Saved ! It may takes few minutes to update everything ..."
-        this.visionClientService.updatePredictor(params).then(res => {
-          if (res.message.includes('Incorrect')) t.text = res.message // TODO: fix this dirtiness
-        })
-        t.open()
-      }}>
-      Save
-      <paper-icon-button icon="settings"></paper-icon-button>
-      </paper-button>
-      </fieldset>
-      <paper-toast id="toastSave"></paper-toast>
+        <paper-toast id="toastSave"></paper-toast>
 
-      <fieldset>
-        <legend>Interface parameters</legend>
-        <paper-slider
-          id="scoreTreshold"
-          @change=${() => this.scoreTreshold = this.shadowRoot.getElementById("scoreTreshold").value}
-          value="${this.scoreTreshold}"
-          max="100"
-          editable>
-        </paper-slider>
-        <paper-button raised class="indigo"
-        @click=${this.visionClientService.resetPredictions}>
-        Reset Predictions
-        </paper-button>
-      </fieldset>
-      -->
+        <fieldset>
+          <legend>Interface parameters</legend>
+          <paper-slider
+            id="scoreTreshold"
+            @change=${() => this.scoreTreshold = this.shadowRoot.getElementById("scoreTreshold").value}
+            value="${this.scoreTreshold}"
+            max="100"
+            editable>
+          </paper-slider>
+          <paper-button raised class="indigo"
+          @click=${this.service.resetPredictions}>
+          Reset Predictions
+          </paper-button>
+        </fieldset>
+      
       </side-drawer>
     `
-  }
-
-  renderPage () {
-
   }
 
   setIntervalAndExecute(fn, t) {
@@ -423,7 +414,7 @@ class VisionClientDisplay extends LitElement {
   }
 
   refresh() {
-    this.visionClientService.getFramesPredictionsObjects().then(frames => {
+    this.service.getFramesPredictionsObjects().then(frames => {
       // Only update prop if number of frames changed or there is more predictions
       if (frames['items'].length !== this.frames.length ||
           frames['items'].filter(f => f.predictions !== null).length > this.frames.filter(f => f.predictions !== null).length) {
@@ -432,14 +423,14 @@ class VisionClientDisplay extends LitElement {
         this.updateGraphics()
       }
     })
-    this.visionClientService.getVideos().then(videos => {
+    this.service.getVideos().then(videos => {
       // Only update prop if number of videos changed or there is more predictions
       if (videos['items'].length !== this.videos.length ||
           videos['items'].filter(f => f.predictions !== null).length > this.videos.filter(f => f.predictions !== null).length) {
         this.videos = videos['items']
       }
     })
-    this.visionClientService.getQueueLength().then(queueLength => this.queueLength = queueLength)
+    this.service.getQueueLength().then(queueLength => this.queueLength = queueLength)
                                              .then(() => this.shadowRoot.getElementById('queueLoading').active = !(this.queueLength === 0))
   }
 
@@ -480,4 +471,4 @@ class VisionClientDisplay extends LitElement {
   }
 }
 
-customElements.define('vision-client-display', VisionClientDisplay)
+customElements.define('cloud-computer-vision-display', CloudComputerVisionDisplay)

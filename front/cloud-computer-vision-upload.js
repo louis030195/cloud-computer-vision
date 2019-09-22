@@ -5,10 +5,10 @@ import { timeoutPromise } from '../utils/promiseExtension'
 import '@vaadin/vaadin-upload/vaadin-upload.js'
 import '@polymer/paper-spinner/paper-spinner.js'
 
-class VisionClientUpload extends LitElement {
+class CloudComputerVisionUpload extends LitElement {
   static get properties () {
     return {
-      visionClientService: { type: Object },
+      service: { type: Object },
       videos: { type: Array },
       incorrectFiles: { type: Array },
       count: { type: Number }
@@ -89,9 +89,9 @@ class VisionClientUpload extends LitElement {
       // if file type could be detected
       if (file !== null) {
         if (accept.image.indexOf(file.type) > -1) {
-          await this.visionClientService.createFrame(file)
+          await this.service.createFrame(file)
         } else if (accept.video.indexOf(file.type) > -1) {
-          await this.visionClientService.createVideo(file)
+          await this.service.createVideo(file)
         } else {
           incorrectFiles.push(file.name)
         }
@@ -107,4 +107,4 @@ class VisionClientUpload extends LitElement {
   }
 }
 
-customElements.define('vision-client-upload', VisionClientUpload)
+customElements.define('cloud-computer-vision-upload', CloudComputerVisionUpload)

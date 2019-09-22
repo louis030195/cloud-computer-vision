@@ -19,6 +19,16 @@ router.use(bodyParser.json())
 router.use(oauth2.router)
 
 /**
+ * GET /api/misc/login
+ *
+ * Login
+ */
+router.get('/login', oauth2.required, async (req, res, next) => {
+
+})
+
+
+/**
  * GET /api/misc/billings
  *
  * Retrieve billings

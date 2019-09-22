@@ -16,7 +16,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=
 export FUNCTIONS_KEY=
 
 echo -e "
-service: vision-client
+service: cloud-computer-vision
 runtime: custom
 env: flex
 instance_class: F2

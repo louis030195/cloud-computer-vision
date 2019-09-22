@@ -1,5 +1,5 @@
 /* globals fetch, FormData */
-export default class VisionClientService {
+export default class Service {
   constructor (backendHost) {
     this.backendHost = backendHost
   }

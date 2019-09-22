@@ -35,7 +35,7 @@ const polyfills = [
 
 const commonConfig = merge([
   {
-    entry: __dirname + '/vision-client.js',
+    entry: __dirname + '/cloud-computer-vision.js',
     output: {
       path: OUTPUT_PATH,
       filename: '[name].[chunkhash:8].js'

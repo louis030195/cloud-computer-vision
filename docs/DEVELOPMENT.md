@@ -7,8 +7,8 @@ You'll probably need the environment variable setup in configure_gcp.sh
 - [Install NodeJS](https://www.google.com/search?ei=D3Q4XZGcM8OHjLsPs--n8AM&q=install+nodejs)
 
 ```
-git clone https://github.com/louis030195/vision-client.git
-cd vision-client
+git clone https://github.com/louis030195/cloud-computer-vision.git
+cd cloud-computer-vision
 npm install
 ```
 
@@ -23,6 +23,7 @@ npm install
 - Stuff with dates, count, stats ...
 - More vizualisation / stats / graphics, make graphics resizable by drag & drop
 - Modify environment variables of every component from interface
+- Improve video (timeline ...)
 
 ## MISC
 - Script that configure all the repo + gcp automatically (that is 100% working)
@@ -30,7 +31,7 @@ npm install
 - More logs
 - Datastore callbacks ([doc](https://cloud.google.com/appengine/docs/standard/java/datastore/callbacks#top_of_page))
 - Other tasks (segmentation, action classification, captioning ...)
-
+- Deploy in production
 
 # Design
 ## Color scheme

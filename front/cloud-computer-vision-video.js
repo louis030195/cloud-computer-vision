@@ -2,10 +2,10 @@
 
 import { LitElement, html, css } from 'lit-element'
 
-class VisionClientVideo extends LitElement {
+class VisionVideo extends LitElement {
   static get properties () {
     return {
-      visionClientService: { type: Object },
+      service: { type: Object },
       id: { type: Object }, // Id in datastore
       width: { type: Number },
       height: { type: Number },
@@ -46,4 +46,4 @@ class VisionClientVideo extends LitElement {
   }
 }
 
-customElements.define('vision-client-video', VisionClientVideo)
+customElements.define('vision-video', VisionVideo)
