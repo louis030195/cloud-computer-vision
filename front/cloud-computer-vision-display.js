@@ -290,19 +290,19 @@ class CloudComputerVisionDisplay extends LitElement {
       <div id="content">
         <div class="wrapper">
         ${this.videos !== undefined ? this.videos.slice(this.pagination * 10, this.pagination * 10 + 10).map((v, i) =>
-          html`<vision-video
+          html`<cloud-computer-vision-video
           .width=${300}
           .height=${300}
           .service=${this.service}
           .url=${v.imageUrl}
-          </vision-video>`) : ''}
+          </cloud-computer-vision-video>`) : ''}
         ${this.frames !== undefined ?
           this.frames
                     //.filter(f => f.predictions.objects !== undefined && f.predictions.objects.length > 0) // Some predictions may have no objects
                     .filter(f => f.predictions.some(p => p.objects.some(o => this.filteredClass.some(c => c === o['detection_classes']), 10)))
                     .slice(this.pagination * 10, this.pagination * 10 + 10).map((f, i) =>
           html`
-          <vision-frame
+          <cloud-computer-vision-frame
           .width=${300}
           .height=${300}
           .service=${this.service}
@@ -314,7 +314,7 @@ class CloudComputerVisionDisplay extends LitElement {
               this.service.deleteFrame(f.id).then(() => this.refresh())
             }}
           .scoreTreshold=${this.scoreTreshold}
-          </vision-frame>`) : ''}
+          </cloud-computer-vision-frame>`) : ''}
         </div>
       </div>
     `
