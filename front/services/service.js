@@ -107,4 +107,8 @@ export default class Service {
   getModelVersions (model) {
     return fetch(`${this.backendHost}/api/misc/ai/models/${model}/versions`).then(r => r.json())
   }
+
+  login () {
+    return fetch(`${this.backendHost}/api/misc/login`).then(r => r.json())
+  }
 }

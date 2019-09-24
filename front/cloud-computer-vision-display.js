@@ -246,7 +246,6 @@ class CloudComputerVisionDisplay extends LitElement {
             const chart = this.shadowRoot.getElementById("gchart")
             this.filteredClass = [parseInt(this.classes.find(c => c.name.includes(chart.rows[chart.selection[0].row][0])).index, 10)]
             this.pagination = 0
-            console.log(this.filteredClass)
           }}
           rows='${JSON.stringify(counts.filter(f => f.element < classes.map(c => c.index).flat().reduce((a, b) => { return Math.max(a, b) }))
                                                           .map(f => [classes.find(c => c.index === f.element).name,
@@ -328,8 +327,12 @@ class CloudComputerVisionDisplay extends LitElement {
             <!-- Display information about the current queue of processes content -->
             <div class="queue">
               <paper-spinner id="queueLoading"></paper-spinner>
-              ${this.queueLength > 0 ? html`${this.queueLength} <label>elements being processed</label>` : ""}
+              <!-- TODO: if only we could get the average time processing of the versions instead of this hardcoded ETA -->
+              <!-- I guess the solution is to compute it ourself ... -->
+              ${this.queueLength > 0 ? html`${this.queueLength} <label>elements being processed ETA ~${this.queueLength * 2.5}s</label>` : ""}
             </div>
+            <label>Login</label>
+            <paper-icon-button icon="lock-open" @click=${this.login}></paper-icon-button>
             <!-- File upload component -->
             <cloud-computer-vision-upload .service=${this.service}>
             </cloud-computer-vision-upload>
@@ -339,15 +342,30 @@ class CloudComputerVisionDisplay extends LitElement {
             <paper-icon-button icon="settings" toggles @click=${() => {
               this.shadowRoot.getElementById("side").open = true
               // TODO: maybe it shouldn't be called when opening settings
-              this.service.getModels().then(res => {
-                this.models = res.models.map(m => m.name.split('/').pop())
-                // TODO: { models : [ name: model1, versions: [ name: v1 ] ]}
-                this.models.forEach(async m => {
-                  await this.service.getModelVersions(m).then(res => {
-                    this.versions = res.versions.map(v => v.name.split('/').pop())
-                  }).then(() => console.log(this.versions))
-                })
-              })
+              /*
+              this.service.getModels().then(async res => {
+                this.models = await Promise.all(res.models.map(async m => { 
+                  await this.service.getModelVersions(m.name.split('/').pop()).then(versions => {
+                    console.log(versions)
+                    return { 
+                      'name': m.name.split('/').pop(),
+                      'versions': versions.versions.map(v => v.name.split('/').pop())
+                    } 
+                  })
+                }))
+              }).then(() => console.log(this.models))*/
+              this.service.getModels().then(async res => {
+                this.models = []
+                for (const model of res.models) {
+                  await this.service.getModelVersions(model.name.split('/').pop()).then(versions => {
+                    this.models.push({ 
+                      'name': model.name.split('/').pop(),
+                      'versions': versions.versions.map(v => v.name.split('/').pop())
+                    })
+                  })
+                }
+              }).then(() => console.log(this.models))
+
 
             }
             }></paper-icon-button>
@@ -362,11 +380,15 @@ class CloudComputerVisionDisplay extends LitElement {
           <paper-input id="treshold" label="Treshold" value="100"></paper-input>
           <fieldset>
             <legend>Models</legend>
-              ${this.models !== undefined ? this.models.map(m => html`<paper-checkbox>${m}</paper-checkbox>`) : ''}
-            <fieldset>
-              <legend>Versions</legend>
-              ${this.versions !== undefined ? this.versions.map(v => html`${v}`) : ''}
-            </fieldset>
+              ${this.models !== undefined ? this.models.map(m => {
+                html`
+                <paper-checkbox>${m.name}</paper-checkbox>
+                <fieldset>
+                  <legend>Versions</legend>
+                  ${m.versions !== undefined ? m.versions.map(v => html`<paper-checkbox>${v}</paper-checkbox>`) : ''}
+                </fiedlset>`
+              }) : ''}
+              
           </fieldset>
           
           <!-- TODO: disable this button while it's updating stuff -->
@@ -391,9 +413,14 @@ class CloudComputerVisionDisplay extends LitElement {
 
         <fieldset>
           <legend>Interface parameters</legend>
+          Score Treshold
           <paper-slider
             id="scoreTreshold"
-            @change=${() => this.scoreTreshold = this.shadowRoot.getElementById("scoreTreshold").value}
+            @change=${() => {
+              this.scoreTreshold = this.shadowRoot.getElementById("scoreTreshold").value
+              this.updateGraphics()
+            value="${this.scoreTreshold}"
+          }}
             value="${this.scoreTreshold}"
             max="100"
             editable>
@@ -411,6 +438,10 @@ class CloudComputerVisionDisplay extends LitElement {
   setIntervalAndExecute(fn, t) {
     fn();
     return(setInterval(fn, t));
+  }
+
+  login() {
+    this.service.login()
   }
 
   refresh() {

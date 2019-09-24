@@ -11,7 +11,8 @@ class CloudComputerVisionUpload extends LitElement {
       service: { type: Object },
       videos: { type: Array },
       incorrectFiles: { type: Array },
-      count: { type: Number }
+      count: { type: Number },
+      uploading: { type: Boolean }
     }
   }
 
@@ -36,7 +37,7 @@ class CloudComputerVisionUpload extends LitElement {
         <paper-spinner id="uploadLoading"></paper-spinner>
         
         <label for="file">
-        <label>${this.count > 0 ? `${this.count} files selected` : "Upload"}</label>
+        <label>${this.count > 0 && this.uploading ? `${this.count} files selected` : "Upload"}</label>
         <paper-icon-button icon="file-upload"></paper-icon-button>
         </label>
         <input id="file" class="inputfile" type="file" multiple accept="video/*,image/*" 
@@ -44,7 +45,7 @@ class CloudComputerVisionUpload extends LitElement {
         @change=${this.fileHandler}>
         
         </input>
-        
+        <paper-toast id="toastLogin"></paper-toast>        
       ${(this.incorrectFiles.length > 0) ? 'Incorrect files:' : ''} ${this.incorrectFiles}
     `
   }
@@ -75,7 +76,6 @@ class CloudComputerVisionUpload extends LitElement {
   }
 
   fileHandler(e) {
-    this.shadowRoot.getElementById('uploadLoading').active = true
     // object for allowed media types
     const accept = {
       video: ['video/mp4'],
@@ -95,13 +95,20 @@ class CloudComputerVisionUpload extends LitElement {
         } else {
           incorrectFiles.push(file.name)
         }
+        this.shadowRoot.getElementById('uploadLoading').active = true
+        this.uploading = true
       }
     }))
     .then(() => {
         this.shadowRoot.getElementById('uploadLoading').active = false
+        this.uploading = false
         this.count = 0
         timeoutPromise(fetch(`https://${process.env.REGION}-${process.env.PROJECT_ID}.cloudfunctions.net/queue_input`, { mode: 'no-cors' })
         , 1000)
+    }).catch(err => {
+      const t = this.shadowRoot.getElementById('toastLogin')
+      t.text = "You must login to upload files !" 
+      t.open()
     })
     this.incorrectFiles = incorrectFiles
   }

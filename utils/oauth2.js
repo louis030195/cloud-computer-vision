@@ -113,6 +113,7 @@ router.get(
 
   // Redirect back to the original page, if any
   (req, res) => {
+    console.log(JSON.stringify(passport))
     const redirect = req.session.oauth2return || '/'
     delete req.session.oauth2return
     res.redirect(redirect)
