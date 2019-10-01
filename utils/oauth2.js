@@ -6,6 +6,13 @@ const express = require('express')
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth20').Strategy
 
+const { Datastore } = require('@google-cloud/datastore')
+const path = require('path')
+const ds = new Datastore({
+  projectId: process.env.PROJECT_ID,
+  keyFilename: path.join(__dirname, '..', '..', process.env.GOOGLE_APPLICATION_CREDENTIALS)
+})
+
 function extractProfile (profile) {
   let imageUrl = ''
   if (profile.photos && profile.photos.length) {
@@ -113,7 +120,19 @@ router.get(
 
   // Redirect back to the original page, if any
   (req, res) => {
-    console.log(JSON.stringify(passport))
+    try {
+      let key
+      key = ds.key('User')
+    
+      const entity = {
+        key: key,
+        data: req.user.passport.displayName
+      }
+      ds.save(entity)
+    } catch (error) {
+      console.log(error)
+    }
+
     const redirect = req.session.oauth2return || '/'
     delete req.session.oauth2return
     res.redirect(redirect)

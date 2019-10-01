@@ -1,15 +1,20 @@
 # USAGE
+<!--
 Pick a model for example from tensorflow models zoo and set the url model_url=URL
 
-    sudo docker build --tag=cgad . --build-arg model_url=http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
+sudo docker build --tag=cgad . --build-arg model_url=http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
 
 Check that the graph contains input_keys and output_keys
+-->
 
     gcloud config set run/region $REGION
     gcloud pubsub topics create graph_changer
-    gcloud builds submit --tag gcr.io/$PROJECT_ID/graph_changer
+    gcloud builds submit --config graph_changer/config.yaml graph_changer
     gcloud beta run deploy graph-changer --image gcr.io/$PROJECT_ID/graph_changer --platform managed \
-     --region $REGION --no-allow-unauthenticated
+     --region $REGION --set-env-vars [PROJECT_ID=$PROJECT_ID,BUCKET_NAME=$BUCKET_NAME,REGION=$REGION] \
+     --memory 2Gi --allow-unauthenticated #--no-allow-unauthenticated
+
+<!--
     gcloud projects add-iam-policy-binding $PROJECT_ID \
      --member=serviceAccount:service-$PROJECT_NUMBER@gcp-sa-pubsub.iam.gserviceaccount.com \
      --role=roles/iam.serviceAccountTokenCreator
@@ -26,4 +31,5 @@ Check that the graph contains input_keys and output_keys
     # Replace SERVICE-URL with the URL
     gcloud beta pubsub subscriptions create graph_changer --topic graph_changer \
      --push-endpoint=SERVICE-URL/ \
-     --push-auth-service-account=cloud-run-pubsub-invoker@$PROJECT_ID.iam.gserviceaccount.com
+     --push-auth-service-account=cloud-run-pubsub-invoker@$PROJECT_ID.iam.gserviceaccount.com # TODO change this serviceacc doenst work
+-->

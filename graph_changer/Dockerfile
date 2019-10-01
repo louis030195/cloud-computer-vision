@@ -1,4 +1,3 @@
-# FROM python:3.7
 FROM tensorflow/tensorflow:nightly-devel
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -34,38 +33,7 @@ WORKDIR $APP_HOME/models/research
 RUN protoc object_detection/protos/*.proto --python_out=.
 ENV PYTHONPATH ":$APP_HOME/models/research/:$APP_HOME/models/research/slim/"
 
-# Install wget (to make life easier below) and editors (to allow people to edit
-# the files inside the container)
-RUN apt-get install -y wget
-
 WORKDIR $APP_HOME
-
-# # COCO SSD RESNET50 35 mAp
-#RUN wget -O model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03.tar.gz && \
-# expect a build-time variable
-ARG model_url
-# use the value to set the ENV var default
-ENV model_env_var=$model_url
-# RUN wget -O model.tar.gz http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz && \
-
-RUN wget -O model.tar.gz $model_env_var && \
-    mkdir model && \
-    tar xvf model.tar.gz -C model && \
-    mv model/*/* model
-
-
-# From tensorflow/models
-# Vector shape (-1, -1, -1, 3) = image_tensor
-# Base64 string shape (-1) = encoded_image_string_tensor
-# ENV INPUT_TYPE 'encoded_image_string_tensor'
-# RUN python /app/models/research/object_detection/export_inference_graph.py \
-#     --input_type $INPUT_TYPE \
-#     --pipeline_config_path $APP_HOME/model/pipeline.config \
-#     --trained_checkpoint_prefix $APP_HOME/model/model.ckpt \
-#     --inference_graph_path output_inference_graph.pb \
-#     --output_directory exported_model
-
-# RUN saved_model_cli show --dir exported_model/saved_model --all
 
 # Run the web service on container startup. Here we use the gunicorn
 # webserver, with one worker process and 8 threads.
