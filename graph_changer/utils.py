@@ -11,7 +11,7 @@ def create_version(project, bucket, model, version, regions, logging=False):
     except:
         # Model doesn't exist, let's create it
         response = service.projects().models().create(
-            parent=f'projects/{project}',
+            parent='projects/{}'.format(project),
             body={
               "name": model,
               "regions": regions,
@@ -22,10 +22,10 @@ def create_version(project, bucket, model, version, regions, logging=False):
             raise RuntimeError(response['error'])
     # Create the version
     response = service.projects().models().versions().create(
-        parent=f'projects/{project}/models/{model}',
+        parent='projects/{}/models/{}'.format(project, model),
         body={
             "name": version,
-            "deploymentUri": f'gs://{bucket}/{version}/saved_model',
+            "deploymentUri": 'gs://{}/{}/saved_model'.format(bucket, version),
             "runtimeVersion": '1.14',
             "machineType": 'mls1-c1-m2', # Default
             "framework": 'TENSORFLOW'

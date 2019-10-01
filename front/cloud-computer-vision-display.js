@@ -331,13 +331,13 @@ class CloudComputerVisionDisplay extends LitElement {
               <!-- I guess the solution is to compute it ourself ... -->
               ${this.queueLength > 0 ? html`${this.queueLength} <label>elements being processed ETA ~${this.queueLength * 2.5}s</label>` : ""}
             </div>
-            <label>Login</label>
-            <paper-icon-button icon="lock-open" @click=${this.login}></paper-icon-button>
             <!-- File upload component -->
             <cloud-computer-vision-upload .service=${this.service}>
             </cloud-computer-vision-upload>
             <label>Refresh</label>
             <paper-icon-button icon="refresh" @click=${this.refresh}></paper-icon-button>
+            <label>Login</label>
+            <paper-icon-button icon="lock-open" @click=${this.login}></paper-icon-button>
             <label>Settings</label>
             <paper-icon-button icon="settings" toggles @click=${() => {
               this.shadowRoot.getElementById("side").open = true

@@ -41,6 +41,7 @@ app = Flask(__name__)
 # [START run_pubsub_handler]
 @app.route('/', methods=['POST'])
 def index():
+  print('HAHA', PROJECT_ID)
   envelope = request.get_json()
   if not envelope:
     msg = 'no Pub/Sub message received'
@@ -61,8 +62,6 @@ def index():
   tar = tarfile.open('/model.tar.gz')
   tar.extractall('/model')
 
-  print('ok', os.listdir('/model'))
-
   model_dir = os.path.join('/model', os.listdir('/model')[0])
   print(model_dir)
   pipeline_config = pipeline_pb2.TrainEvalPipelineConfig()
@@ -73,13 +72,10 @@ def index():
         '/exported_model', input_shape=None,
         write_inference_graph=False)
   
-  print('Exported !')
-  print(os.listdir('/exported_model'))
-  
   bucket = storage_client.get_bucket(BUCKET_NAME)
-  blob = bucket.blob(data['name'])
+  blob = bucket.blob(os.path.join(data['name'], 'saved_model/saved_model.pb'))
 
-  blob.upload_from_filename('/exported_model')
+  blob.upload_from_filename('/exported_model/saved_model/saved_model.pb')
 
   # TODO: create AI platform model
   result = create_version(PROJECT_ID, BUCKET_NAME, 'm1', data['name'], [REGION], logging=True)

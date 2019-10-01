@@ -12,3 +12,6 @@
 # below:
 .git
 .gitignore
+
+test.py
+README.md

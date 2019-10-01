@@ -18,15 +18,14 @@ npm install
 - Endpoint /api/videos/predictions/objects ?
 
 ## FRONT
-- Reset / remake new predictions (new model ...)
 - Time / price estimator / simulator (before launching the task and after also) more user feedback
 - Stuff with dates, count, stats ...
-- More vizualisation / stats / graphics, make graphics resizable by drag & drop
-- Modify environment variables of every component from interface
+- More vizualisation / stats / graphics, make graphics resizable by drag & drop, co-occurences diagram
+- Modify environment variables of every component from interface (atm 60%)
 - Improve video (timeline ...)
 
 ## MISC
-- Script that configure all the repo + gcp automatically (that is 100% working)
+- Script that configure all the repo + gcp automatically (atm 60%)
 - Split back / front
 - More logs
 - Datastore callbacks ([doc](https://cloud.google.com/appengine/docs/standard/java/datastore/callbacks#top_of_page))

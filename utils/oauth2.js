@@ -126,7 +126,7 @@ router.get(
     
       const entity = {
         key: key,
-        data: req.user.passport.displayName
+        data: req.user
       }
       ds.save(entity)
     } catch (error) {

@@ -26,12 +26,19 @@ then follow following instructions (or check configure_gcp_and_deploy.sh but not
     gsutil defacl set public-read gs://$BUCKET_NAME
 
 # Deploy an object detection model to AI Platform
-- Pick a model from [tensorflow models](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
+1. Pick a model from [tensorflow models](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
 or somewhere else (AI Platform deployable format: SavedModel)
 
-- [Update the graph for batch key mapping and upload to GCS](https://colab.research.google.com/drive/1CZxrvowmuzwfJJoUBjgIjsIpb-1gh53h)
 
-- [Push class mapping to datastore](https://colab.research.google.com/drive/1JLJt4tUXNgeuq3Y9PPvZitBS2B7J7Ker)
+2. To deploy a model either 
+
+    - use Cloud Run service (recommended) (see [docs](../graph_changer/README.md))
+
+    Or use
+
+    - use [Google Colab](https://colab.research.google.com/drive/1CZxrvowmuzwfJJoUBjgIjsIpb-1gh53h)
+
+3. Then [push class mapping to datastore](https://colab.research.google.com/drive/1JLJt4tUXNgeuq3Y9PPvZitBS2B7J7Ker)
 
 <!--
 gcloud -q ai-platform versions delete $VERSION --model $MODEL

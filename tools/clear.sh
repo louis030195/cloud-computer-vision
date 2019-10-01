@@ -7,6 +7,10 @@ gsutil -m rm "gs://$BUCKET_NAME/*.mp4"
 # Clearing all inputs / outputs
 gsutil -m rm -rf "gs://$BUCKET_NAME/$PROJECT_ID"*
 
+# Clear graph_changer PubSub
+gcloud pubsub subscriptions seek "projects/$PROJECT_ID/subscriptions/graph_changer" \
+--time=2050-09-25T10:49:41.519Z
+
 # Clear functions
 #gcloud functions delete --region $REGION --project $PROJECT_ID queue_input
 #gcloud functions delete --region $REGION --project $PROJECT_ID predictor

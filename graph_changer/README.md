@@ -6,13 +6,22 @@ sudo docker build --tag=cgad . --build-arg model_url=http://download.tensorflow.
 
 Check that the graph contains input_keys and output_keys
 -->
+To deploy the Cloud Run service
 
     gcloud config set run/region $REGION
     gcloud pubsub topics create graph_changer
     gcloud builds submit --config graph_changer/config.yaml graph_changer
     gcloud beta run deploy graph-changer --image gcr.io/$PROJECT_ID/graph_changer --platform managed \
-     --region $REGION --set-env-vars [PROJECT_ID=$PROJECT_ID,BUCKET_NAME=$BUCKET_NAME,REGION=$REGION] \
-     --memory 2Gi --allow-unauthenticated #--no-allow-unauthenticated
+     --region $REGION --set-env-vars PROJECT_ID=$PROJECT_ID,BUCKET_NAME=$BUCKET_NAME,REGION=$REGION \
+     --memory 2Gi --concurrency 1 --allow-unauthenticated #--no-allow-unauthenticated
+
+Then for example, to deploy a ~30mb OD model
+
+    python graph_changer/deploy_test.py
+
+Then you can try its predictions
+
+    python graph_changer/predict_test.py
 
 <!--
     gcloud projects add-iam-policy-binding $PROJECT_ID \
