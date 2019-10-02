@@ -20,6 +20,8 @@ import '@polymer/paper-input/paper-input.js'
 import '@polymer/paper-toast/paper-toast.js'
 import '@polymer/paper-checkbox/paper-checkbox.js'
 import '@polymer/paper-slider/paper-slider.js'
+import '@polymer/paper-radio-button/paper-radio-button.js'
+import '@polymer/paper-radio-group/paper-radio-group.js'
 
 import "side-drawer"
 
@@ -41,7 +43,8 @@ class CloudComputerVisionDisplay extends LitElement {
       countDetectionClasses: { type: Array },
       filteredClass: { type: Array },
       models: { type: Object },
-      scoreTreshold: { type: Number } // At which thresold we show boxes
+      scoreTreshold: { type: Number }, // At which thresold we show boxes
+      newModel: { type: Boolean }
     }
   }
 
@@ -73,6 +76,7 @@ class CloudComputerVisionDisplay extends LitElement {
     this.models = []
     this.versions = []
     this.scoreTreshold = 60
+    this.newModel = false
   }
 
   static get styles () {
@@ -341,32 +345,6 @@ class CloudComputerVisionDisplay extends LitElement {
             <label>Settings</label>
             <paper-icon-button icon="settings" toggles @click=${() => {
               this.shadowRoot.getElementById("side").open = true
-              // TODO: maybe it shouldn't be called when opening settings
-              /*
-              this.service.getModels().then(async res => {
-                this.models = await Promise.all(res.models.map(async m => { 
-                  await this.service.getModelVersions(m.name.split('/').pop()).then(versions => {
-                    console.log(versions)
-                    return { 
-                      'name': m.name.split('/').pop(),
-                      'versions': versions.versions.map(v => v.name.split('/').pop())
-                    } 
-                  })
-                }))
-              }).then(() => console.log(this.models))*/
-              this.service.getModels().then(async res => {
-                this.models = []
-                for (const model of res.models) {
-                  await this.service.getModelVersions(model.name.split('/').pop()).then(versions => {
-                    this.models.push({ 
-                      'name': model.name.split('/').pop(),
-                      'versions': versions.versions.map(v => v.name.split('/').pop())
-                    })
-                  })
-                }
-              }).then(() => console.log(this.models))
-
-
             }
             }></paper-icon-button>
         </app-toolbar>
@@ -388,7 +366,37 @@ class CloudComputerVisionDisplay extends LitElement {
                   ${m.versions !== undefined ? m.versions.map(v => html`<paper-checkbox>${v}</paper-checkbox>`) : ''}
                 </fiedlset>`
               }) : ''}
-              
+              <paper-button raised @click=${() => {
+                this.newModel = !this.newModel
+              }}>
+              New model
+              <paper-icon-button icon="settings"></paper-icon-button>
+              </paper-button>
+              ${this.newModel ? 
+                html`
+                <div @keyup=${e => {
+                    if (e.keyCode === 13) {
+                      const url = this.shadowRoot.getElementById('newModelUrl')
+                      const inputType = this.shadowRoot.getElementById('inputType')
+                      const name = this.shadowRoot.getElementById('newModelName')
+                      if (name.validate() && url.validate()) {
+                        this.service.createVersion({url: url, inputType: inputType, name: name})
+                                    .then(() => console.log('created'))
+                      }
+                    }
+                  }}>
+                  <!-- TODO: pattern="[http]+"-->
+                  <paper-input id="newModelUrl" label="Url" placeholder="url" required  auto-validate></paper-input>
+                  <label id="labelInput">Input type</label>
+                  <paper-radio-group id="inputType" selected="a" aria-labelledby="labelInput" 
+                    @change=${e => this.shadowRoot.getElementById('inputType').value = e.target.value}>
+                    <paper-radio-button name="a" value="encoded_image_string_tensor">Base64 tensor</paper-radio-button>
+                    <paper-radio-button name="b" value="image_tensor">4-D tensor</paper-radio-button>
+                  </paper-radio-group>
+                  <paper-input id="newModelName" label="Name" placeholder="name" required maxlength="10">
+                  </paper-input>
+                </div>`
+              : ''}
           </fieldset>
           
           <!-- TODO: disable this button while it's updating stuff -->
@@ -463,6 +471,29 @@ class CloudComputerVisionDisplay extends LitElement {
     })
     this.service.getQueueLength().then(queueLength => this.queueLength = queueLength)
                                              .then(() => this.shadowRoot.getElementById('queueLoading').active = !(this.queueLength === 0))
+    this.service.getModels().then(async res => {
+      this.models = []
+      for (const model of res.models) {
+        await this.service.getModelVersions(model.name.split('/').pop()).then(versions => {
+          this.models.push({ 
+            'name': model.name.split('/').pop(),
+            'versions': versions.versions.map(v => v.name.split('/').pop())
+          })
+        })
+      }
+    }).then(() => console.log(this.models))
+        /*
+    this.service.getModels().then(async res => {
+      this.models = await Promise.all(res.models.map(async m => { 
+        await this.service.getModelVersions(m.name.split('/').pop()).then(versions => {
+          console.log(versions)
+          return { 
+            'name': m.name.split('/').pop(),
+            'versions': versions.versions.map(v => v.name.split('/').pop())
+          } 
+        })
+      }))
+    }).then(() => console.log(this.models))*/
   }
 
   resetFilter() {

@@ -108,6 +108,14 @@ export default class Service {
     return fetch(`${this.backendHost}/api/misc/ai/models/${model}/versions`).then(r => r.json())
   }
 
+  createVersion (params) {
+    return fetch(`${this.backendHost}/api/misc/ai/models/version`, {
+      method: 'POST',
+      cache: 'no-cache',
+      body: params
+    }).then(response => response.json())
+  }
+
   login () {
     return fetch(`${this.backendHost}/api/misc/login`).then(r => r.json())
   }

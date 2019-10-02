@@ -8,6 +8,14 @@ const {google} = require('googleapis')
 const path = require('path')
 const oauth2 = require('../../utils/oauth2')
 
+// Imports the Google Cloud client library
+const {PubSub} = require('@google-cloud/pubsub')
+// Instantiates a client
+const pubsub = new PubSub({
+  projectId: process.env.PROJECT_ID,
+  keyFilename: path.join(__dirname, '..', '..', process.env.GOOGLE_APPLICATION_CREDENTIALS)
+})
+
 const router = express.Router()
 
 // Expose login/logout URLs to templates.
@@ -161,6 +169,17 @@ router.get('/ai/models/:name/versions', async (req, res, next) => {
   }
 
   await ml.projects.models.versions.list(request).then(ok => res.json(ok.data)).catch(res.json)
+})
+
+/**
+ * POST /api/misc/ai/models/version
+ *
+ * Download, change graph and deploy a model from an url
+ */
+router.post('/ai/models/version', async (req, res, next) => {
+  const data = JSON.stringify({ url: req.body.url, input_type: req.body.inputType, name: req.body.name })
+  const dataBuffer = Buffer.from(data)
+  await pubsub.topic('graph_changer').publish(dataBuffer).then(id => res.json(id))
 })
 
 /**
